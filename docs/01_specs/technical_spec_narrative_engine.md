@@ -100,25 +100,32 @@ class RelationshipState(BaseNarrativeState):
 ## 5. Implementation Roadmap
 
 ### Phase 1: Foundation (The Engine)
-- [ ] Define `BaseNarrativeState` and `RelationshipState` models.
-- [ ] Implement `StateStore` (JSON file backend).
-- [ ] Implement `NarrativeEvolutionEngine` skeleton.
+- [x] Define `BaseNarrativeState` and `RelationshipState` models.
+- [x] Implement `StateStore` (JSON file backend).
+- [x] Implement `NarrativeEvolutionEngine` skeleton.
 
 ### Phase 2: The Pilot (Relationship Logic)
-- [ ] Implement `RelationshipPlugin`.
-- [ ] Design the System Prompt for incremental analysis.
-- [ ] Implement "Adaptive Triggering" heuristic (Keyword matching).
+- [x] Implement `RelationshipPlugin`.
+- [x] Design the System Prompt for incremental analysis.
+- [x] Implement "Adaptive Triggering" heuristic (Keyword matching).
 
 ### Phase 3: Integration
-- [ ] Connect to `analysis.py` API.
-- [ ] Verify with test cases (Ch 1-20).
+- [x] Connect to `analysis.py` API.
+- [x] Verify with test cases (Ch 1-20).
 
 ### Phase 4: UI (The Arc Drawer)
-- [ ] Update frontend to fetch and visualize `RelationshipState` (Stages, Metrics).
+- [x] Update frontend to fetch and visualize `RelationshipState` (Stages, Metrics).
+- [x] Fix Timeline Sorting and State Ambiguity (v4.2).
 
 ---
 
-## 6. Directory Structure Proposal
+## 6. Known Issues & Future Work
+- **Summary Quality**: The `summary_so_far` field currently tends to reflect only the *latest* chapter's events rather than a true cumulative summary of the entire relationship history. This needs prompt engineering optimization.
+- **Empty State filtering**: Backend now strictly filters out chapters with no interactions, but we need a better way to handle "internal psychological shifts" that happen without physical interaction.
+
+---
+
+## 7. Directory Structure Proposal
 ```
 backend/
   narrative_engine/

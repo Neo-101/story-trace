@@ -15,16 +15,66 @@ const emit = defineEmits<{
   (e: 'jump-to-chapter', chapterId: string): void;
 }>();
 
+// --- 1. State Processing & Localization ---
+
+const sortedEvents = computed(() => {
+    // Filter out events with no interactions unless they have narrative state
+    // Sort by chapter index
+    return [...props.events]
+        .filter(e => (e.interactions && e.interactions.length > 0) || e.narrative_state)
+        .sort((a, b) => a.chapter_index - b.chapter_index);
+});
+
 const currentState = computed<NarrativeState | undefined>(() => {
-    // Find the latest narrative state from events
-    // Since events are chronological, we look at the last event that has a state
-    for (let i = props.events.length - 1; i >= 0; i--) {
-        if (props.events[i].narrative_state) {
-            return props.events[i].narrative_state;
+    // Find the latest narrative state from sorted events
+    const events = sortedEvents.value;
+    for (let i = events.length - 1; i >= 0; i--) {
+        if (events[i].narrative_state) {
+            return events[i].narrative_state;
         }
     }
     return undefined;
 });
+
+// --- 2. Timeline Compression Logic ---
+
+interface TimelineBlock {
+    type: 'event' | 'gap';
+    data?: RelationshipTimelineEvent;
+    gapStart?: number;
+    gapEnd?: number;
+}
+
+const compressedTimeline = computed<TimelineBlock[]>(() => {
+    if (!sortedEvents.value.length) return [];
+    
+    const blocks: TimelineBlock[] = [];
+    let lastChapterIdx = -1;
+    
+    for (const event of sortedEvents.value) {
+        const currentIdx = event.chapter_index;
+        
+        // Check for gap
+        if (lastChapterIdx !== -1 && currentIdx > lastChapterIdx + 1) {
+            blocks.push({
+                type: 'gap',
+                gapStart: lastChapterIdx + 1,
+                gapEnd: currentIdx - 1
+            });
+        }
+        
+        blocks.push({
+            type: 'event',
+            data: event
+        });
+        
+        lastChapterIdx = currentIdx;
+    }
+    
+    return blocks;
+});
+
+// --- 3. UI Helpers ---
 
 const typeStyles: Record<string, { bg: string, text: string, border: string }> = {
   'Person': { bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-200' },
@@ -58,7 +108,7 @@ const getStyle = (type: string) => typeStyles[type] || typeStyles['Other'];
           </svg>
         </button>
 
-        <div class="text-xs font-mono text-gray-400 mb-6 uppercase tracking-wider">Relationship Arc</div>
+        <div class="text-xs font-mono text-gray-400 mb-6 uppercase tracking-wider">关系演化 (RELATIONSHIP ARC)</div>
 
         <div class="flex items-center justify-between gap-4">
             <!-- Source Entity (Left) -->
@@ -98,7 +148,7 @@ const getStyle = (type: string) => typeStyles[type] || typeStyles['Other'];
         <!-- Narrative State Insights (New) -->
         <div v-if="currentState" class="mt-6 pt-4 border-t border-gray-100">
              <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Current Dynamic</span>
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">最新关系状态 (LATEST STATE)</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-50 text-indigo-600 border border-indigo-100">
                     {{ currentState.dominant_archetype }}
                 </span>
@@ -107,15 +157,15 @@ const getStyle = (type: string) => typeStyles[type] || typeStyles['Other'];
              <!-- Metrics -->
              <div class="grid grid-cols-3 gap-2 mb-3">
                 <div class="bg-gray-50 rounded-lg p-2 text-center">
-                    <div class="text-[10px] text-gray-400 uppercase">Trust</div>
+                    <div class="text-[10px] text-gray-400 uppercase">信任 (Trust)</div>
                     <div class="text-sm font-bold text-gray-700">{{ currentState.trust_level }}%</div>
                 </div>
                 <div class="bg-gray-50 rounded-lg p-2 text-center">
-                    <div class="text-[10px] text-gray-400 uppercase">Romance</div>
+                    <div class="text-[10px] text-gray-400 uppercase">浪漫 (Romance)</div>
                     <div class="text-sm font-bold text-gray-700">{{ currentState.romance_level }}%</div>
                 </div>
                 <div class="bg-gray-50 rounded-lg p-2 text-center">
-                    <div class="text-[10px] text-gray-400 uppercase">Conflict</div>
+                    <div class="text-[10px] text-gray-400 uppercase">冲突 (Conflict)</div>
                     <div class="text-sm font-bold text-gray-700">{{ currentState.conflict_level }}%</div>
                 </div>
              </div>
@@ -133,75 +183,90 @@ const getStyle = (type: string) => typeStyles[type] || typeStyles['Other'];
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
         </div>
 
-        <div v-if="events.length > 0" class="space-y-8">
-            <div v-for="event in events" :key="event.chapter_id" class="relative mb-8">
-                 <!-- Chapter Header (Sticky) -->
-                 <div class="sticky top-0 z-20 flex justify-center mb-6">
-                    <div 
-                        class="bg-gray-50/95 backdrop-blur px-4 py-1.5 rounded-full border border-gray-200 shadow-sm flex items-center gap-2 cursor-pointer hover:bg-white hover:border-indigo-300 hover:shadow-md transition-all group"
-                        @click="emit('jump-to-chapter', event.chapter_id)"
-                    >
-                        <span class="w-2 h-2 rounded-full bg-indigo-500 group-hover:scale-110 transition-transform"></span>
-                        <span class="text-xs font-bold text-gray-600 group-hover:text-indigo-600">{{ event.chapter_title }}</span>
-                    </div>
-                 </div>
+        <div v-if="events.length > 0" class="space-y-0">
+            <template v-for="(block, index) in compressedTimeline" :key="index">
+                
+                <!-- GAP BLOCK -->
+                <div v-if="block.type === 'gap'" class="flex justify-center py-6 relative">
+                     <!-- Dotted Line -->
+                     <div class="absolute left-1/2 top-0 bottom-0 w-px border-l-2 border-dotted border-gray-300 -ml-px"></div>
+                     
+                     <div class="relative z-10 bg-gray-100 text-gray-400 text-[10px] font-medium px-3 py-1 rounded-full border border-gray-200 shadow-sm">
+                        第 {{ block.gapStart }} 章 - 第 {{ block.gapEnd }} 章 无互动
+                     </div>
+                </div>
 
-                 <!-- Timeline Grid -->
-                 <div class="grid grid-cols-[1fr_2rem_1fr] gap-x-0 relative">
-                    <!-- Central Line -->
-                    <div class="absolute left-1/2 top-0 bottom-0 w-px bg-gray-200 -ml-px"></div>
+                <!-- EVENT BLOCK -->
+                <div v-else-if="block.type === 'event' && block.data" class="relative mb-8 pt-4">
+                     <!-- Chapter Header (Sticky) -->
+                     <div class="sticky top-0 z-20 flex justify-center mb-6">
+                        <div 
+                            class="bg-gray-50/95 backdrop-blur px-4 py-1.5 rounded-full border border-gray-200 shadow-sm flex items-center gap-2 cursor-pointer hover:bg-white hover:border-indigo-300 hover:shadow-md transition-all group"
+                            @click="emit('jump-to-chapter', block.data.chapter_id)"
+                        >
+                            <span class="w-2 h-2 rounded-full bg-indigo-500 group-hover:scale-110 transition-transform"></span>
+                            <span class="text-xs font-bold text-gray-600 group-hover:text-indigo-600">{{ block.data.chapter_title }}</span>
+                        </div>
+                     </div>
 
-                    <template v-for="(interaction, idx) in event.interactions" :key="idx">
-                        <!-- Left Side (Forward: A -> B) -->
-                        <div class="py-2 pr-4 flex justify-end">
-                            <div v-if="interaction.direction === 'forward'" class="relative group max-w-[90%] w-full">
-                                <!-- Card Content -->
-                                <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm hover:shadow-md transition-all text-right relative">
-                                    <!-- Connector Dot -->
-                                    <div class="absolute top-1/2 -right-[1.35rem] w-2.5 h-2.5 rounded-full bg-indigo-500 border-2 border-white z-10 shadow-sm"></div>
-                                    <!-- Connector Line -->
-                                    <div class="absolute top-1/2 -right-4 w-4 h-px bg-indigo-200"></div>
+                     <!-- Timeline Grid -->
+                     <div class="grid grid-cols-[1fr_2rem_1fr] gap-x-0 relative">
+                        <!-- Central Line -->
+                        <div class="absolute left-1/2 top-0 bottom-0 w-px bg-gray-200 -ml-px"></div>
 
-                                    <div class="flex items-center justify-end gap-2 mb-1">
-                                         <div class="text-[10px] font-medium text-indigo-400 bg-indigo-50 px-1.5 py-0.5 rounded">
-                                            {{ sourceEntity?.name }} → {{ targetEntity?.name }}
+                        <template v-for="(interaction, idx) in block.data.interactions" :key="idx">
+                            <!-- Left Side (Forward: A -> B) -->
+                            <div class="py-2 pr-4 flex justify-end">
+                                <div v-if="interaction.direction === 'forward'" class="relative group max-w-[90%] w-full flex justify-end">
+                                    <!-- Card Content -->
+                                    <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm hover:shadow-md transition-all text-right relative w-full">
+                                        <!-- Connector Dot -->
+                                        <div class="absolute top-1/2 -right-[1.35rem] w-2.5 h-2.5 rounded-full bg-indigo-500 border-2 border-white z-10 shadow-sm"></div>
+                                        <!-- Connector Line -->
+                                        <div class="absolute top-1/2 -right-4 w-4 h-px bg-indigo-200"></div>
+
+                                        <div class="flex items-center justify-end gap-2 mb-1">
+                                             <div class="text-[10px] font-medium text-indigo-400 bg-indigo-50 px-1.5 py-0.5 rounded truncate max-w-[120px]">
+                                                {{ sourceEntity?.name }} → {{ targetEntity?.name }}
+                                            </div>
+                                            <div class="text-xs font-bold text-indigo-600 uppercase tracking-wider whitespace-nowrap">{{ interaction.relation }}</div>
                                         </div>
-                                        <div class="text-xs font-bold text-indigo-600 uppercase tracking-wider">{{ interaction.relation }}</div>
+                                        <p class="text-xs text-gray-700 leading-relaxed text-justify" style="text-align-last: right;">{{ interaction.description }}</p>
                                     </div>
-                                    <p class="text-xs text-gray-700 leading-relaxed">{{ interaction.description }}</p>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Center Axis (Empty for spacing) -->
-                        <div></div>
+                            <!-- Center Axis (Empty for spacing) -->
+                            <div></div>
 
-                        <!-- Right Side (Backward: B -> A) -->
-                        <div class="py-2 pl-4 flex justify-start">
-                            <div v-if="interaction.direction === 'backward'" class="relative group max-w-[90%] w-full">
-                                <!-- Card Content -->
-                                <div class="bg-white p-3 rounded-xl border border-rose-100 shadow-sm hover:shadow-md transition-all text-left relative">
-                                     <!-- Connector Dot -->
-                                    <div class="absolute top-1/2 -left-[1.35rem] w-2.5 h-2.5 rounded-full bg-rose-500 border-2 border-white z-10 shadow-sm"></div>
-                                    <!-- Connector Line -->
-                                    <div class="absolute top-1/2 -left-4 w-4 h-px bg-rose-200"></div>
+                            <!-- Right Side (Backward: B -> A) -->
+                            <div class="py-2 pl-4 flex justify-start">
+                                <div v-if="interaction.direction === 'backward'" class="relative group max-w-[90%] w-full flex justify-start">
+                                    <!-- Card Content -->
+                                    <div class="bg-white p-3 rounded-xl border border-rose-100 shadow-sm hover:shadow-md transition-all text-left relative w-full">
+                                         <!-- Connector Dot -->
+                                        <div class="absolute top-1/2 -left-[1.35rem] w-2.5 h-2.5 rounded-full bg-rose-500 border-2 border-white z-10 shadow-sm"></div>
+                                        <!-- Connector Line -->
+                                        <div class="absolute top-1/2 -left-4 w-4 h-px bg-rose-200"></div>
 
-                                    <div class="flex items-center justify-start gap-2 mb-1">
-                                        <div class="text-xs font-bold text-rose-600 uppercase tracking-wider">{{ interaction.relation }}</div>
-                                        <div class="text-[10px] font-medium text-rose-400 bg-rose-50 px-1.5 py-0.5 rounded">
-                                            {{ targetEntity?.name }} → {{ sourceEntity?.name }}
+                                        <div class="flex items-center justify-start gap-2 mb-1">
+                                            <div class="text-xs font-bold text-rose-600 uppercase tracking-wider whitespace-nowrap">{{ interaction.relation }}</div>
+                                            <div class="text-[10px] font-medium text-rose-400 bg-rose-50 px-1.5 py-0.5 rounded truncate max-w-[120px]">
+                                                {{ targetEntity?.name }} → {{ sourceEntity?.name }}
+                                            </div>
                                         </div>
+                                        <p class="text-xs text-gray-700 leading-relaxed text-justify">{{ interaction.description }}</p>
                                     </div>
-                                    <p class="text-xs text-gray-700 leading-relaxed">{{ interaction.description }}</p>
                                 </div>
                             </div>
-                        </div>
-                    </template>
-                 </div>
-            </div>
+                        </template>
+                     </div>
+                </div>
+
+            </template>
             
             <div class="text-center pt-8 pb-4">
-                <span class="text-xs text-gray-400 font-medium bg-gray-100 px-3 py-1 rounded-full">End of Timeline</span>
+                <span class="text-xs text-gray-400 font-medium bg-gray-100 px-3 py-1 rounded-full">时间轴结束 (End of Timeline)</span>
             </div>
         </div>
         
@@ -209,7 +274,7 @@ const getStyle = (type: string) => typeStyles[type] || typeStyles['Other'];
              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
              </svg>
-             <p>No interactions found between these entities.</p>
+             <p>未发现互动记录 (No interactions found)</p>
         </div>
     </div>
   </div>

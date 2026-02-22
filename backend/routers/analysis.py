@@ -274,6 +274,7 @@ def get_entity_timeline(novel_name: str, file_hash: str, timestamp: str, entity_
             
             timeline_events.append(TimelineEvent(
                 chapter_id=str(chapter.id),
+                chapter_index=chapter.chapter_index,
                 chapter_title=chapter.title,
                 content=content if content else ["本章提及该实体。"],
                 gap_before=max(0, gap)
@@ -374,15 +375,16 @@ def get_relationship_timeline(
             current_state = state_map[chapter.chapter_index]
         
         # If we have interactions OR a state update, we add an event
-        if interactions or (current_state and current_state.chapter_index == chapter.chapter_index):
-            
-            # Serialize state if it belongs to this chapter
-            if current_state and current_state.chapter_index == chapter.chapter_index:
-                # We dump the state to dict
-                narrative_state_dict = current_state.model_dump()
+        narrative_state_dict = None
+        if current_state and current_state.chapter_index == chapter.chapter_index:
+             # We dump the state to dict
+             narrative_state_dict = current_state.model_dump()
 
+        # Filter: Only show chapters with actual interactions or significant state changes.
+        if interactions or narrative_state_dict:
             timeline_events.append(RelationshipTimelineEvent(
                 chapter_id=str(chapter.id),
+                chapter_index=chapter.chapter_index,
                 chapter_title=chapter.title,
                 interactions=interactions,
                 narrative_state=narrative_state_dict

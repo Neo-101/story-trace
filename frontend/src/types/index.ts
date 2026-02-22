@@ -39,6 +39,7 @@ export interface Entity {
 
 export interface TimelineEvent {
   chapter_id: string;
+  chapter_index: number;
   chapter_title: string;
   content: string[];
   gap_before: number;
@@ -98,6 +99,7 @@ export interface NarrativeState {
 
 export interface RelationshipTimelineEvent {
   chapter_id: string;
+  chapter_index: number;
   chapter_title: string;
   interactions: RelationshipInteraction[];
   narrative_state?: NarrativeState;

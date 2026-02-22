@@ -6,8 +6,10 @@ import { API } from '@/api/client';
 import EntityChronicleDrawer from './EntityChronicleDrawer.vue';
 import RelationshipArcDrawer from './RelationshipArcDrawer.vue';
 import { useNovelStore } from '@/stores/novel';
+import { useJobStore } from '@/stores/jobStore';
 
 const store = useNovelStore();
+const jobStore = useJobStore();
 
 const container = ref<HTMLElement | null>(null);
 const network = shallowRef<Network | null>(null);
@@ -80,6 +82,54 @@ const typeLabels: Record<string, string> = {
   'Other': '其他'
 };
 
+// --- Async Analysis Logic ---
+
+const handleAnalyzeRelationship = async () => {
+    if (selectedNodes.value.length !== 2 || !store.currentNovel || !store.currentRun) return;
+    
+    // 1. Check Threshold (Warning)
+    // We need to check if they have enough interactions.
+    // We can use the graph data for this.
+    // Find the edge between them
+    const n1 = selectedNodes.value[0].name;
+    const n2 = selectedNodes.value[1].name;
+    
+    // This logic is a bit naive because we don't have the edge object readily available in `selectedNodes`
+    // But we can find it in store.graphData.edges
+    // Or we can just let the backend handle it?
+    // The design spec said "Frontend checks edge.weight".
+    // Let's find the edge.
+    const edge = store.graphData?.edges.find(e => 
+        (e.source === n1 && e.target === n2) || (e.source === n2 && e.target === n1)
+    );
+    
+    const weight = edge ? edge.weight : 0;
+    const coOccurrence = edge?.timeline?.length || 0; // Approximate co-occurrence by timeline events
+    
+    if (weight < 3 && coOccurrence < 3) {
+        if (!confirm(`这两位角色的互动较少 (权重 ${weight}, 事件 ${coOccurrence})。\n深度分析可能产生幻觉或内容稀疏。\n是否继续？`)) {
+            return;
+        }
+    }
+    
+    // 2. Submit Job
+    try {
+        const hash = store.currentNovel.hashes[0];
+        await jobStore.submitRelationshipJob({
+            novel_name: store.currentNovel.name,
+            file_hash: hash,
+            source: n1,
+            target: n2,
+            force: true
+        });
+        
+        // Deselect or just notify?
+        // The JobStatusWidget will appear.
+    } catch (e) {
+        alert("Failed to start analysis: " + e);
+    }
+};
+
 const openRelationshipDrawer = async () => {
     if (selectedNodes.value.length !== 2 || !store.currentNovel || !store.currentRun) return;
     
@@ -99,6 +149,35 @@ const openRelationshipDrawer = async () => {
         console.error("Failed to fetch relationship timeline:", e);
     } finally {
         isRelationshipLoading.value = false;
+    }
+};
+
+// Listen for global event to open drawer after analysis
+onMounted(() => {
+    window.addEventListener('open-relationship-result', handleAnalysisResult as EventListener);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('open-relationship-result', handleAnalysisResult as EventListener);
+});
+
+const handleAnalysisResult = (e: CustomEvent) => {
+    const result = e.detail;
+    // result contains { pair_id: "A_B", ... }
+    // We need to parse pair_id to find source/target names?
+    // Or simpler: Just check if the currently selected nodes match the result?
+    // If user changed selection, we might not want to open drawer blindly.
+    // But for better UX, we should probably parse the pair_id and set selectedNodes.
+    
+    // For now, let's just trigger the drawer refresh if the selected nodes match.
+    // Or if the user clicks "View Result", we assume they want to see THAT result.
+    // So we should ideally open the drawer for the entities involved in the job.
+    // The job result has `pair_id`.
+    
+    // Let's assume we just open the drawer for the current selection for now
+    // as that's the most common flow (User waits).
+    if (selectedNodes.value.length === 2) {
+         openRelationshipDrawer();
     }
 };
 
@@ -649,6 +728,17 @@ const displayDescription = computed(() => {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
             View Arc
+        </button>
+        
+        <button 
+            @click="handleAnalyzeRelationship"
+            class="py-2 px-4 bg-white hover:bg-gray-50 text-indigo-600 border border-indigo-200 hover:border-indigo-300 text-sm font-medium rounded-lg shadow-sm transition-colors flex items-center gap-2"
+            title="AI Analyze"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+            Analyze
         </button>
         
         <button 

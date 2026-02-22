@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routers import novels, analysis
+from backend.routers import novels, analysis, jobs
 
 app = FastAPI(title="StoryTrace API")
 
@@ -17,6 +17,7 @@ app.add_middleware(
 # Include Routers
 app.include_router(novels.router)
 app.include_router(analysis.router)
+app.include_router(jobs.router)
 
 @app.get("/")
 async def index():

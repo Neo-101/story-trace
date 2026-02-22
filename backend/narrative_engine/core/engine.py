@@ -22,7 +22,8 @@ class NarrativeEvolutionEngine:
         entity_id: str,
         target_chapter_index: int,
         new_events: List[Dict[str, Any]],
-        llm_client: Any = None # Optional for now, will be used later
+        llm_client: Any = None,
+        progress_callback: Callable[[int, str], None] = None
     ) -> BaseNarrativeState:
         """
         Main Loop:
@@ -45,24 +46,61 @@ class NarrativeEvolutionEngine:
             model_class=plugin.state_model
         )
 
+        # 1.5. Check if CURRENT State already exists (Cache Hit)
+        # If we already have a state for target_chapter_index, we can skip analysis!
+        # This is crucial for re-running the job on the same pair.
+        current_state = self.store.get_state_at_chapter(
+            novel_hash,
+            plugin_type,
+            entity_id,
+            target_chapter_index,
+            plugin.state_model
+        )
+        
+        if current_state:
+            # Cache Hit!
+            if progress_callback:
+                progress_callback(100, "Cache Hit (Skipping LLM)")
+            return current_state
+
         # If no history, initialize blank state
         if not prev_state:
-            prev_state = plugin.get_initial_state(entity_id)
-            # If initial state, we might assume chapter_index=0
-            # But the new state will be at target_chapter_index
+            if hasattr(plugin, 'get_initial_state'):
+                prev_state = plugin.get_initial_state(entity_id)
+            else:
+                # Fallback or Error?
+                # For now, let's assume all plugins MUST implement this or we fail gracefully
+                print(f"[Engine] No previous state and no get_initial_state for {entity_id}")
+                return None
 
         # 2. Check Trigger (Adaptive Logic)
-        should_trigger = plugin.check_trigger(prev_state, new_events)
+        # Note: prev_state might be None if it's the very first chapter.
+        should_trigger = False
+        
+        # If we have an LLM client, we check if we should trigger
+        if llm_client:
+            if progress_callback:
+                progress_callback(10, "Checking interaction density...")
+            should_trigger = plugin.check_trigger(prev_state, new_events)
 
         new_state = None
 
         if should_trigger and llm_client:
             # 3. LLM Path
+            if progress_callback:
+                progress_callback(30, "Generating LLM prompt...")
+                
             prompt = plugin.generate_prompt(prev_state, new_events)
             
             try:
+                if progress_callback:
+                    progress_callback(50, "Waiting for LLM response...")
+                    
                 # Expecting llm_client to have a .generate(prompt) method
                 response_str = llm_client.generate(prompt)
+                
+                if progress_callback:
+                    progress_callback(80, "Parsing response...")
                 
                 # Parse response
                 new_state = plugin.parse_response(response_str, prev_state)
@@ -70,21 +108,27 @@ class NarrativeEvolutionEngine:
             except Exception as e:
                 print(f"[Engine] LLM Failed: {e}")
                 should_trigger = False # Fallback to clone
+                if progress_callback:
+                    progress_callback(50, f"LLM Failed, falling back to clone. Error: {str(e)}")
 
         if not should_trigger or not new_state:
             # 4. Fast Path (Clone)
-            # We simply extend the previous state to the new timestamp.
-            # We must create a NEW instance, not mutate the old one.
-            new_state = prev_state.model_copy()
-            new_state.chapter_index = target_chapter_index
-            new_state.updated_at = "now" # In real code, use datetime
-            # Note: We might want to append "No significant events" to summary?
-            # For now, keep it clean.
+            # If no previous state, we can't clone. We must initialize.
+            if prev_state:
+                new_state = prev_state.model_copy()
+                new_state.updated_at = "now"
+            else:
+                # First chapter, no trigger? Then no state.
+                # Actually, if it's the first chapter and no interaction, we don't need a state.
+                return None
 
         # 5. Save & Return
         if new_state:
             # Ensure correct index
             new_state.chapter_index = target_chapter_index
-            self.store.save_state(novel_hash, plugin_type, new_state)
+            self.store.save_state(novel_hash, plugin_type, entity_id, new_state)
+            
+            if progress_callback:
+                progress_callback(100, "State saved.")
             
         return new_state

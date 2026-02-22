@@ -23,12 +23,12 @@ class StateStore:
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def save_state(self, novel_hash: str, plugin_type: str, state: BaseNarrativeState):
+    def save_state(self, novel_hash: str, plugin_type: str, entity_id: str, state: BaseNarrativeState):
         """
         Saves a state snapshot to a JSON file.
         Filename: checkpoint_{chapter_index}.json
         """
-        entity_dir = self._get_entity_dir(novel_hash, plugin_type, state.entity_id)
+        entity_dir = self._get_entity_dir(novel_hash, plugin_type, entity_id)
         file_path = entity_dir / f"checkpoint_{state.chapter_index}.json"
         
         with open(file_path, "w", encoding="utf-8") as f:
@@ -75,6 +75,32 @@ class StateStore:
                 return model_class(**data)
         except Exception as e:
             print(f"[StateStore] Failed to load checkpoint {latest_file}: {e}")
+            return None
+
+    def get_state_at_chapter(
+        self,
+        novel_hash: str,
+        plugin_type: str,
+        entity_id: str,
+        chapter_index: int,
+        model_class: Type[BaseNarrativeState]
+    ) -> Optional[BaseNarrativeState]:
+        """
+        Retrieves the state snapshot EXACTLY AT a given chapter index.
+        Used for Cache Hit check.
+        """
+        entity_dir = self._get_entity_dir(novel_hash, plugin_type, entity_id)
+        file_path = entity_dir / f"checkpoint_{chapter_index}.json"
+        
+        if not file_path.exists():
+            return None
+            
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return model_class(**data)
+        except Exception as e:
+            print(f"[StateStore] Failed to load checkpoint {file_path}: {e}")
             return None
 
     def list_history(

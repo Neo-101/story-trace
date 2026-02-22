@@ -33,6 +33,10 @@ class OpenAIClient(LLMClient):
             print(f"LLM 同步调用失败: {e}")
             raise e
 
+    def generate(self, prompt: str) -> str:
+        """Alias for chat_completion with a single user message (for compatibility)"""
+        return self.chat_completion([{"role": "user", "content": prompt}])
+
     async def chat_completion_async(self, messages: List[Dict[str, str]], temperature: float = 0.7) -> str:
         try:
             response = await self.async_client.chat.completions.create(

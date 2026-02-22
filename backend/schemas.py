@@ -40,6 +40,7 @@ class ChapterDetail(BaseModel):
 
 class TimelineEvent(BaseModel):
     chapter_id: str
+    chapter_index: int
     chapter_title: str
     content: List[str]
     gap_before: int
@@ -52,6 +53,7 @@ class RelationshipInteraction(BaseModel):
 
 class RelationshipTimelineEvent(BaseModel):
     chapter_id: str
+    chapter_index: int  # Added for sorting
     chapter_title: str
     interactions: List[RelationshipInteraction]
     

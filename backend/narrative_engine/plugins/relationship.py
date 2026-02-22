@@ -51,7 +51,16 @@ class RelationshipPlugin(NarrativePlugin):
         # 1. Format Events Digest
         events_text = ""
         for event in new_events:
-            events_text += f"- Ch {event['chapter_id']}: {event['description']} ({event['relation']})\n"
+            # Handle the structure passed from jobs.py: {"chapter_index": int, "content": [str]}
+            idx = event.get('chapter_index', '?')
+            content = event.get('content', [])
+            
+            if isinstance(content, list):
+                desc = "\n  ".join(content)
+            else:
+                desc = str(content)
+                
+            events_text += f"- Ch {idx}:\n  {desc}\n"
             
         # 2. Build Prompt
         prompt = f"""
@@ -71,15 +80,19 @@ You are a literary analyst tracking the relationship between {prev_state.source}
 Analyze how the relationship has EVOLVED based *only* on the new events.
 Update the metrics and summary. If nothing significant changed, keep values stable.
 
+**IMPORTANT: Output MUST be in Chinese (Simplified).**
+- `dominant_archetype` and `current_stage` should be concise Chinese terms (e.g., "盟友", "信任危机").
+- `summary_update` should be a natural Chinese narrative paragraph describing the relationship evolution.
+
 ### Output Format (JSON Only)
 {{
     "trust_level": int,
     "romance_level": int,
     "conflict_level": int,
-    "dominant_archetype": "string",
-    "current_stage": "string",
-    "summary_update": "string (Focus on what changed in this block)",
-    "new_unresolved_threads": ["string"]
+    "dominant_archetype": "string (Chinese)",
+    "current_stage": "string (Chinese)",
+    "summary_update": "string (Chinese)",
+    "new_unresolved_threads": ["string (Chinese)"]
 }}
 """
         return prompt

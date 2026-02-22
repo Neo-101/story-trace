@@ -46,7 +46,7 @@ export const API = {
 
   async fetchRelationshipTimeline(novelName: string, hash: string, timestamp: string, source: string, target: string): Promise<RelationshipTimelineEvent[]> {
     const response = await apiClient.get<RelationshipTimelineEvent[]>(`/novels/${novelName}/${hash}/${timestamp}/relationship`, {
-      params: { source, target }
+      params: { source, target, _t: Date.now() }
     });
     return response.data;
   }
