@@ -1,7 +1,7 @@
 import json
 import os
 from typing import List, Dict, Tuple
-from collections import defaultdict
+from collections import defaultdict, Counter
 import zhconv
 from data_protocol.models import ChapterSummary, Entity, AggregatedEntity, AggregatedRelationship
 
@@ -66,11 +66,13 @@ class EntityAggregator:
         Returns:
             List[AggregatedEntity]: 聚合后的全局实体列表，按出现频率降序排列。
         """
-        # Key: (name, type), Value: dict to accumulate data
-        entity_map: Dict[Tuple[str, str], Dict] = defaultdict(lambda: {
+        # Key: name (normalized), Value: dict to accumulate data
+        # Fix: Group by name only, not (name, type), to prevent duplicate nodes with same ID but different types
+        entity_map: Dict[str, Dict] = defaultdict(lambda: {
             "name": "",
-            "type": "",
+            "types": Counter(), # Track frequency of each type
             "descriptions": [],
+            "history": [],
             "chapter_ids": set(),
             "count": 0
         })
@@ -87,17 +89,25 @@ class EntityAggregator:
                 if not name:
                     continue
 
-                key = (name, type_)
+                # Key is now just the name
+                key = name
                 entry = entity_map[key]
                 
                 if not entry["name"]:
                     entry["name"] = name
-                    entry["type"] = type_
+                
+                # Accumulate type
+                if type_:
+                    entry["types"][type_] += 1
                 
                 if entity.description:
                     entry["descriptions"].append(entity.description)
+                    entry["history"].append({
+                        "chapter_id": str(summary.chapter_id).strip(),
+                        "content": entity.description
+                    })
                 
-                entry["chapter_ids"].add(summary.chapter_id)
+                entry["chapter_ids"].add(str(summary.chapter_id).strip())
                 entry["count"] += 1
 
         results = []
@@ -107,14 +117,21 @@ class EntityAggregator:
             # 2. 如果没有描述，使用空字符串
             descriptions = data["descriptions"]
             final_desc = max(descriptions, key=len) if descriptions else "暂无描述"
+            
+            # 类型决策策略：选择出现频率最高的类型
+            # 如果没有记录到类型，默认为 'Unknown'
+            # data["types"] is a Counter
+            most_common_type = data["types"].most_common(1)
+            final_type = most_common_type[0][0] if most_common_type else "Unknown"
 
             # 章节列表排序
             sorted_chapters = sorted(list(data["chapter_ids"]))
 
             agg_entity = AggregatedEntity(
                 name=data["name"],
-                type=data["type"],
+                type=final_type,
                 description=final_desc,
+                history=data["history"],
                 chapter_ids=sorted_chapters,
                 count=data["count"]
             )
@@ -169,7 +186,7 @@ class EntityAggregator:
                 
                 # 添加到时间线
                 entry["timeline"].append({
-                    "chapter_id": summary.chapter_id,
+                    "chapter_id": str(summary.chapter_id).strip(),
                     "relation": rel.relation,
                     "description": rel.description,
                     "order": valid_rel_count  # 记录本章内的有效顺序 (1-based, 连续)

@@ -40,3 +40,23 @@ The "Cumulative" (Global) graph is too cluttered and confusing:
     - [ ] Verify Focus Mode still shows details.
     - [ ] Verify slider hides weak connections.
     - [ ] Verify checkboxes hide unwanted entity types.
+
+## Phase 7: Dynamic Relationship Arc
+
+### Problem
+Relationship edges in the graph are static and don't show the evolution of character dynamics over time.
+
+### Requirements
+1.  **Visual Timeline**: Show interactions chronologically.
+2.  **Bidirectional Flow**: Clearly distinguish who did what to whom (A->B vs B->A).
+3.  **Chapter Context**: Group interactions by chapter.
+
+### Tasks
+- [x] **Backend**: Implement `get_relationship_timeline` (Bidirectional aggregation).
+- [x] **Frontend**:
+    - [x] Implement selection logic (2 nodes) in `GraphView.vue`.
+    - [x] Refactor `RelationshipArcDrawer.vue` to use 3-column Grid Layout.
+    - [x] Visual styling for "Forward" (Indigo) vs "Backward" (Rose) interactions.
+- [ ] **Testing**:
+    - [ ] Verify timeline correctly renders A->B on left and B->A on right.
+    - [ ] Verify chapter jump works.

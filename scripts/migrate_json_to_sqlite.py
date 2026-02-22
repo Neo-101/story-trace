@@ -11,7 +11,14 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from core.db.engine import engine, create_db_and_tables
 from core.db.models import Novel, NovelVersion, AnalysisRun, Chapter, Summary, Entity, StoryRelationship
 
+from core.identifiers import IdentifierGenerator
+
 def extract_chapter_index(title: str, id_str: str, loop_index: int) -> int:
+    # 0. 优先尝试从 ID 中解析 ch_XX (使用统一的 IdentifierGenerator)
+    idx = IdentifierGenerator.parse_chapter_index(id_str)
+    if idx is not None:
+        return idx
+            
     # 1. Try to extract from title (e.g. "第123章", "Chapter 123")
     if title:
         # Match Chinese "第X章"
@@ -23,15 +30,8 @@ def extract_chapter_index(title: str, id_str: str, loop_index: int) -> int:
         match = re.search(r'Chapter\s*(\d+)', title, re.IGNORECASE)
         if match:
             return int(match.group(1))
-            
-    # 2. Try to extract from ID (e.g. "ch_123")
-    if id_str and id_str.startswith('ch_'):
-        try:
-            return int(id_str.split('_')[1])
-        except:
-            pass
-            
-    # 3. Fallback
+    
+    # 2. Fallback
     return loop_index + 1
 
 def migrate():
@@ -134,6 +134,26 @@ def migrate():
                         idx = chapter_data.get('chapter_index')
                         if idx is None:
                             idx = extract_chapter_index(chapter_title, chapter_id_str, i)
+                            # 如果从标题解析失败（例如返回了默认的 i+1），尝试用 ID 解析
+                            # 因为 extract_chapter_index 内部如果标题没匹配到，会尝试 ID，最后才是 Loop
+                            # 但这里的逻辑是混合的。
+                            # 更好的逻辑是：
+                            # 1. 如果 chapter_data 中有 'chapter_index'，直接用
+                            # 2. 如果没有，解析 title 中的数字
+                            # 3. 如果没有，解析 id 中的数字 (ch_XX)
+                            # 4. 如果都没有，使用 loop index (i+1)
+                        
+                        # 强制修正逻辑：如果 idx 远大于 loop index (例如 idx=100, i=19)，且 title 中包含 "第20章"
+                        # 这可能是因为 regex 匹配到了错误的数字，或者 id 包含了非连续的数字
+                        # 但对于增量更新，i 只是当前批次的索引，不能完全信任 i+1
+                        
+                        # 根本问题是 extract_chapter_index 可能会匹配到错误的数字，或者 chapter_id_str 是乱序的
+                        # 比如 id="100" (数据库ID) 但实际是第20章
+                        
+                        # 让我们优化 extract_chapter_index 的调用方式
+                        # 如果 chapter_data 没有 index，我们优先信任 title
+                        if idx is None:
+                             idx = extract_chapter_index(chapter_title, chapter_id_str, i)
 
                         # Try to load content from text file
                         content = chapter_data.get('content')

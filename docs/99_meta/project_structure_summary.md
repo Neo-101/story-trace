@@ -1,0 +1,134 @@
+# Project Structure Summary
+
+- **split-novel-txt/**
+  - [.env](D:\Programming\Tools\split-novel-txt\.env)
+  - [.env.example](D:\Programming\Tools\split-novel-txt\.env.example)
+  - [.gitignore](D:\Programming\Tools\split-novel-txt\.gitignore)
+  - [COMMANDS.md](D:\Programming\Tools\split-novel-txt\COMMANDS.md)
+  - [config.json](D:\Programming\Tools\split-novel-txt\config.json)
+  - [debug_api.py](D:\Programming\Tools\split-novel-txt\debug_api.py)
+  - [main.py](D:\Programming\Tools\split-novel-txt\main.py)
+  - [README.md](D:\Programming\Tools\split-novel-txt\README.md)
+  - [requirements.txt](D:\Programming\Tools\split-novel-txt\requirements.txt)
+  - [storytrace.db](D:\Programming\Tools\split-novel-txt\storytrace.db)
+  - [tasks.md](D:\Programming\Tools\split-novel-txt\tasks.md)
+  - **.pytest_cache/**
+    - [.gitignore](D:\Programming\Tools\split-novel-txt\.pytest_cache\.gitignore)
+    - [CACHEDIR.TAG](D:\Programming\Tools\split-novel-txt\.pytest_cache\CACHEDIR.TAG)
+    - [README.md](D:\Programming\Tools\split-novel-txt\.pytest_cache\README.md)
+    - **v/**
+      - **cache/**
+        - [lastfailed](D:\Programming\Tools\split-novel-txt\.pytest_cache\v\cache\lastfailed)
+        - [nodeids](D:\Programming\Tools\split-novel-txt\.pytest_cache\v\cache\nodeids)
+  - **app/**
+    - [main.py](D:\Programming\Tools\split-novel-txt\app\main.py)
+  - **backend/**
+    - [schemas.py](D:\Programming\Tools\split-novel-txt\backend\schemas.py)
+    - [server.py](D:\Programming\Tools\split-novel-txt\backend\server.py)
+    - [utils.py](D:\Programming\Tools\split-novel-txt\backend\utils.py)
+    - [__init__.py](D:\Programming\Tools\split-novel-txt\backend\__init__.py)
+    - **routers/**
+      - [analysis.py](D:\Programming\Tools\split-novel-txt\backend\routers\analysis.py)
+      - [novels.py](D:\Programming\Tools\split-novel-txt\backend\routers\novels.py)
+  - **config/**
+    - [aliases.json](D:\Programming\Tools\split-novel-txt\config\aliases.json)
+  - **core/**
+    - [cache_manager.py](D:\Programming\Tools\split-novel-txt\core\cache_manager.py)
+    - [utils.py](D:\Programming\Tools\split-novel-txt\core\utils.py)
+    - [__init__.py](D:\Programming\Tools\split-novel-txt\core\__init__.py)
+    - **db/**
+      - [engine.py](D:\Programming\Tools\split-novel-txt\core\db\engine.py)
+      - [models.py](D:\Programming\Tools\split-novel-txt\core\db\models.py)
+      - [__init__.py](D:\Programming\Tools\split-novel-txt\core\db\__init__.py)
+    - **splitter/**
+      - [processor.py](D:\Programming\Tools\split-novel-txt\core\splitter\processor.py)
+      - [saver.py](D:\Programming\Tools\split-novel-txt\core\splitter\saver.py)
+      - [__init__.py](D:\Programming\Tools\split-novel-txt\core\splitter\__init__.py)
+    - **summarizer/**
+      - [generator.py](D:\Programming\Tools\split-novel-txt\core\summarizer\generator.py)
+      - [llm_client.py](D:\Programming\Tools\split-novel-txt\core\summarizer\llm_client.py)
+      - [prompts.py](D:\Programming\Tools\split-novel-txt\core\summarizer\prompts.py)
+    - **world_builder/**
+      - [aggregator.py](D:\Programming\Tools\split-novel-txt\core\world_builder\aggregator.py)
+      - [merger.py](D:\Programming\Tools\split-novel-txt\core\world_builder\merger.py)
+  - **data_protocol/**
+    - [models.py](D:\Programming\Tools\split-novel-txt\data_protocol\models.py)
+    - [__init__.py](D:\Programming\Tools\split-novel-txt\data_protocol\__init__.py)
+  - **docs/**
+    - [bug_report_autoscroll.md](D:\Programming\Tools\split-novel-txt\docs\bug_report_autoscroll.md)
+    - [bug_report_duplicate_chapters.md](D:\Programming\Tools\split-novel-txt\docs\bug_report_duplicate_chapters.md)
+    - [bug_report_json_parsing.md](D:\Programming\Tools\split-novel-txt\docs\bug_report_json_parsing.md)
+    - [bug_report_view_arc_missing.md](D:\Programming\Tools\split-novel-txt\docs\bug_report_view_arc_missing.md)
+    - [design_doc_v10_relationship_arc.md](D:\Programming\Tools\split-novel-txt\docs\design_doc_v10_relationship_arc.md)
+    - [design_doc_v6_graph_timeline.md](D:\Programming\Tools\split-novel-txt\docs\design_doc_v6_graph_timeline.md)
+    - [design_doc_v8_modern_refactor.md](D:\Programming\Tools\split-novel-txt\docs\design_doc_v8_modern_refactor.md)
+    - [design_doc_v9_entity_description_history.md](D:\Programming\Tools\split-novel-txt\docs\design_doc_v9_entity_description_history.md)
+    - [feature_best_effort_merging.md](D:\Programming\Tools\split-novel-txt\docs\feature_best_effort_merging.md)
+    - [feature_parallel_summarization.md](D:\Programming\Tools\split-novel-txt\docs\feature_parallel_summarization.md)
+    - [optimization_plan_llm_collaboration.md](D:\Programming\Tools\split-novel-txt\docs\optimization_plan_llm_collaboration.md)
+    - [project_structure_summary.md](D:\Programming\Tools\split-novel-txt\docs\project_structure_summary.md)
+    - [roadmap_advanced_features.md](D:\Programming\Tools\split-novel-txt\docs\roadmap_advanced_features.md)
+    - [roadmap_vibe_coding.md](D:\Programming\Tools\split-novel-txt\docs\roadmap_vibe_coding.md)
+    - [ui_ux_report.md](D:\Programming\Tools\split-novel-txt\docs\ui_ux_report.md)
+  - **frontend/**
+  - **scripts/**
+    - [generate_structure_summary.py](D:\Programming\Tools\split-novel-txt\scripts\generate_structure_summary.py)
+    - [migrate_json_to_sqlite.py](D:\Programming\Tools\split-novel-txt\scripts\migrate_json_to_sqlite.py)
+  - **test/**
+    - [novel.txt](D:\Programming\Tools\split-novel-txt\test\novel.txt)
+    - [故障烏託邦-first3.txt](D:\Programming\Tools\split-novel-txt\test\故障烏託邦-first3.txt)
+    - **output_batch/**
+      - [第1-2章.txt](D:\Programming\Tools\split-novel-txt\test\output_batch\第1-2章.txt)
+      - [第3-4章.txt](D:\Programming\Tools\split-novel-txt\test\output_batch\第3-4章.txt)
+    - **output_chapter/**
+      - [第1章 少年.txt](D:\Programming\Tools\split-novel-txt\test\output_chapter\第1章 少年.txt)
+      - [第2章 出山.txt](D:\Programming\Tools\split-novel-txt\test\output_chapter\第2章 出山.txt)
+      - [第3章 遇险.txt](D:\Programming\Tools\split-novel-txt\test\output_chapter\第3章 遇险.txt)
+      - [第4章 奇遇.txt](D:\Programming\Tools\split-novel-txt\test\output_chapter\第4章 奇遇.txt)
+    - **output_volume/**
+      - **第1卷 初入江湖/**
+        - [第1章 少年.txt](D:\Programming\Tools\split-novel-txt\test\output_volume\第1卷 初入江湖\第1章 少年.txt)
+        - [第2章 出山.txt](D:\Programming\Tools\split-novel-txt\test\output_volume\第1卷 初入江湖\第2章 出山.txt)
+      - **第2卷 江湖风云/**
+        - [第3章 遇险.txt](D:\Programming\Tools\split-novel-txt\test\output_volume\第2卷 江湖风云\第3章 遇险.txt)
+        - [第4章 奇遇.txt](D:\Programming\Tools\split-novel-txt\test\output_volume\第2卷 江湖风云\第4章 奇遇.txt)
+  - **web_ui/**
+    - **routers/**
+      - [analysis.py](D:\Programming\Tools\split-novel-txt\web_ui\routers\analysis.py)
+      - [novels.py](D:\Programming\Tools\split-novel-txt\web_ui\routers\novels.py)
+    - **static/**
+      - **js/**
+        - [app.js](D:\Programming\Tools\split-novel-txt\web_ui\static\js\app.js)
+          > // Main Application Logic
+        - [graph.js](D:\Programming\Tools\split-novel-txt\web_ui\static\js\graph.js)
+          > // Graph Controller for StoryTrace
+    - **templates/**
+      - [index.html](D:\Programming\Tools\split-novel-txt\web_ui\templates\index.html)
+  - **web_ui_v2/**
+    - [postcss.config.js](D:\Programming\Tools\split-novel-txt\web_ui_v2\postcss.config.js)
+    - [README.md](D:\Programming\Tools\split-novel-txt\web_ui_v2\README.md)
+    - [tailwind.config.js](D:\Programming\Tools\split-novel-txt\web_ui_v2\tailwind.config.js)
+      > /** @type {import('tailwindcss').Config} */
+    - [tsconfig.app.json](D:\Programming\Tools\split-novel-txt\web_ui_v2\tsconfig.app.json)
+    - [vite.config.ts](D:\Programming\Tools\split-novel-txt\web_ui_v2\vite.config.ts)
+    - **src/**
+      - [App.vue](D:\Programming\Tools\split-novel-txt\web_ui_v2\src\App.vue)
+      - [main.ts](D:\Programming\Tools\split-novel-txt\web_ui_v2\src\main.ts)
+      - [style.css](D:\Programming\Tools\split-novel-txt\web_ui_v2\src\style.css)
+      - **api/**
+        - [client.ts](D:\Programming\Tools\split-novel-txt\web_ui_v2\src\api\client.ts)
+      - **components/**
+        - [AppNavbar.vue](D:\Programming\Tools\split-novel-txt\web_ui_v2\src\components\AppNavbar.vue)
+        - [EntityChronicleDrawer.vue](D:\Programming\Tools\split-novel-txt\web_ui_v2\src\components\EntityChronicleDrawer.vue)
+        - [GraphView.vue](D:\Programming\Tools\split-novel-txt\web_ui_v2\src\components\GraphView.vue)
+        - [OverviewGrid.vue](D:\Programming\Tools\split-novel-txt\web_ui_v2\src\components\OverviewGrid.vue)
+        - [ReaderView.vue](D:\Programming\Tools\split-novel-txt\web_ui_v2\src\components\ReaderView.vue)
+        - [RelationshipArcDrawer.vue](D:\Programming\Tools\split-novel-txt\web_ui_v2\src\components\RelationshipArcDrawer.vue)
+      - **router/**
+        - [index.ts](D:\Programming\Tools\split-novel-txt\web_ui_v2\src\router\index.ts)
+      - **stores/**
+        - [novel.ts](D:\Programming\Tools\split-novel-txt\web_ui_v2\src\stores\novel.ts)
+      - **types/**
+        - [index.ts](D:\Programming\Tools\split-novel-txt\web_ui_v2\src\types\index.ts)
+      - **views/**
+        - [Dashboard.vue](D:\Programming\Tools\split-novel-txt\web_ui_v2\src\views\Dashboard.vue)

@@ -57,6 +57,7 @@ class AggregatedEntity(BaseModel):
     name: str = Field(..., description="实体名称")
     type: str = Field(..., description="实体类型")
     description: str = Field(..., description="合并后的描述 (通常取首次出现或最详细的描述)")
+    history: List[Dict] = Field(default_factory=list, description="实体描述历史: [{'chapter_id': 'ch1', 'content': '...'}, ...]")
     chapter_ids: List[str] = Field(default_factory=list, description="出现的章节ID列表")
     count: int = Field(0, description="出现次数")
 

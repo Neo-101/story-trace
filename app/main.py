@@ -9,10 +9,8 @@ from core.utils import calculate_file_hash
 from data_protocol.models import Chapter
 import json
 import time
-from dotenv import load_dotenv
-
-# 加载 .env 文件中的环境变量
-load_dotenv()
+from core.config import settings
+from core.paths import PathManager
 
 def parse_range(range_str: str, max_val: int) -> tuple:
     """
@@ -78,6 +76,17 @@ def get_user_input():
                 print(f"输出: {output_dir}")
                 
                 summ_conf = config.get('summarize', {})
+                
+                # 自动填充 API Key 逻辑 (Fix for .env loading)
+                if summ_conf.get('enabled') and summ_conf.get('provider') == 'openrouter':
+                    current_key = summ_conf.get('api_key')
+                    if not current_key:  # If None or Empty String
+                        # 优先从 settings (Pydantic加载的.env) 获取，其次才是 os.getenv
+                        env_key = settings.OPENROUTER_API_KEY or os.getenv("OPENROUTER_API_KEY")
+                        if env_key:
+                            summ_conf['api_key'] = env_key
+                            print(f"  (已自动从 .env/环境变量 加载 OPENROUTER_API_KEY)")
+
                 print(f"AI总结: {'开启' if summ_conf.get('enabled') else '关闭'}")
                 if summ_conf.get('enabled'):
                     print(f"  Provider: {summ_conf.get('provider')}")
@@ -202,9 +211,9 @@ def get_user_input():
         print("输入无效，请输入 1, 2 或 3。")
 
     # 6. 获取输出目录
-    output_dir = input("\n请输入输出目录 (默认为 'output'): ").strip()
+    output_dir = input(f"\n请输入输出目录 (默认为 '{settings.OUTPUT_DIR.name}'): ").strip()
     if not output_dir:
-        output_dir = 'output'
+        output_dir = str(settings.OUTPUT_DIR)
 
     # 7. 获取特定模式的额外参数
     extra_args = {}
@@ -282,11 +291,11 @@ def main():
     if len(sys.argv) > 1 and sys.argv[1] == 'serve':
         try:
             import uvicorn
-            from web_ui.server import app
+            from backend.server import app
             print("=== StoryTrace Visualization Server ===")
             print("正在启动 API 服务...")
-            print("访问地址: http://localhost:8000/docs")
-            uvicorn.run(app, host="0.0.0.0", port=8000)
+            print(f"访问地址: http://{settings.API_HOST}:{settings.API_PORT}/docs")
+            uvicorn.run(app, host=settings.API_HOST, port=settings.API_PORT)
         except ImportError:
             print("错误: 请先安装 web 依赖: pip install fastapi uvicorn")
         except Exception as e:
@@ -338,9 +347,9 @@ def main():
         
         # 如果 Config 中没有提供 API Key，尝试从环境变量获取
         if not api_key and provider == 'openrouter':
-            api_key = os.getenv("OPENROUTER_API_KEY")
+            api_key = settings.OPENROUTER_API_KEY or os.getenv("OPENROUTER_API_KEY")
             if api_key:
-                print("DEBUG: 使用环境变量中的 OPENROUTER_API_KEY")
+                print("DEBUG: 使用 .env/环境变量 中的 OPENROUTER_API_KEY")
     else:
         args = parser.parse_args()
         if not args.input:
@@ -350,7 +359,7 @@ def main():
             
         input_file = args.input
         mode_name = args.mode
-        output_dir = args.output if args.output else 'output'
+        output_dir = args.output if args.output else str(settings.OUTPUT_DIR)
         encoding = args.encoding
         batch_size = args.range
         pattern = args.pattern
@@ -360,20 +369,20 @@ def main():
         provider = args.provider
         
         # 优先从命令行参数获取，如果没有，则尝试从环境变量获取
-        api_key = args.api_key or os.getenv("OPENROUTER_API_KEY")
+        api_key = args.api_key or settings.OPENROUTER_API_KEY or os.getenv("OPENROUTER_API_KEY")
         model = args.model
         base_url = args.base_url
 
         # 如果是 OpenRouter 且没有指定 Model，尝试从环境变量获取默认 Model
         if provider == 'openrouter' and not model:
-             model = os.getenv("OPENROUTER_MODEL")
+             model = settings.OPENROUTER_MODEL or os.getenv("OPENROUTER_MODEL")
              
         # 如果是 Local 且没有指定参数，尝试从环境变量获取
         if provider == 'local':
              if not base_url:
-                 base_url = os.getenv("LOCAL_LLM_BASE_URL")
+                 base_url = settings.LOCAL_LLM_BASE_URL or os.getenv("LOCAL_LLM_BASE_URL")
              if not model:
-                 model = os.getenv("LOCAL_LLM_MODEL")
+                 model = settings.LOCAL_LLM_MODEL or os.getenv("LOCAL_LLM_MODEL")
 
     # 构建最终输出目录结构
     # 1. 获取小说名（输入文件名，不含扩展名）
@@ -436,7 +445,7 @@ def main():
     print("DEBUG: 指纹计算完成，正在检查缓存...")
     
     # 2. 扫描历史记录
-    novel_output_root = os.path.join(output_dir, novel_name, file_hash)
+    novel_output_root = PathManager.get_novel_root(novel_name, file_hash)
     cache_hit_path = None
     cache_hit_timestamp = None
     
@@ -464,7 +473,7 @@ def main():
         
         # 生成新的时间戳目录
         timestamp = time.strftime("%Y%m%d_%H%M%S")
-        final_output_dir = os.path.join(output_dir, novel_name, file_hash, timestamp)
+        final_output_dir = PathManager.get_run_dir(novel_name, file_hash, timestamp)
         os.makedirs(final_output_dir, exist_ok=True)
         
         # 创建 ref_link.json
@@ -487,7 +496,7 @@ def main():
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     
     # 最终路径：output_dir/novel_name/file_hash/timestamp
-    final_output_dir = os.path.join(output_dir, novel_name, file_hash, timestamp)
+    final_output_dir = PathManager.get_run_dir(novel_name, file_hash, timestamp)
     abs_final_output_dir = os.path.abspath(final_output_dir)
     
     # 执行分割逻辑
@@ -530,16 +539,16 @@ def main():
                         "model": model,
                         "base_url": base_url
                     }
-                    # 过滤掉 None 值
-                    client_kwargs = {k: v for k, v in client_kwargs.items() if v is not None}
+                    # 过滤掉 None 值和空字符串
+                    client_kwargs = {k: v for k, v in client_kwargs.items() if v}
                     
                     llm_client = ClientFactory.create_client(**client_kwargs)
                     generator = SummaryGenerator(llm_client)
                     
                     # --- v4.0 Chapter-Level Caching ---
                     # Initialize CacheManager
-                    cache_dir = os.path.join(output_dir, ".cache")
-                    cache_manager = CacheManager(cache_dir)
+                    cache_dir = PathManager.get_cache_dir()
+                    cache_manager = CacheManager(str(cache_dir))
                     
                     prompt_hash = Prompts.get_prompt_hash()
                     model_config = {
@@ -558,7 +567,6 @@ def main():
                             print(f"[{i+1}/{total_chapters}] 处理章节: {ch.title} ... ", end="", flush=True)
                             
                             # 1. Try Cache
-                            # Cache read is synchronous, but fast
                             cached_summary = cache_manager.get_cached_summary(ch.content, prompt_hash, model_config)
                             
                             summary_data = None
@@ -568,21 +576,41 @@ def main():
                                 cached_summary.chapter_id = ch.id 
                                 summary_data = cached_summary.model_dump()
                             else:
-                                # 2. Generate (Async)
-                                try:
-                                    summary = await generator.generate_summary_async(ch)
-                                    # 3. Save to Cache (Sync)
+                                # 2. Generate (Async) with Retry
+                                max_retries = 3
+                                retry_delay = 2
+                                
+                                for attempt in range(max_retries):
                                     try:
-                                        cache_manager.save_summary(ch.content, prompt_hash, model_config, summary)
-                                    except Exception as cache_err:
-                                        print(f"(Cache Write Failed: {cache_err}) ", end="")
+                                        summary = await generator.generate_summary_async(ch)
                                         
-                                    summary_data = summary.model_dump()
-                                    print("✨ 生成完成")
-                                except Exception as e:
-                                    print(f"❌ 失败: {e}")
-                                    return None
-
+                                        # 3. Save to Cache
+                                        try:
+                                            cache_manager.save_summary(ch.content, prompt_hash, model_config, summary)
+                                        except Exception as cache_err:
+                                            print(f"(Cache Write Failed: {cache_err}) ", end="")
+                                            
+                                        summary_data = summary.model_dump()
+                                        print("✨ 生成完成")
+                                        break # Success
+                                    except Exception as e:
+                                        if attempt < max_retries - 1:
+                                            print(f"⚠️ 失败(重试 {attempt+1}/{max_retries}): {e} ... ", end="", flush=True)
+                                            await asyncio.sleep(retry_delay * (2 ** attempt)) # Exponential backoff
+                                        else:
+                                            print(f"❌ 最终失败: {e}")
+                                            # Create Empty Placeholder to keep chapter in timeline
+                                            from data_protocol.models import ChapterSummary
+                                            empty_summary = ChapterSummary(
+                                                chapter_id=ch.id,
+                                                chapter_title=ch.title,
+                                                headline="生成失败",
+                                                summary_sentences=[],
+                                                entities=[],
+                                                relationships=[]
+                                            )
+                                            summary_data = empty_summary.model_dump()
+                                
                             # Real-time save to summaries.jsonl (with lock)
                             if summary_data:
                                 async with file_lock:
@@ -593,7 +621,9 @@ def main():
                             return (i, summary_data)
 
                     async def run_batch_processing():
-                        semaphore = asyncio.Semaphore(5) # Max 5 concurrent requests
+                        # Adjust concurrency based on provider
+                        limit = 1 if provider == 'local' else 5
+                        semaphore = asyncio.Semaphore(limit)
                         file_lock = asyncio.Lock()
                         jsonl_path = os.path.join(final_output_dir, "summaries.jsonl")
                         
@@ -611,10 +641,7 @@ def main():
                         return [r[1] for r in valid_results]
 
                     # Run Async Loop
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    summaries = loop.run_until_complete(run_batch_processing())
-                    loop.close()
+                    summaries = asyncio.run(run_batch_processing())
                     
                     # 保存总结结果，直接保存在 final_output_dir 根目录
                     summary_path = os.path.join(final_output_dir, "summaries.json")
@@ -636,6 +663,17 @@ def main():
                     with open(os.path.join(final_output_dir, "run_metadata.json"), 'w', encoding='utf-8') as f:
                         json.dump(metadata, f, ensure_ascii=False, indent=2)
                     
+                    # --- 自动执行数据库迁移 (Auto Migration) ---
+                    print("\n=== 正在自动更新图谱数据库 ===")
+                    try:
+                        from scripts.migrate_json_to_sqlite import migrate
+                        print("正在同步数据到 storytrace.db ...")
+                        migrate()
+                        print("✅ 数据库同步完成！现在可以启动 Web 服务查看图谱了。")
+                    except Exception as me:
+                        print(f"⚠️ 自动迁移失败: {me}")
+                        print("请稍后手动运行: python scripts/migrate_json_to_sqlite.py")
+
                 except Exception as e:
                     print(f"智能总结失败: {e}")
                     import traceback

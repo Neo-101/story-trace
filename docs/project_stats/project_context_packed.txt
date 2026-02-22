@@ -1,0 +1,3086 @@
+# Project Context Pack
+# Generated for LLM Context Window Optimization
+# Focus: Core Architecture (Backend + Core Logic)
+# Root: split-novel-txt
+----------------------------------------
+
+
+==================== FILE: config.json ====================
+
+{
+  "input_file": "C:/Users/Neo/Downloads/528114_tw/故障烏託邦.txt",
+  "encoding": "gbk",
+  "output_dir": "output",
+  "mode": "chapter",
+  "chapter_range": "11-20",
+  "batch_size": 10,
+  "summarize": {
+    "enabled": true,
+    "provider": "openrouter",
+    "model": "deepseek/deepseek-v3.2",
+    "api_key": ""
+  }
+}
+
+==================== FILE: debug_api.py ====================
+
+import requests
+import json
+import urllib.parse
+
+# 这里的 URL 需要根据实际情况调整，特别是端口
+BASE_URL = "http://127.0.0.1:8000"
+
+def test_api():
+    novel_name = "故障烏託邦-first3"
+    # 注意：在 URL 中使用中文可能需要编码，但在 requests 中通常会自动处理
+    # 不过为了保险，我们可以手动检查一下
+    
+    # 1. List Novels
+    print("Fetching novels...")
+    res = requests.get(f"{BASE_URL}/api/novels")
+    if res.status_code != 200:
+        print(f"Error fetching novels: {res.text}")
+        return
+    novels = res.json()
+    print(f"Novels: {json.dumps(novels, ensure_ascii=False)}")
+    
+    target_novel = None
+    for n in novels:
+        if n['name'] == novel_name:
+            target_novel = n
+            break
+            
+    if not target_novel:
+        print(f"Novel {novel_name} not found")
+        return
+
+    file_hash = target_novel['hashes'][0]
+    print(f"Using hash: {file_hash}")
+
+    # 2. List Runs
+    print(f"Fetching runs for {novel_name}/{file_hash}...")
+    # URL encode path components if necessary, requests handles it usually but let's be safe
+    # Actually requests handles unicode in path just fine.
+    res = requests.get(f"{BASE_URL}/api/novels/{novel_name}/{file_hash}/runs")
+    if res.status_code != 200:
+        print(f"Error fetching runs: {res.text}")
+        return
+    runs = res.json()
+    print(f"Runs found: {len(runs)}")
+    if not runs:
+        print("No runs found")
+        return
+        
+    latest_run = runs[0]
+    timestamp = latest_run['timestamp']
+    print(f"Using run: {timestamp}")
+
+    # 3. List Chapters
+    print(f"Fetching chapters for {timestamp}...")
+    res = requests.get(f"{BASE_URL}/api/novels/{novel_name}/{file_hash}/{timestamp}/chapters")
+    if res.status_code != 200:
+        print(f"Error fetching chapters: {res.text}")
+        return
+    chapters = res.json()
+    print(f"Chapters found: {len(chapters)}")
+    print(json.dumps(chapters, indent=2, ensure_ascii=False))
+
+if __name__ == "__main__":
+    try:
+        test_api()
+    except Exception as e:
+        print(f"Exception: {e}")
+
+
+==================== FILE: main.py ====================
+
+import sys
+import os
+
+# 将项目根目录添加到 sys.path，确保可以导入 app, core, data_protocol
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from app.main import main
+
+if __name__ == '__main__':
+    main()
+
+
+==================== FILE: manage.py ====================
+
+import argparse
+import sys
+import os
+import shutil
+from pathlib import Path
+from core.config import settings
+from core.db.engine import create_db_and_tables
+
+def clean_cache():
+    """清理缓存目录"""
+    cache_dir = settings.OUTPUT_DIR / ".cache"
+    if cache_dir.exists():
+        print(f"Removing cache: {cache_dir}")
+        shutil.rmtree(cache_dir)
+        print("Done.")
+    else:
+        print("Cache directory does not exist.")
+
+def clean_outputs():
+    """清理所有输出文件"""
+    output_dir = settings.OUTPUT_DIR
+    if output_dir.exists():
+        response = input(f"WARNING: This will delete ALL data in {output_dir}. Are you sure? (y/N): ")
+        if response.lower() == 'y':
+            for item in output_dir.iterdir():
+                if item.name == ".gitkeep":
+                    continue
+                if item.is_dir():
+                    shutil.rmtree(item)
+                else:
+                    item.unlink()
+            print("Done.")
+    else:
+        print("Output directory does not exist.")
+
+def reset_db():
+    """重置数据库"""
+    db_path = Path("storytrace.db") # TODO: parse from settings properly if needed
+    if db_path.exists():
+        print(f"Removing database: {db_path}")
+        db_path.unlink()
+    
+    print("Creating new database...")
+    create_db_and_tables()
+    print("Done.")
+
+def check_env():
+    """环境自检"""
+    print("=== Environment Check ===")
+    print(f"Base Dir: {settings.BASE_DIR}")
+    print(f"Output Dir: {settings.OUTPUT_DIR}")
+    print(f"DB Path: {settings.database_path}")
+    print(f"OpenRouter Key: {'Set' if settings.OPENROUTER_API_KEY else 'Not Set'}")
+    
+    # Check dependencies
+    try:
+        import fastapi
+        print("FastAPI: Installed")
+    except ImportError:
+        print("FastAPI: Missing")
+        
+    try:
+        import sqlmodel
+        print("SQLModel: Installed")
+    except ImportError:
+        print("SQLModel: Missing")
+
+    print("=== End Check ===")
+
+def main():
+    parser = argparse.ArgumentParser(description='StoryTrace Management Script')
+    subparsers = parser.add_subparsers(dest='command', help='Commands')
+    
+    subparsers.add_parser('clean-cache', help='Clear the .cache directory')
+    subparsers.add_parser('clean-all', help='Clear ALL outputs')
+    subparsers.add_parser('reset-db', help='Delete and recreate SQLite database')
+    subparsers.add_parser('check', help='Check environment configuration')
+    
+    args = parser.parse_args()
+    
+    if args.command == 'clean-cache':
+        clean_cache()
+    elif args.command == 'clean-all':
+        clean_outputs()
+    elif args.command == 'reset-db':
+        reset_db()
+    elif args.command == 'check':
+        check_env()
+    else:
+        parser.print_help()
+
+if __name__ == '__main__':
+    main()
+
+
+==================== FILE: pack_context.py ====================
+
+import os
+import argparse
+from pathlib import Path
+from typing import List, Set
+
+# --- Configuration ---
+PROJECT_ROOT = Path(".").resolve()
+OUTPUT_FILE = "project_context_packed.txt"
+
+# Directories to EXCLUDE (Noise reduction)
+EXCLUDE_DIRS = {
+    # System / Build
+    ".git", ".idea", ".vscode", "__pycache__", "node_modules", 
+    "venv", "env", "output", "dist", "build", "legacy_archive",
+    ".pytest_cache", "coverage", "htmlcov", ".mypy_cache",
+    
+    # User Requested Exclusions (Focus on Core Architecture)
+    "docs",          # All documentation (including archive, planning, specs)
+    "tests",         # Unit tests
+    "scripts",       # Helper scripts
+    "frontend",      # Frontend code (optional, keep if needed for full stack context, but user said "core architecture")
+}
+
+# Files to EXCLUDE
+EXCLUDE_FILES = {
+    "package-lock.json", "yarn.lock", "pnpm-lock.yaml", 
+    "storytrace.db", ".DS_Store", "Thumbs.db",
+    "poetry.lock", "bun.lockb", 
+    "project_context_packed.txt", # Self
+    "project_stats_human.txt", "project_stats_llm.json", "project_stats_tokens.json",
+    "COMMANDS.md", "README.md", "tasks.md", "LICENSE"
+}
+
+# Only include these source code extensions
+INCLUDE_EXTENSIONS = {
+    ".py", ".ts", ".vue", ".js", ".json" # Core logic files
+}
+
+def is_excluded(path: Path) -> bool:
+    """Check if path should be excluded based on rules."""
+    # Check directories in path
+    for part in path.parts:
+        if part in EXCLUDE_DIRS:
+            return True
+            
+    # Check filename
+    if path.name in EXCLUDE_FILES:
+        return True
+        
+    # Check extension (Allow listed extensions OR generic files like Dockerfile)
+    if path.suffix not in INCLUDE_EXTENSIONS and path.name != "Dockerfile":
+        return True
+        
+    return False
+
+def pack_project():
+    """Scan and pack project content into a single file."""
+    print(f"Packing project context from: {PROJECT_ROOT}")
+    print(f"Excluding: {', '.join(sorted(list(EXCLUDE_DIRS)))}")
+    
+    packed_content = []
+    file_count = 0
+    total_lines = 0
+    
+    # Header
+    packed_content.append(f"# Project Context Pack")
+    packed_content.append(f"# Generated for LLM Context Window Optimization")
+    packed_content.append(f"# Focus: Core Architecture (Backend + Core Logic)")
+    packed_content.append(f"# Root: {PROJECT_ROOT.name}")
+    packed_content.append("-" * 40 + "\n")
+
+    # Walk through directory
+    # Use sorted walk for deterministic output
+    for root, dirs, files in os.walk(PROJECT_ROOT):
+        # Modify dirs in-place to skip excluded directories during traversal
+        dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS and not d.startswith(".")]
+        
+        # Sort for consistency
+        dirs.sort()
+        files.sort()
+        
+        for file in files:
+            file_path = Path(root) / file
+            rel_path = file_path.relative_to(PROJECT_ROOT)
+            
+            if is_excluded(rel_path):
+                continue
+                
+            try:
+                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                    
+                # Add file marker
+                packed_content.append(f"\n{'='*20} FILE: {rel_path} {'='*20}\n")
+                packed_content.append(content)
+                
+                file_count += 1
+                total_lines += len(content.splitlines())
+                print(f"Packed: {rel_path}")
+                
+            except Exception as e:
+                print(f"Error reading {rel_path}: {e}")
+
+    # Write to output file
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        f.write("\n".join(packed_content))
+        
+    print(f"\nDone! Packed {file_count} files ({total_lines} lines) into {OUTPUT_FILE}")
+
+if __name__ == "__main__":
+    pack_project()
+
+
+==================== FILE: app\main.py ====================
+
+import argparse
+import sys
+import os
+from core.splitter.processor import Splitter
+from core.splitter.saver import save_chapters
+from core.summarizer.llm_client import ClientFactory
+from core.summarizer.generator import SummaryGenerator
+from core.utils import calculate_file_hash
+from data_protocol.models import Chapter
+import json
+import time
+from core.config import settings
+from core.paths import PathManager
+
+def parse_range(range_str: str, max_val: int) -> tuple:
+    """
+    解析用户输入的范围字符串
+    支持格式: 
+    - "10" -> (1, 10)
+    - "5-15" -> (5, 15)
+    - "all" -> (1, max_val)
+    - "" (empty) -> (1, max_val)
+    """
+    s = range_str.strip().lower()
+    if not s or s == 'all':
+        return (1, max_val)
+    
+    if '-' in s:
+        try:
+            start, end = map(int, s.split('-'))
+            return (max(1, start), min(max_val, end))
+        except ValueError:
+            return (1, max_val)
+            
+    try:
+        val = int(s)
+        return (1, min(max_val, val))
+    except ValueError:
+        return (1, max_val)
+
+def get_user_input():
+    """交互式获取用户输入"""
+    print("\n=== 小说分割工具 ===")
+    
+    # 0. 尝试加载配置文件
+    config_path = "config.json"
+    if os.path.exists(config_path):
+        print(f"\n检测到配置文件: {config_path}")
+        if input("是否加载配置并直接运行? (Y/n): ").strip().lower() != 'n':
+            try:
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                
+                # 解析配置
+                input_file = config.get('input_file', '')
+                encoding = config.get('encoding', 'utf-8')
+                output_dir = config.get('output_dir', 'output')
+                mode_str = config.get('mode', 'chapter')
+                range_str = config.get('chapter_range', '')
+                batch_size = config.get('batch_size', 10)
+                
+                # 映射模式字符串到编号
+                mode_map_rev = {'volume': '1', 'chapter': '2', 'batch': '3'}
+                mode = mode_map_rev.get(mode_str, '2')
+                
+                # 解析范围
+                # 需要先扫描章节数才能解析 "all" 或 "-10" 吗？
+                # parse_range 需要 max_val。
+                # 我们可以先扫描文件。
+                
+                print("\n--- 配置信息 ---")
+                print(f"文件: {input_file}")
+                print(f"编码: {encoding}")
+                print(f"模式: {mode_str}")
+                print(f"范围: {range_str if range_str else 'All'}")
+                print(f"输出: {output_dir}")
+                
+                summ_conf = config.get('summarize', {})
+                print(f"AI总结: {'开启' if summ_conf.get('enabled') else '关闭'}")
+                if summ_conf.get('enabled'):
+                    print(f"  Provider: {summ_conf.get('provider')}")
+                    print(f"  Model: {summ_conf.get('model')}")
+                
+                if input("\n确认执行? (Y/n): ").strip().lower() != 'n':
+                    # 执行预扫描以获取章节总数 (用于解析范围)
+                    print("\n正在扫描文件结构...")
+                    splitter = Splitter(encoding=encoding)
+                    content = splitter.read_file(input_file)
+                    # 更新为实际检测到的编码
+                    encoding = splitter.encoding
+                    total_chapters, _, _ = splitter.scan_chapters(content)
+                    
+                    chapter_range = parse_range(range_str, total_chapters)
+                    
+                    # 构造返回字典
+                    extra_args = {}
+                    if mode == '3':
+                        extra_args['range'] = batch_size
+                    if chapter_range:
+                        extra_args['chapter_range'] = chapter_range
+                        
+                    return {
+                        'input_file': input_file,
+                        'mode': mode,
+                        'output_dir': output_dir,
+                        'encoding': encoding,
+                        'extra_args': extra_args,
+                        'summarize_config': summ_conf
+                    }
+            except Exception as e:
+                print(f"配置文件加载失败: {e}")
+                print("将转为手动输入模式...")
+
+    # 1. 获取输入文件
+    # 尝试使用 tkinter 弹出文件选择框
+    input_file = ""
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+        
+        # 隐藏主窗口
+        root = tk.Tk()
+        root.withdraw()
+        
+        # 尝试强制窗口置顶 (Windows特定)
+        root.attributes('-topmost', True)
+        
+        print("正在打开文件选择窗口...")
+        input_file = filedialog.askopenfilename(
+            title="选择小说TXT文件",
+            filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")]
+        )
+        root.destroy()
+    except ImportError:
+        # 如果没有 tkinter，静默失败，回退到输入框
+        pass
+    except Exception as e:
+        print(f"无法打开文件选择框 ({e})，请手动输入。")
+    
+    # 如果用户取消选择或无法使用 tkinter，回退到手动输入
+    while not input_file:
+        input_file = input("请输入小说txt文件路径: ").strip()
+        # 移除可能存在的引号
+        input_file = input_file.strip('"').strip("'")
+        if os.path.exists(input_file):
+            break
+        print(f"错误：文件 '{input_file}' 不存在，请重新输入。")
+    
+    print(f"已选择文件: {input_file}")
+
+    # 2. 编码设置（提前到第二步，以便扫描文件）
+    encoding = input("\n请输入文件编码 (默认为 'utf-8', 若乱码可尝试 'gbk'): ").strip()
+    if not encoding:
+        encoding = 'utf-8'
+
+    # 3. 预扫描章节
+    print("\n正在扫描文件结构...")
+    try:
+        splitter = Splitter(encoding=encoding)
+        content = splitter.read_file(input_file)
+        # 更新为实际检测到的编码
+        encoding = splitter.encoding
+        
+        total_chapters, titles, is_continuous = splitter.scan_chapters(content)
+        
+        if total_chapters > 0:
+            print(f"✅ 检测到共 {total_chapters} 章。")
+            if not is_continuous:
+                print("⚠️  警告: 章节编号似乎不连续，建议检查文件内容。")
+            else:
+                print("   章节编号连续。")
+            
+            print(f"   首章: {titles[0]}")
+            print(f"   末章: {titles[-1]}")
+        else:
+            print("⚠️  未检测到明显的分章结构 (可能需要按卷或自定义正则)。")
+            total_chapters = 999999 # Fallback
+            
+    except Exception as e:
+        print(f"扫描失败: {e}")
+        total_chapters = 0
+
+    # 4. 选择处理范围
+    chapter_range = None
+    if total_chapters > 0:
+        range_input = input(f"\n请输入处理范围 (默认处理全部，输入 '10' 代表前10章，'5-20' 代表区间): ").strip()
+        chapter_range = parse_range(range_input, total_chapters)
+        print(f"已选择范围: 第{chapter_range[0]}章 - 第{chapter_range[1]}章")
+
+    # 5. 选择模式
+    print("\n请选择分割模式：")
+    print("1. 按卷分割（自动识别分卷，卷内再分章）")
+    print("2. 仅按章节分割（整本小说切分为单章文件）")
+    print("3. 按数量合并分割（每N章合并为一个文件）")
+    
+    while True:
+        mode = input("请输入模式编号 (1/2/3): ").strip()
+        if mode in ['1', '2', '3']:
+            break
+        print("输入无效，请输入 1, 2 或 3。")
+
+    # 6. 获取输出目录
+    output_dir = input(f"\n请输入输出目录 (默认为 '{settings.OUTPUT_DIR.name}'): ").strip()
+    if not output_dir:
+        output_dir = str(settings.OUTPUT_DIR)
+
+    # 7. 获取特定模式的额外参数
+    extra_args = {}
+    if mode == '3':
+        while True:
+            try:
+                range_val = input("请输入每个文件包含的章节数 (默认为10): ").strip()
+                if not range_val:
+                    extra_args['range'] = 10
+                else:
+                    extra_args['range'] = int(range_val)
+                break
+            except ValueError:
+                print("请输入有效的数字。")
+    
+    # Pass the scan result range
+    if chapter_range:
+        extra_args['chapter_range'] = chapter_range
+
+    # 8. AI 总结配置
+    summarize_config = {'enabled': False}
+    print("\n是否开启 AI 智能总结? (y/N)")
+    if input().lower().strip() == 'y':
+        summarize_config['enabled'] = True
+        
+        print("\n请选择 LLM 提供商:")
+        print("1. OpenRouter (默认)")
+        print("2. Local (Ollama/vLLM)")
+        prov_input = input("请输入编号 (1/2): ").strip()
+        
+        if prov_input == '2':
+            summarize_config['provider'] = 'local'
+            # 尝试从环境变量获取默认值
+            default_base = os.getenv("LOCAL_LLM_BASE_URL", "http://localhost:11434/v1")
+            default_model = os.getenv("LOCAL_LLM_MODEL", "qwen2.5:14b")
+            
+            base_url = input(f"Base URL (默认 '{default_base}'): ").strip()
+            summarize_config['base_url'] = base_url if base_url else default_base
+            
+            model = input(f"Model Name (默认 '{default_model}'): ").strip()
+            summarize_config['model'] = model if model else default_model
+        else:
+            summarize_config['provider'] = 'openrouter'
+            # OpenRouter Config
+            default_model = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")
+            model = input(f"Model Name (默认 '{default_model}'): ").strip()
+            summarize_config['model'] = model if model else default_model
+            
+            # API Key
+            env_key = os.getenv("OPENROUTER_API_KEY")
+            if env_key:
+                print(f"检测到环境变量 OPENROUTER_API_KEY (已隐藏)")
+                use_env = input("是否使用环境变量中的 Key? (Y/n): ").strip().lower()
+                if use_env == 'n':
+                    summarize_config['api_key'] = input("请输入 OpenRouter API Key: ").strip()
+                else:
+                    summarize_config['api_key'] = env_key
+            else:
+                summarize_config['api_key'] = input("请输入 OpenRouter API Key: ").strip()
+
+    return {
+        'input_file': input_file,
+        'mode': mode,
+        'output_dir': output_dir,
+        'encoding': encoding,
+        'extra_args': extra_args,
+        'summarize_config': summarize_config
+    }
+
+from core.summarizer.prompts import Prompts
+from core.cache_manager import CacheManager
+
+def main():
+    # 检查是否是启动 Web 服务命令
+    if len(sys.argv) > 1 and sys.argv[1] == 'serve':
+        try:
+            import uvicorn
+            from backend.server import app
+            print("=== StoryTrace Visualization Server ===")
+            print("正在启动 API 服务...")
+            print(f"访问地址: http://{settings.API_HOST}:{settings.API_PORT}/docs")
+            uvicorn.run(app, host=settings.API_HOST, port=settings.API_PORT)
+        except ImportError:
+            print("错误: 请先安装 web 依赖: pip install fastapi uvicorn")
+        except Exception as e:
+            print(f"启动失败: {e}")
+        return
+
+    parser = argparse.ArgumentParser(description='全能小说分割工具')
+    parser.add_argument('-i', '--input', help='输入文件路径')
+    parser.add_argument('-m', '--mode', choices=['volume', 'chapter', 'batch'], 
+                        help='分割模式: volume(按卷), chapter(按章), batch(按数量)')
+    parser.add_argument('-o', '--output', help='输出目录')
+    parser.add_argument('-e', '--encoding', default='utf-8', help='文件编码')
+    parser.add_argument('-r', '--range', type=int, default=10, help='批量分割时的章节数量 (仅batch模式有效)')
+    parser.add_argument('--pattern', default=r'^[第卷\d一二三四五六七八九十百千万]+卷', help='分卷匹配模式 (仅volume模式有效)')
+    
+    # LLM 相关参数
+    parser.add_argument('--summarize', action='store_true', help='开启智能总结 (实验性功能)')
+    parser.add_argument('--provider', default='openrouter', choices=['local', 'openrouter'], help='LLM 提供商')
+    parser.add_argument('--api-key', help='API Key (OpenRouter 需要)')
+    parser.add_argument('--model', help='模型名称')
+    parser.add_argument('--base-url', help='Local LLM Base URL')
+
+    # 如果没有提供任何参数，且不是被导入调用，则进入交互模式
+    if len(sys.argv) == 1:
+        args_dict = get_user_input()
+        print("\nDEBUG: 用户输入接收完成，正在初始化...", flush=True)
+        input_file = args_dict['input_file']
+        mode = args_dict['mode']
+        output_dir = args_dict['output_dir']
+        encoding = args_dict['encoding']
+        
+        # 映射模式编号到内部名称
+        mode_map = {'1': 'volume', '2': 'chapter', '3': 'batch'}
+        mode_name = mode_map[mode]
+        
+        extra_args = args_dict['extra_args']
+        batch_size = extra_args.get('range', 10)
+        chapter_range_filter = extra_args.get('chapter_range')
+        
+        pattern = r'^[第卷\d一二三四五六七八九十百千万]+卷' # 交互模式使用默认pattern
+        
+        # 读取交互模式下的 LLM 配置
+        summarize_config = args_dict.get('summarize_config', {'enabled': False})
+        summarize = summarize_config['enabled']
+        provider = summarize_config.get('provider', 'openrouter')
+        api_key = summarize_config.get('api_key')
+        model = summarize_config.get('model')
+        base_url = summarize_config.get('base_url')
+        
+        # 如果 Config 中没有提供 API Key，尝试从环境变量获取
+        if not api_key and provider == 'openrouter':
+            api_key = os.getenv("OPENROUTER_API_KEY")
+            if api_key:
+                print("DEBUG: 使用环境变量中的 OPENROUTER_API_KEY")
+    else:
+        args = parser.parse_args()
+        if not args.input:
+            parser.error("非交互模式下必须指定输入文件 (-i/--input)")
+        if not args.mode:
+            parser.error("非交互模式下必须指定模式 (-m/--mode)")
+            
+        input_file = args.input
+        mode_name = args.mode
+        output_dir = args.output if args.output else str(settings.OUTPUT_DIR)
+        encoding = args.encoding
+        batch_size = args.range
+        pattern = args.pattern
+        chapter_range_filter = None # CLI模式暂不支持 range filter，后续可添加
+        
+        summarize = args.summarize
+        provider = args.provider
+        
+        # 优先从命令行参数获取，如果没有，则尝试从环境变量获取
+        api_key = args.api_key or os.getenv("OPENROUTER_API_KEY")
+        model = args.model
+        base_url = args.base_url
+
+        # 如果是 OpenRouter 且没有指定 Model，尝试从环境变量获取默认 Model
+        if provider == 'openrouter' and not model:
+             model = os.getenv("OPENROUTER_MODEL")
+             
+        # 如果是 Local 且没有指定参数，尝试从环境变量获取
+        if provider == 'local':
+             if not base_url:
+                 base_url = os.getenv("LOCAL_LLM_BASE_URL")
+             if not model:
+                 model = os.getenv("LOCAL_LLM_MODEL")
+
+    # 构建最终输出目录结构
+    # 1. 获取小说名（输入文件名，不含扩展名）
+    novel_name = os.path.splitext(os.path.basename(input_file))[0]
+    
+    # --- 自动复制外部文件逻辑 ---
+    # 获取项目根目录 (假设 main.py 在 app/ 目录下)
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    input_abs = os.path.abspath(input_file)
+    
+    # 检查文件是否在项目目录内
+    if not input_abs.startswith(project_root):
+        print(f"\n提示: 检测到输入文件位于项目目录外 ({input_abs})")
+        inputs_dir = os.path.join(project_root, "inputs")
+        os.makedirs(inputs_dir, exist_ok=True)
+        
+        new_path = os.path.join(inputs_dir, os.path.basename(input_file))
+        
+        # 自动复制
+        try:
+            import shutil
+            if not os.path.exists(new_path):
+                print(f"正在复制文件到项目目录: {new_path} ...")
+                shutil.copy2(input_file, new_path)
+            else:
+                print(f"项目目录内已存在同名文件，将使用: {new_path}")
+            
+            # 更新 input_file 指向新路径
+            input_file = new_path
+        except Exception as e:
+            print(f"警告: 文件复制失败 ({e})，将继续使用原路径。")
+
+    print(f"DEBUG: 正在计算文件哈希... (文件: {input_file})", flush=True)
+    # 2. 计算文件哈希（取前8位即可）
+    file_hash = calculate_file_hash(input_file)
+    if len(file_hash) > 8:
+        file_hash = file_hash[:8]
+    print(f"DEBUG: 文件哈希: {file_hash}", flush=True)
+    
+    # --- 缓存检查逻辑 (v3.0) ---
+    print(f"DEBUG: Summarize={summarize}, Provider={provider}", flush=True)
+    
+    # 1. 计算当前运行的 Fingerprint
+    # 注意：这里我们还没有加载 prompts，需要引入 Prompts 类来计算
+    current_fingerprint = {
+        "source_file_hash": file_hash,
+        "prompt_hash": Prompts.get_prompt_hash() if summarize else None,
+        "model_config": {
+            "provider": provider,
+            "model": model,
+            # "temperature": ... (如果后续支持 temp 参数，这里也要加上)
+        } if summarize else None,
+        "splitter_config": {
+            "mode": mode_name,
+            "batch_size": batch_size if mode_name == 'batch' else None,
+            "chapter_range_filter": chapter_range_filter, # 新增范围过滤指纹
+            "pattern": pattern if mode_name == 'volume' else None
+        }
+    }
+    print("DEBUG: 指纹计算完成，正在检查缓存...")
+    
+    # 2. 扫描历史记录
+    novel_output_root = PathManager.get_novel_root(novel_name, file_hash)
+    cache_hit_path = None
+    cache_hit_timestamp = None
+    
+    if os.path.exists(novel_output_root) and summarize: # 只有开启总结时才值得缓存
+        for ts in os.listdir(novel_output_root):
+            ts_path = os.path.join(novel_output_root, ts)
+            meta_path = os.path.join(ts_path, "run_metadata.json")
+            if os.path.isdir(ts_path) and os.path.exists(meta_path):
+                try:
+                    with open(meta_path, 'r', encoding='utf-8') as f:
+                        meta = json.load(f)
+                        # 比较指纹
+                        # 注意：旧版本的 metadata 没有 fingerprint 字段，会自动忽略
+                        if meta.get("fingerprint") == current_fingerprint:
+                            cache_hit_path = ts_path
+                            cache_hit_timestamp = ts
+                            break
+                except Exception:
+                    continue
+    
+    # 3. 如果命中缓存
+    if cache_hit_path:
+        print(f"\n[Cache Hit] 发现完全相同的历史运行记录: {cache_hit_timestamp}")
+        print(f"无需重复调用 LLM。")
+        
+        # 生成新的时间戳目录
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        final_output_dir = PathManager.get_run_dir(novel_name, file_hash, timestamp)
+        os.makedirs(final_output_dir, exist_ok=True)
+        
+        # 创建 ref_link.json
+        link_data = {
+            "link_type": "cache_hit",
+            "target_timestamp": cache_hit_timestamp,
+            "reason": "Fingerprint match",
+            "fingerprint": current_fingerprint
+        }
+        with open(os.path.join(final_output_dir, "ref_link.json"), 'w', encoding='utf-8') as f:
+            json.dump(link_data, f, ensure_ascii=False, indent=2)
+            
+        print(f"已创建链接目录: {final_output_dir}")
+        print(f"您可以在 Visualization Server 中查看此记录（将自动指向历史数据）。")
+        return
+    
+    # --- 缓存检查结束 ---
+
+    # 3. 获取当前时间戳
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    
+    # 最终路径：output_dir/novel_name/file_hash/timestamp
+    final_output_dir = PathManager.get_run_dir(novel_name, file_hash, timestamp)
+    abs_final_output_dir = os.path.abspath(final_output_dir)
+    
+    # 执行分割逻辑
+    print(f"\n开始处理：{input_file}")
+    print(f"模式：{mode_name}")
+    print(f"输出目录 (绝对路径)：{abs_final_output_dir}")
+    
+    try:
+        print(f"正在读取文件 (编码: {encoding})...")
+        splitter = Splitter(encoding=encoding)
+        content = splitter.read_file(input_file)
+        
+        print("正在分割章节...")
+        if mode_name == 'volume':
+            # 暂时不支持卷模式的范围过滤
+            chapters = splitter.split_by_volume(content, volume_pattern=pattern)
+        elif mode_name == 'chapter':
+            chapters = splitter.split_by_chapter(content, chapter_range=chapter_range_filter)
+        elif mode_name == 'batch':
+            chapters = splitter.split_by_batch(content, batch_size=batch_size, chapter_range=chapter_range_filter)
+        else:
+            print(f"不支持的模式: {mode_name}")
+            return
+            
+        if chapters:
+            print(f"成功分割出 {len(chapters)} 章。正在保存...")
+            # 使用新的 final_output_dir 保存章节
+            # 强制使用 UTF-8 保存，确保 Web UI 能正确读取
+            save_chapters(chapters, final_output_dir, encoding='utf-8')
+            print("\n分割处理完成！")
+            
+            # 如果开启了总结功能
+            if summarize:
+                print("\n=== 开始智能总结 ===")
+                try:
+                    # 确保参数不为空
+                    client_kwargs = {
+                        "provider": provider,
+                        "api_key": api_key,
+                        "model": model,
+                        "base_url": base_url
+                    }
+                    # 过滤掉 None 值
+                    client_kwargs = {k: v for k, v in client_kwargs.items() if v is not None}
+                    
+                    llm_client = ClientFactory.create_client(**client_kwargs)
+                    generator = SummaryGenerator(llm_client)
+                    
+                    # --- v4.0 Chapter-Level Caching ---
+                    # Initialize CacheManager
+                    cache_dir = PathManager.get_cache_dir()
+                    cache_manager = CacheManager(str(cache_dir))
+                    
+                    prompt_hash = Prompts.get_prompt_hash()
+                    model_config = {
+                        "provider": provider,
+                        "model": model,
+                        "base_url": base_url
+                    }
+                    
+                    import asyncio
+                    
+                    # Initialize total_chapters before defining async functions
+                    total_chapters = len(chapters)
+
+                    async def process_chapter_async(i, ch, cache_manager, generator, prompt_hash, model_config, semaphore, file_lock, jsonl_path):
+                        async with semaphore:
+                            print(f"[{i+1}/{total_chapters}] 处理章节: {ch.title} ... ", end="", flush=True)
+                            
+                            # 1. Try Cache
+                            # Cache read is synchronous, but fast
+                            cached_summary = cache_manager.get_cached_summary(ch.content, prompt_hash, model_config)
+                            
+                            summary_data = None
+                            
+                            if cached_summary:
+                                print("✅ 命中缓存")
+                                cached_summary.chapter_id = ch.id 
+                                summary_data = cached_summary.model_dump()
+                            else:
+                                # 2. Generate (Async)
+                                try:
+                                    summary = await generator.generate_summary_async(ch)
+                                    # 3. Save to Cache (Sync)
+                                    try:
+                                        cache_manager.save_summary(ch.content, prompt_hash, model_config, summary)
+                                    except Exception as cache_err:
+                                        print(f"(Cache Write Failed: {cache_err}) ", end="")
+                                        
+                                    summary_data = summary.model_dump()
+                                    print("✨ 生成完成")
+                                except Exception as e:
+                                    print(f"❌ 失败: {e}")
+                                    return None
+
+                            # Real-time save to summaries.jsonl (with lock)
+                            if summary_data:
+                                async with file_lock:
+                                    with open(jsonl_path, 'a', encoding='utf-8') as f:
+                                        json.dump(summary_data, f, ensure_ascii=False)
+                                        f.write('\n')
+                            
+                            return (i, summary_data)
+
+                    async def run_batch_processing():
+                        # Adjust concurrency based on provider
+                        limit = 1 if provider == 'local' else 5
+                        semaphore = asyncio.Semaphore(limit)
+                        file_lock = asyncio.Lock()
+                        jsonl_path = os.path.join(final_output_dir, "summaries.jsonl")
+                        
+                        tasks = []
+                        for i, ch in enumerate(chapters):
+                            task = process_chapter_async(i, ch, cache_manager, generator, prompt_hash, model_config, semaphore, file_lock, jsonl_path)
+                            tasks.append(task)
+                        
+                        results = await asyncio.gather(*tasks)
+                        
+                        # Sort results by index to ensure order
+                        valid_results = [r for r in results if r is not None]
+                        valid_results.sort(key=lambda x: x[0])
+                        
+                        return [r[1] for r in valid_results]
+
+                    # Run Async Loop
+                    summaries = asyncio.run(run_batch_processing())
+                    
+                    # 保存总结结果，直接保存在 final_output_dir 根目录
+                    summary_path = os.path.join(final_output_dir, "summaries.json")
+                    with open(summary_path, 'w', encoding='utf-8') as f:
+                        json.dump(summaries, f, ensure_ascii=False, indent=2)
+                    print(f"总结已保存至: {summary_path}")
+                    
+                    # 同时保存一份 metadata，记录这次运行的参数
+                    metadata = {
+                        "timestamp": timestamp,
+                        "novel_name": novel_name,
+                        "file_hash": file_hash,
+                        "input_file": os.path.abspath(input_file),
+                        "provider": provider,
+                        "model": model,
+                        "chapter_count": len(summaries),
+                        "fingerprint": current_fingerprint # 记录指纹，供下次校验
+                    }
+                    with open(os.path.join(final_output_dir, "run_metadata.json"), 'w', encoding='utf-8') as f:
+                        json.dump(metadata, f, ensure_ascii=False, indent=2)
+                    
+                except Exception as e:
+                    print(f"智能总结失败: {e}")
+                    import traceback
+                    traceback.print_exc()
+            
+        else:
+            print("\n未找到任何章节。")
+        
+    except Exception as e:
+        print(f"\n发生错误: {e}")
+        import traceback
+        traceback.print_exc()
+
+if __name__ == '__main__':
+    main()
+
+
+==================== FILE: backend\__init__.py ====================
+
+
+
+==================== FILE: backend\schemas.py ====================
+
+from typing import List, Dict, Optional, Any
+from pydantic import BaseModel
+
+class NovelInfo(BaseModel):
+    name: str
+    hashes: List[str]
+
+class RunInfo(BaseModel):
+    timestamp: str
+    metadata: Optional[Dict[str, Any]] = None
+
+class ChapterPreview(BaseModel):
+    id: str
+    title: str
+    headline: str
+    has_summary: bool = True
+
+class SourceSpan(BaseModel):
+    start_index: int
+    end_index: int
+    text: str
+
+class SummarySentence(BaseModel):
+    summary_text: str
+    source_spans: List[SourceSpan] = []
+
+class EntityDetail(BaseModel):
+    name: str
+    type: str
+    description: str
+    confidence: float = 1.0
+
+class ChapterDetail(BaseModel):
+    id: str
+    title: str
+    headline: Optional[str] = None
+    content: str
+    summary_sentences: List[SummarySentence]
+    entities: List[EntityDetail] = []
+
+class TimelineEvent(BaseModel):
+    chapter_id: str
+    chapter_title: str
+    content: List[str]
+    gap_before: int
+
+class RelationshipInteraction(BaseModel):
+    direction: str # forward or backward
+    relation: str
+    description: str
+    confidence: float
+
+class RelationshipTimelineEvent(BaseModel):
+    chapter_id: str
+    chapter_title: str
+    interactions: List[RelationshipInteraction]
+
+class GraphNode(BaseModel):
+    name: str
+    type: str
+    description: str
+    count: int = 1
+    chapter_ids: List[str] = []
+    history: List[Dict[str, Any]] = [] # Detailed history per chapter
+
+class EdgeEvent(BaseModel):
+    chapter_id: str
+    weight: int = 1
+    relation: Optional[str] = None
+    description: Optional[str] = None
+    order: int = 0
+
+class GraphEdge(BaseModel):
+    source: str
+    target: str
+    weight: int
+    timeline: List[EdgeEvent] = []
+
+class GraphData(BaseModel):
+    nodes: List[GraphNode]
+    edges: List[GraphEdge]
+
+
+==================== FILE: backend\server.py ====================
+
+import os
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from backend.routers import novels, analysis
+
+app = FastAPI(title="StoryTrace API")
+
+# 允许跨域
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include Routers
+app.include_router(novels.router)
+app.include_router(analysis.router)
+
+@app.get("/")
+async def index():
+    return {"message": "StoryTrace API is running. Please access the frontend at http://localhost:5173"}
+
+if __name__ == "__main__":
+    import uvicorn
+    from core.config import settings
+    uvicorn.run(app, host=settings.API_HOST, port=settings.API_PORT)
+
+
+==================== FILE: backend\utils.py ====================
+
+from pathlib import Path
+import json
+from core.config import settings
+
+def get_novel_path(novel_name: str, file_hash: str, timestamp: str) -> str:
+    """Returns the absolute path to the run directory"""
+    return str(settings.OUTPUT_DIR / novel_name / file_hash / timestamp)
+
+def resolve_run_path(novel_name: str, file_hash: str, timestamp: str) -> str:
+    """解析实际的运行路径（处理缓存链接）"""
+    base_path = Path(get_novel_path(novel_name, file_hash, timestamp))
+    ref_file = base_path / "ref_link.json"
+    
+    if ref_file.exists():
+        try:
+            with open(ref_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                target_ts = data.get("target_timestamp")
+                if target_ts:
+                    return get_novel_path(novel_name, file_hash, target_ts)
+        except:
+            pass
+    return str(base_path)
+
+def get_output_dir() -> str:
+    return str(settings.OUTPUT_DIR)
+
+
+==================== FILE: backend\routers\analysis.py ====================
+
+from typing import List, Dict, Any
+from fastapi import APIRouter, HTTPException, Depends
+from sqlmodel import Session, select
+from core.db.engine import engine
+from core.db.models import Novel, NovelVersion, AnalysisRun, Chapter, Summary, Entity, StoryRelationship
+from backend.schemas import (
+    ChapterPreview, ChapterDetail, EntityDetail, SummarySentence, SourceSpan,
+    GraphData, GraphNode, GraphEdge, EdgeEvent, TimelineEvent, RelationshipTimelineEvent, RelationshipInteraction
+)
+from data_protocol.models import (
+    ChapterSummary, 
+    SummarySentence as ProtoSummarySentence, 
+    Entity as ProtoEntity, 
+    Relationship as ProtoRelationship, 
+    TextSpan as ProtoTextSpan
+)
+from core.world_builder.aggregator import EntityAggregator
+
+router = APIRouter(prefix="/api/novels", tags=["analysis"])
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+def db_chapter_to_summary(db_chapter: Chapter) -> ChapterSummary:
+    # Convert summaries
+    summaries = []
+    for s in db_chapter.summaries:
+        spans = []
+        if s.span_start is not None and s.span_end is not None:
+             spans.append(ProtoTextSpan(text="", start_index=s.span_start, end_index=s.span_end))
+        
+        summaries.append(ProtoSummarySentence(
+            summary_text=s.text,
+            source_spans=spans
+        ))
+    
+    # Convert entities
+    entities = []
+    for e in db_chapter.entities:
+        entities.append(ProtoEntity(
+            name=e.name,
+            type=e.type,
+            description=e.description or "",
+            confidence=1.0 
+        ))
+
+    # Convert relationships
+    rels = []
+    for r in db_chapter.relationships:
+        rels.append(ProtoRelationship(
+            source=r.source,
+            target=r.target,
+            relation=r.relation,
+            description=r.description or "",
+            confidence=1.0
+        ))
+    
+    return ChapterSummary(
+        chapter_id=str(db_chapter.id),
+        chapter_title=db_chapter.title,
+        headline=db_chapter.headline,
+        summary_sentences=summaries,
+        entities=entities,
+        relationships=rels
+    )
+
+def get_merged_chapters(session: Session, novel_name: str, file_hash: str) -> List[Chapter]:
+    """
+    Best Effort Merge: Fetch all runs for this version and merge chapters.
+    Later runs overwrite earlier ones for the same chapter index.
+    """
+    # 1. Find the version
+    statement = select(NovelVersion).join(Novel).where(
+        Novel.name == novel_name,
+        NovelVersion.hash == file_hash
+    )
+    version = session.exec(statement).first()
+    if not version:
+        raise HTTPException(status_code=404, detail="Novel version not found")
+    
+    # 2. Get all runs sorted by timestamp (oldest first)
+    # We want newer runs to overwrite older ones
+    runs = sorted(version.runs, key=lambda r: r.timestamp)
+    
+    merged_map: Dict[int, Chapter] = {}
+    
+    for run in runs:
+        for chapter in run.chapters:
+            merged_map[chapter.chapter_index] = chapter
+            
+    # 3. Return sorted list
+    return [merged_map[idx] for idx in sorted(merged_map.keys())]
+
+@router.get("/{novel_name}/{file_hash}/{timestamp}/chapters", response_model=List[ChapterPreview])
+def list_chapters(novel_name: str, file_hash: str, timestamp: str, session: Session = Depends(get_session)):
+    # Note: We ignore the specific timestamp for listing chapters, 
+    # instead returning the merged result of all runs for this hash.
+    # This implements the "Best Effort Merge" logic.
+    chapters = get_merged_chapters(session, novel_name, file_hash)
+    
+    return [
+        ChapterPreview(
+            id=str(c.id),
+            title=c.title,
+            headline=c.headline or "",
+            has_summary=True
+        )
+        for c in chapters
+    ]
+
+@router.get("/{novel_name}/{file_hash}/{timestamp}/chapters/{chapter_id}", response_model=ChapterDetail)
+def get_chapter_detail(novel_name: str, file_hash: str, timestamp: str, chapter_id: str, session: Session = Depends(get_session)):
+    try:
+        db_id = int(chapter_id)
+        chapter = session.get(Chapter, db_id)
+    except:
+        raise HTTPException(status_code=404, detail="Invalid chapter ID")
+        
+    if not chapter:
+         raise HTTPException(status_code=404, detail="Chapter not found")
+         
+    summary = db_chapter_to_summary(chapter)
+    
+    # Convert Proto models to Schema models
+    summary_sentences = [
+        SummarySentence(
+            summary_text=s.summary_text,
+            source_spans=[SourceSpan(**span.dict()) for span in s.source_spans]
+        )
+        for s in summary.summary_sentences
+    ]
+    
+    entities = [
+        EntityDetail(
+            name=e.name,
+            type=e.type,
+            description=e.description,
+            confidence=e.confidence or 1.0
+        )
+        for e in summary.entities
+    ]
+    
+    return ChapterDetail(
+        id=str(chapter.id),
+        title=chapter.title,
+        headline=chapter.headline,
+        content=chapter.content or "",
+        summary_sentences=summary_sentences,
+        entities=entities
+    )
+
+@router.get("/{novel_name}/{file_hash}/{timestamp}/entities", response_model=List[GraphNode])
+def list_entities(novel_name: str, file_hash: str, timestamp: str, session: Session = Depends(get_session)):
+    # Use merged chapters for aggregation
+    chapters = get_merged_chapters(session, novel_name, file_hash)
+    
+    # Aggregate
+    summaries = [db_chapter_to_summary(c) for c in chapters]
+    
+    aggregator = EntityAggregator()
+    aggregated_entities = aggregator.aggregate_entities(summaries)
+    
+    return [
+        GraphNode(
+            name=e.name,
+            type=e.type,
+            description=e.description,
+            count=e.count,
+            chapter_ids=e.chapter_ids,
+            history=e.history
+        )
+        for e in aggregated_entities
+    ]
+
+@router.get("/{novel_name}/{file_hash}/{timestamp}/graph", response_model=GraphData)
+def get_graph_data(novel_name: str, file_hash: str, timestamp: str, session: Session = Depends(get_session)):
+    chapters = get_merged_chapters(session, novel_name, file_hash)
+    summaries = [db_chapter_to_summary(c) for c in chapters]
+    
+    aggregator = EntityAggregator()
+    entities = aggregator.aggregate_entities(summaries)
+    relationships = aggregator.aggregate_relationships(summaries)
+    
+    # Pre-calculate chapter ID to index map for sorting
+    # This ensures that 'chapter_ids' list in GraphNode is sorted by logical order, not just string order
+    chap_id_to_index = {str(c.id): c.chapter_index for c in chapters}
+    
+    nodes = []
+    for e in entities:
+        # Sort chapter IDs by index
+        sorted_chapter_ids = sorted(e.chapter_ids, key=lambda x: chap_id_to_index.get(x, 999999))
+        
+        nodes.append(GraphNode(
+            name=e.name,
+            type=e.type,
+            description=e.description,
+            count=e.count,
+            chapter_ids=sorted_chapter_ids,
+            history=e.history
+        ))
+    
+    edges = []
+    for r in relationships:
+        timeline_events = [
+            EdgeEvent(
+                chapter_id=item['chapter_id'],
+                relation=item.get('relation'),
+                description=item.get('description'),
+                order=item.get('order', 0),
+                weight=1 # Default weight per event
+            )
+            for item in r.timeline
+        ]
+        
+        # Sort edge events by chapter index as well
+        timeline_events.sort(key=lambda x: chap_id_to_index.get(x.chapter_id, 999999))
+        
+        edges.append(GraphEdge(
+            source=r.source,
+            target=r.target,
+            weight=r.weight,
+            timeline=timeline_events
+        ))
+    
+    return GraphData(nodes=nodes, edges=edges)
+
+@router.get("/{novel_name}/{file_hash}/{timestamp}/entity/{entity_name}/timeline", response_model=List[TimelineEvent])
+def get_entity_timeline(novel_name: str, file_hash: str, timestamp: str, entity_name: str, session: Session = Depends(get_session)):
+    """
+    Get the chronological timeline of events for a specific entity.
+    """
+    chapters = get_merged_chapters(session, novel_name, file_hash)
+    timeline_events = []
+    
+    aggregator = EntityAggregator()
+    # Normalize input name for matching
+    normalized_target_name = aggregator._normalize_text(entity_name)
+    
+    last_chapter_idx = -1
+    
+    for chapter in chapters:
+        summary = db_chapter_to_summary(chapter)
+        relevant_sentences = []
+        entity_in_chapter = False
+        
+        # 1. Check explicit entities list (Strong Match)
+        for e in summary.entities:
+            if aggregator._normalize_text(e.name) == normalized_target_name:
+                entity_in_chapter = True
+                break
+        
+        # 2. Check sentences for mentions (Contextual Match)
+        for sent in summary.summary_sentences:
+            if normalized_target_name in sent.summary_text or entity_name in sent.summary_text:
+                relevant_sentences.append(sent.summary_text)
+                entity_in_chapter = True
+        
+        if entity_in_chapter:
+            # Calculate gap (number of chapters skipped)
+            gap = 0
+            if last_chapter_idx != -1:
+                gap = chapter.chapter_index - last_chapter_idx - 1
+            
+            # Use found sentences or fallback to entity description if available
+            content = relevant_sentences
+            if not content:
+                # Try to find entity description
+                for e in summary.entities:
+                    if aggregator._normalize_text(e.name) == normalized_target_name and e.description:
+                        content.append(e.description)
+                        break
+            
+            timeline_events.append(TimelineEvent(
+                chapter_id=str(chapter.id),
+                chapter_title=chapter.title,
+                content=content if content else ["本章提及该实体。"],
+                gap_before=max(0, gap)
+            ))
+            
+            last_chapter_idx = chapter.chapter_index
+            
+    return timeline_events
+
+@router.get("/{novel_name}/{file_hash}/{timestamp}/relationship", response_model=List[RelationshipTimelineEvent])
+def get_relationship_timeline(
+    novel_name: str, 
+    file_hash: str, 
+    timestamp: str, 
+    source: str, 
+    target: str, 
+    session: Session = Depends(get_session)
+):
+    """
+    Get the interaction timeline between two entities (bidirectional).
+    Returns a list of interactions where Source->Target OR Target->Source.
+    """
+    chapters = get_merged_chapters(session, novel_name, file_hash)
+    timeline_events = []
+    
+    aggregator = EntityAggregator()
+    norm_source = aggregator._normalize_text(source)
+    norm_target = aggregator._normalize_text(target)
+    
+    if not norm_source or not norm_target:
+        return []
+        
+    for chapter in chapters:
+        summary = db_chapter_to_summary(chapter)
+        
+        # Check for direct relationships
+        # We need to check both directions: Source->Target and Target->Source
+        
+        interactions = []
+        
+        for rel in summary.relationships:
+            r_source = aggregator._normalize_text(rel.source)
+            r_target = aggregator._normalize_text(rel.target)
+            
+            # Direction 1: A -> B
+            if r_source == norm_source and r_target == norm_target:
+                interactions.append(RelationshipInteraction(
+                    direction="forward", # Source -> Target
+                    relation=rel.relation,
+                    description=rel.description,
+                    confidence=rel.confidence
+                ))
+            
+            # Direction 2: B -> A
+            elif r_source == norm_target and r_target == norm_source:
+                interactions.append(RelationshipInteraction(
+                    direction="backward", # Target -> Source
+                    relation=rel.relation,
+                    description=rel.description,
+                    confidence=rel.confidence
+                ))
+        
+        if interactions:
+            timeline_events.append(RelationshipTimelineEvent(
+                chapter_id=str(chapter.id),
+                chapter_title=chapter.title,
+                interactions=interactions
+            ))
+            
+    return timeline_events
+
+
+==================== FILE: backend\routers\novels.py ====================
+
+from typing import List, Optional
+from fastapi import APIRouter, HTTPException, Depends
+from sqlmodel import Session, select
+from core.db.engine import engine
+from core.db.models import Novel, NovelVersion, AnalysisRun
+from backend.schemas import NovelInfo, RunInfo
+import json
+
+router = APIRouter(prefix="/api/novels", tags=["novels"])
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+@router.get("", response_model=List[NovelInfo])
+def list_novels(session: Session = Depends(get_session)):
+    novels = session.exec(select(Novel)).all()
+    results = []
+    for n in novels:
+        hashes = [v.hash for v in n.versions]
+        results.append(NovelInfo(name=n.name, hashes=hashes))
+    return results
+
+@router.get("/{novel_name}/{file_hash}/runs", response_model=List[RunInfo])
+def list_runs(novel_name: str, file_hash: str, session: Session = Depends(get_session)):
+    # Find version
+    statement = select(NovelVersion).join(Novel).where(Novel.name == novel_name).where(NovelVersion.hash == file_hash)
+    version = session.exec(statement).first()
+    
+    if not version:
+        raise HTTPException(status_code=404, detail="Novel version not found")
+    
+    runs = []
+    for run in version.runs:
+        metadata = {}
+        if run.config_snapshot:
+            try:
+                metadata = json.loads(run.config_snapshot)
+            except:
+                pass
+        runs.append(RunInfo(timestamp=run.timestamp, metadata=metadata))
+    
+    # Sort descending
+    runs.sort(key=lambda x: x.timestamp, reverse=True)
+    return runs
+
+
+==================== FILE: config\aliases.json ====================
+
+{
+    "机器人": "塔派",
+    "宋6": "宋6PUS"
+}
+
+==================== FILE: core\__init__.py ====================
+
+
+
+
+==================== FILE: core\cache_manager.py ====================
+
+import os
+import json
+import hashlib
+from typing import Dict, Optional, List
+from data_protocol.models import ChapterSummary
+
+class CacheManager:
+    """
+    负责章节级别的缓存管理。
+    缓存键 (Key) 由以下因素决定：
+    1. 章节内容哈希 (Content Hash)
+    2. Prompt 哈希 (Prompt Hash)
+    3. 模型配置哈希 (Model Config Hash)
+    """
+
+    def __init__(self, cache_dir: str):
+        self.cache_dir = cache_dir
+        os.makedirs(self.cache_dir, exist_ok=True)
+
+    def _calculate_key(self, content: str, prompt_hash: str, model_config: Dict) -> str:
+        """计算缓存唯一键"""
+        # 1. Content Hash
+        content_hash = hashlib.md5(content.encode('utf-8')).hexdigest()
+        
+        # 2. Model Config Hash (ensure consistent ordering)
+        config_str = json.dumps(model_config, sort_keys=True)
+        config_hash = hashlib.md5(config_str.encode('utf-8')).hexdigest()
+
+        # Combine
+        combined = f"{content_hash}_{prompt_hash}_{config_hash}"
+        return hashlib.md5(combined.encode('utf-8')).hexdigest()
+
+    def get_cached_summary(self, content: str, prompt_hash: str, model_config: Dict) -> Optional[ChapterSummary]:
+        """尝试获取缓存的总结"""
+        key = self._calculate_key(content, prompt_hash, model_config)
+        cache_path = os.path.join(self.cache_dir, f"{key}.json")
+        
+        if os.path.exists(cache_path):
+            try:
+                with open(cache_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    return ChapterSummary(**data)
+            except Exception as e:
+                print(f"[Cache] Error reading cache {key}: {e}")
+                return None
+        return None
+
+    def save_summary(self, content: str, prompt_hash: str, model_config: Dict, summary: ChapterSummary):
+        """保存总结到缓存"""
+        key = self._calculate_key(content, prompt_hash, model_config)
+        cache_path = os.path.join(self.cache_dir, f"{key}.json")
+        
+        try:
+            with open(cache_path, 'w', encoding='utf-8') as f:
+                # model_dump is Pydantic v2, dict() is v1. Use model_dump if available.
+                data = summary.model_dump() if hasattr(summary, 'model_dump') else summary.dict()
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"[Cache] Error writing cache {key}: {e}")
+
+
+==================== FILE: core\config.py ====================
+
+import os
+from pathlib import Path
+from typing import Optional
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
+
+class Settings(BaseSettings):
+    # Application Paths
+    BASE_DIR: Path = Field(default_factory=lambda: Path(__file__).resolve().parent.parent)
+    OUTPUT_DIR: Path = Field(default_factory=lambda: Path(__file__).resolve().parent.parent / "output")
+    INPUTS_DIR: Path = Field(default_factory=lambda: Path(__file__).resolve().parent.parent / "inputs")
+    
+    # Database
+    DATABASE_URL: str = "sqlite:///storytrace.db"
+    
+    # Server
+    API_HOST: str = "0.0.0.0"
+    API_PORT: int = 8000
+    
+    # LLM - OpenRouter
+    OPENROUTER_API_KEY: Optional[str] = None
+    OPENROUTER_MODEL: str = "google/gemini-2.0-flash-001"
+    
+    # LLM - Local
+    LOCAL_LLM_BASE_URL: str = "http://localhost:11434/v1"
+    LOCAL_LLM_MODEL: str = "qwen2.5:14b"
+    
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore" # Ignore extra env vars
+    )
+
+    @property
+    def database_path(self) -> str:
+        """Resolve database path relative to BASE_DIR if it's a relative sqlite path"""
+        if self.DATABASE_URL.startswith("sqlite:///"):
+            db_path = self.DATABASE_URL.replace("sqlite:///", "")
+            if not os.path.isabs(db_path):
+                return f"sqlite:///{self.BASE_DIR / db_path}"
+        return self.DATABASE_URL
+
+settings = Settings()
+
+
+==================== FILE: core\identifiers.py ====================
+
+import re
+from typing import Optional
+
+class IdentifierGenerator:
+    """
+    负责全项目统一的 ID 生成逻辑。
+    确保 Splitter 生成的 ID 和数据库迁移时解析的 ID 一致。
+    """
+
+    @staticmethod
+    def generate_chapter_id(index: int, prefix: str = "ch") -> str:
+        """
+        生成标准章节 ID。
+        格式: {prefix}_{index}
+        例如: ch_1, vol_1_ch_5
+        
+        Args:
+            index: 1-based index
+            prefix: 前缀，默认为 'ch'
+        """
+        return f"{prefix}_{index}"
+
+    @staticmethod
+    def parse_chapter_index(chapter_id: str) -> Optional[int]:
+        """
+        从 ID 中解析出数字索引。
+        例如: "ch_42" -> 42, "vol_1_ch_5" -> 5
+        """
+        if not chapter_id:
+            return None
+            
+        # 尝试匹配最后的数字部分
+        # 匹配 _(\d+)$
+        match = re.search(r'_(\d+)$', chapter_id)
+        if match:
+            return int(match.group(1))
+            
+        return None
+
+    @staticmethod
+    def generate_volume_id(index: int) -> str:
+        """生成分卷 ID"""
+        return f"vol_{index}"
+    
+    @staticmethod
+    def generate_batch_id(start: int, end: int) -> str:
+        """生成批次 ID"""
+        return f"batch_{start}_{end}"
+
+
+==================== FILE: core\paths.py ====================
+
+import os
+from pathlib import Path
+from core.config import settings
+
+class PathManager:
+    """
+    统一管理文件系统路径结构。
+    """
+    
+    @staticmethod
+    def get_output_root() -> Path:
+        """获取输出根目录"""
+        return settings.OUTPUT_DIR
+
+    @staticmethod
+    def get_novel_root(novel_name: str, file_hash: str) -> Path:
+        """output/novel_name/hash/"""
+        return PathManager.get_output_root() / novel_name / file_hash
+
+    @staticmethod
+    def get_run_dir(novel_name: str, file_hash: str, timestamp: str) -> Path:
+        """output/novel_name/hash/timestamp/"""
+        return PathManager.get_novel_root(novel_name, file_hash) / timestamp
+
+    @staticmethod
+    def get_cache_dir() -> Path:
+        """output/.cache/"""
+        return PathManager.get_output_root() / ".cache"
+        
+    @staticmethod
+    def get_chapter_file_path(output_dir: Path, title: str, volume_title: str = None) -> Path:
+        """
+        根据章节信息生成文件路径。
+        如果有 volume_title，则创建子目录。
+        """
+        # 清理非法字符
+        clean_title = "".join([c for c in title if c not in r'\/:*?"<>|'])
+        
+        if volume_title:
+            clean_vol = "".join([c for c in volume_title if c not in r'\/:*?"<>|'])
+            return output_dir / clean_vol / f"{clean_title}.txt"
+        else:
+            return output_dir / f"{clean_title}.txt"
+
+
+==================== FILE: core\utils.py ====================
+
+import re
+import hashlib
+import cn2an
+
+def calculate_file_hash(file_path: str, algorithm: str = 'md5') -> str:
+    """
+    计算文件的哈希值。
+    
+    :param file_path: 文件路径
+    :param algorithm: 哈希算法 ('md5', 'sha1', 'sha256' 等)
+    :return: 十六进制哈希字符串
+    """
+    hash_obj = hashlib.new(algorithm)
+    # 分块读取文件以支持大文件
+    try:
+        with open(file_path, 'rb') as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_obj.update(chunk)
+        return hash_obj.hexdigest()
+    except FileNotFoundError:
+        return "unknown_hash"
+
+def extract_line_by_match(match, content, match_type):
+    """
+    根据正则匹配结果提取整行内容，并将中文数字转换为阿拉伯数字。
+    
+    :param match: re.Match 对象
+    :param content: 完整文本内容
+    :param match_type: 匹配类型，支持 "卷" 或 "章"
+    :return: 处理后的标题行内容（包含阿拉伯数字）
+    """
+    # 获取匹配内容所在的行的起始和结束位置
+    start_index = match.start()
+    end_index = match.end()
+    
+    # 找到当前行的起始位置（上一个换行符之后）和结束位置（下一个换行符之前）
+    line_start = content.rfind("\n", 0, start_index) + 1
+    line_end = content.find("\n", end_index)
+    
+    # 如果找不到换行符，说明是在最后一行
+    if line_end == -1:
+        line_end = len(content)
+    
+    # 提取整行内容
+    line_content = content[line_start:line_end].strip()
+    
+    # 提取数字部分并转化为阿拉伯数字
+    num_match = None
+    if match_type == "卷":
+        num_match = re.search(r'第([零一二三四五六七八九十百千万\d]+)卷', line_content)
+    elif match_type == "章":
+        num_match = re.search(r'第([零一二三四五六七八九十百千万\d]+)章', line_content)
+    
+    if num_match:
+        chinese_num = num_match.group(1)
+        try:
+            # 尝试转换中文数字为阿拉伯数字
+            arabic_num = cn2an.cn2an(chinese_num)
+            line_content = line_content.replace(chinese_num, str(arabic_num))
+        except ValueError:
+            # 如果转换失败（例如混合数字），则保留原样或进行部分处理
+            pass
+
+    return line_content
+
+
+==================== FILE: core\db\__init__.py ====================
+
+
+
+==================== FILE: core\db\engine.py ====================
+
+from sqlmodel import create_engine, SQLModel
+from core.config import settings
+
+engine = create_engine(settings.database_path, echo=False)
+
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)
+
+
+==================== FILE: core\db\models.py ====================
+
+from typing import List, Optional
+from sqlmodel import Field, Relationship, SQLModel
+
+class Novel(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True, unique=True)
+    
+    versions: List["NovelVersion"] = Relationship(back_populates="novel")
+
+class NovelVersion(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    novel_id: int = Field(foreign_key="novel.id")
+    hash: str = Field(index=True)
+    
+    novel: Novel = Relationship(back_populates="versions")
+    runs: List["AnalysisRun"] = Relationship(back_populates="version")
+
+class AnalysisRun(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    version_id: int = Field(foreign_key="novelversion.id")
+    timestamp: str = Field(index=True)
+    config_snapshot: Optional[str] = None
+    
+    version: NovelVersion = Relationship(back_populates="runs")
+    chapters: List["Chapter"] = Relationship(back_populates="run")
+
+class Chapter(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    run_id: int = Field(foreign_key="analysisrun.id")
+    chapter_index: int
+    title: str
+    headline: Optional[str] = None
+    content: Optional[str] = None
+    
+    run: AnalysisRun = Relationship(back_populates="chapters")
+    summaries: List["Summary"] = Relationship(back_populates="chapter")
+    entities: List["Entity"] = Relationship(back_populates="chapter")
+    relationships: List["StoryRelationship"] = Relationship(back_populates="chapter")
+
+class Summary(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    chapter_id: int = Field(foreign_key="chapter.id")
+    text: str
+    span_start: Optional[int] = None
+    span_end: Optional[int] = None
+    
+    chapter: Chapter = Relationship(back_populates="summaries")
+
+class Entity(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    chapter_id: int = Field(foreign_key="chapter.id")
+    name: str
+    type: str
+    description: Optional[str] = None
+    count: int = 1
+    
+    chapter: Chapter = Relationship(back_populates="entities")
+
+class StoryRelationship(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    chapter_id: int = Field(foreign_key="chapter.id")
+    source: str
+    target: str
+    relation: str
+    description: Optional[str] = None
+    weight: int = 1
+    
+    chapter: Chapter = Relationship(back_populates="relationships")
+
+
+==================== FILE: core\splitter\__init__.py ====================
+
+
+
+
+==================== FILE: core\splitter\processor.py ====================
+
+import re
+import os
+from typing import List, Tuple, Optional
+from data_protocol.models import Chapter, BookStructure
+from core.utils import extract_line_by_match
+
+from core.identifiers import IdentifierGenerator
+
+class Splitter:
+    """
+    核心分割器类，负责将文本分割为章节对象。
+    """
+    def __init__(self, encoding: str = 'utf-8'):
+        self.encoding = encoding
+
+    def read_file(self, file_path: str) -> str:
+        """读取文件内容，尝试多种编码"""
+        encodings_to_try = [self.encoding]
+        
+        # 添加常见备选编码
+        common_encodings = ['utf-8', 'utf-8-sig', 'gb18030', 'gbk', 'big5']
+        for enc in common_encodings:
+            if enc.lower() != self.encoding.lower():
+                encodings_to_try.append(enc)
+        
+        # 去重
+        seen = set()
+        final_encodings = []
+        for enc in encodings_to_try:
+            if enc not in seen:
+                final_encodings.append(enc)
+                seen.add(enc)
+
+        for enc in final_encodings:
+            try:
+                with open(file_path, 'r', encoding=enc) as f:
+                    content = f.read()
+                    print(f"成功使用编码读取文件: {enc}")
+                    self.encoding = enc # 更新为实际有效的编码
+                    return content
+            except UnicodeDecodeError:
+                continue
+            except FileNotFoundError:
+                raise FileNotFoundError(f"文件 {file_path} 不存在。")
+            except Exception:
+                continue
+        
+        # 如果所有尝试都失败
+        raise ValueError(f"无法读取文件 {file_path}，已尝试编码: {', '.join(final_encodings)}。请检查文件是否损坏。")
+
+    def scan_chapters(self, content: str) -> Tuple[int, List[str], bool]:
+        """
+        快速扫描章节结构
+        Returns:
+            total_count: 总章节数
+            titles: 章节标题列表
+            is_continuous: 是否检测到连续的数字编号 (1, 2, 3...)
+        """
+        # 支持繁体中文数字和异体字
+        cn_nums = '零一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬億'
+        # 匹配 "第xxx章" 或 "Chapter xxx"
+        chapter_pattern = fr'(?:^第[{cn_nums}\d]+[章回節节])|(?:^Chapter\s+\d+)'
+        
+        matches = list(re.finditer(chapter_pattern, content, re.MULTILINE | re.IGNORECASE))
+        
+        titles = []
+        for match in matches:
+            line_start = match.start()
+            line_end = content.find('\n', line_start)
+            if line_end == -1: line_end = len(content)
+            titles.append(content[line_start:line_end].strip())
+            
+        total = len(titles)
+        if total == 0:
+            return 0, [], False
+            
+        # Check continuity (heuristic)
+        # Try to extract numbers from first few chapters
+        is_continuous = True
+        # (Simple check: if we found chapters, we assume structure exists. 
+        #  Strict continuity check is hard due to "第十章" vs "第10章" mixing)
+        
+        return total, titles, is_continuous
+
+    def split_by_chapter(self, content: str, chapter_range: Optional[Tuple[int, int]] = None) -> List[Chapter]:
+        """
+        按章节分割
+        Args:
+            content: 文本内容
+            chapter_range: (start, end) 闭区间，从1开始计数。例如 (1, 10) 表示第1到第10章。
+        """
+        # 支持繁体中文数字和异体字
+        cn_nums = '零一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬億'
+        chapter_pattern = fr'(?:^第[{cn_nums}\d]+[章回節节])|(?:^Chapter\s+\d+)'
+        
+        print(f"DEBUG: 正在使用正则匹配章节: {chapter_pattern[:50]}...")
+        matches = list(re.finditer(chapter_pattern, content, re.MULTILINE | re.IGNORECASE))
+        print(f"DEBUG: 匹配到 {len(matches)} 个潜在章节标题。")
+        
+        if not matches:
+            return []
+
+        # Apply Range Filtering
+        start_idx = 0
+        end_idx = len(matches)
+        
+        if chapter_range:
+            r_start, r_end = chapter_range
+            print(f"DEBUG: 应用范围过滤: {r_start}-{r_end}")
+            # Adjust 1-based index to 0-based
+            start_idx = max(0, r_start - 1)
+            end_idx = min(len(matches), r_end)
+            
+            print(f"DEBUG: 转换索引: [{start_idx}:{end_idx}]")
+            
+            if start_idx >= len(matches):
+                print(f"DEBUG: 起始索引 {start_idx} 超出范围 (总数 {len(matches)})")
+                return []
+                
+        # Filter matches
+        target_matches = matches[start_idx : end_idx]
+        if not target_matches:
+            print("DEBUG: 过滤后章节列表为空。")
+            return []
+            
+        print(f"DEBUG: 最终将处理 {len(target_matches)} 章。")
+
+        chapters = []
+        # We need to handle the content extraction carefully because we might be skipping chapters.
+        # For the last selected chapter, its content goes until the NEXT chapter in the original list starts.
+        
+        for i, match in enumerate(target_matches):
+            # Original index in 'matches' list
+            original_idx = start_idx + i
+            
+            # Get Title
+            line_start = match.start()
+            line_end = content.find('\n', line_start)
+            if line_end == -1: line_end = len(content)
+            title_line = content[line_start:line_end].strip()
+            
+            # Get Content
+            content_start = line_end
+            
+            # Find end of content: start of the NEXT chapter in the ORIGINAL list
+            if original_idx < len(matches) - 1:
+                content_end = matches[original_idx + 1].start()
+            else:
+                content_end = len(content)
+                
+            chapter_content = content[content_start:content_end].strip()
+            
+            chapters.append(Chapter(
+                id=IdentifierGenerator.generate_chapter_id(original_idx + 1),
+                title=title_line,
+                content=chapter_content,
+                word_count=len(chapter_content)
+            ))
+            
+        return chapters
+
+    def split_by_volume(self, content: str, volume_pattern: str = None) -> List[Chapter]:
+        """按卷分割，卷内再分章"""
+        # 如果未提供 pattern，使用默认增强版
+        if not volume_pattern:
+            cn_nums = '零一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬億'
+            volume_pattern = fr'^[第卷{cn_nums}\d]+[卷巻]'
+            
+        matches = list(re.finditer(volume_pattern, content, re.MULTILINE))
+        
+        if not matches:
+            # 如果没有分卷，尝试直接分章
+            return self.split_by_chapter(content)
+
+        all_chapters = []
+        for i, match in enumerate(matches):
+            # 获取卷标题行
+            line_start = match.start()
+            line_end = content.find('\n', line_start)
+            if line_end == -1:
+                line_end = len(content)
+            
+            volume_title_line = content[line_start:line_end].strip()
+
+            cleaned_line = re.sub(r'[^\u4e00-\u9fa5]', '', volume_title_line)
+            if cleaned_line.endswith(('终', '完', '終')):
+                continue
+            
+            # 获取卷内容范围
+            content_start = line_end
+            if i < len(matches) - 1:
+                content_end = matches[i+1].start()
+            else:
+                content_end = len(content)
+            
+            volume_content = content[content_start:content_end].strip()
+            
+            # 在卷内分章
+            # 注意：split_by_chapter 会重新从 volume_content 中找章节
+            volume_chapters = self.split_by_chapter(volume_content)
+            
+            # 如果卷内找不到章节（例如序卷），可能整卷就是一个内容
+            if not volume_chapters and volume_content:
+                 volume_chapters = [Chapter(
+                     id=f"{IdentifierGenerator.generate_volume_id(i+1)}_content",
+                     title=volume_title_line, # 使用卷名作为章名
+                     content=volume_content,
+                     word_count=len(volume_content)
+                 )]
+
+            for ch in volume_chapters:
+                ch.volume_title = volume_title_line
+                # 更新ID以包含卷信息，确保唯一性
+                # ch.id 已经是 ch_1, ch_2...
+                ch.id = f"{IdentifierGenerator.generate_volume_id(i+1)}_{ch.id}"
+                all_chapters.append(ch)
+                
+        return all_chapters
+
+    def split_by_batch(self, content: str, batch_size: int = 10, chapter_range: Optional[Tuple[int, int]] = None) -> List[Chapter]:
+        """按数量合并分割"""
+        # 首先按章节分割
+        raw_chapters = self.split_by_chapter(content, chapter_range)
+        if not raw_chapters:
+            return []
+
+        batched_chapters = []
+        total = len(raw_chapters)
+        
+        for i in range(0, total, batch_size):
+            batch = raw_chapters[i : i + batch_size]
+            start_ch = i + 1
+            end_ch = min(i + batch_size, total)
+            
+            combined_content = "\n\n".join([c.content for c in batch])
+            title = f"第{start_ch}-{end_ch}章"
+            
+            batched_chapters.append(Chapter(
+                id=IdentifierGenerator.generate_batch_id(start_ch, end_ch),
+                title=title,
+                content=combined_content,
+                word_count=len(combined_content)
+            ))
+            
+        return batched_chapters
+
+
+==================== FILE: core\splitter\saver.py ====================
+
+import os
+from typing import List
+from data_protocol.models import Chapter
+
+def save_chapters(chapters: List[Chapter], output_dir: str, encoding: str = 'utf-8'):
+    """
+    保存章节列表到文件系统。
+    根据是否有 volume_title 来决定是否创建子文件夹。
+    """
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    for chapter in chapters:
+        # 确定保存路径
+        if chapter.volume_title:
+            # 清理非法字符
+            volume_clean = "".join([c for c in chapter.volume_title if c not in r'\/:*?"<>|'])
+            volume_dir = os.path.join(output_dir, volume_clean)
+            if not os.path.exists(volume_dir):
+                os.makedirs(volume_dir)
+            
+            file_path = os.path.join(volume_dir, f"{chapter.title}.txt")
+        else:
+            file_path = os.path.join(output_dir, f"{chapter.title}.txt")
+
+        try:
+            with open(file_path, 'w', encoding=encoding) as f:
+                f.write(chapter.content)
+            print(f"已保存: {file_path}")
+        except Exception as e:
+            print(f"保存失败 {file_path}: {e}")
+
+
+==================== FILE: core\summarizer\generator.py ====================
+
+import json
+import jieba
+from collections import defaultdict
+from typing import List, Tuple, Set
+from core.summarizer.llm_client import LLMClient
+from core.summarizer.prompts import Prompts
+from data_protocol.models import Chapter, ChapterSummary, SummarySentence, TextSpan, Entity, Relationship
+
+STOPWORDS = {
+    "的", "了", "在", "是", "我", "有", "和", "就",
+    "不", "人", "都", "一", "一个", "上", "也", "很",
+    "到", "说", "要", "去", "你", "会", "着", "没有",
+    "看", "好", "自己", "这", "那", "之", "与", "及"
+}
+
+class SummaryGenerator:
+    """总结生成器，负责调用 LLM 并提取原文溯源"""
+    
+    def __init__(self, llm_client: LLMClient):
+        self.llm = llm_client
+
+    async def generate_summary_async(self, chapter: Chapter) -> ChapterSummary:
+        """异步为单个章节生成总结"""
+        print(f"正在总结章节: {chapter.title} (字数: {chapter.word_count})")
+        
+        # 1. 调用 LLM 生成总结文本 (异步)
+        prompt_messages = Prompts.get_summary_prompt(chapter.title, chapter.content[:4000])
+        headline = None
+        summary_texts = []
+        entities_data = []
+        relationships_data = [] # Add initialization
+        
+        try:
+            # Check if client supports async
+            if hasattr(self.llm, 'chat_completion_async'):
+                raw_response = await self.llm.chat_completion_async(prompt_messages)
+            else:
+                # Fallback to sync if async not implemented (though it should be)
+                import asyncio
+                loop = asyncio.get_event_loop()
+                raw_response = await loop.run_in_executor(None, self.llm.chat_completion, prompt_messages)
+
+            parsed_data = self._parse_json_response(raw_response)
+            
+            if isinstance(parsed_data, dict):
+                headline = parsed_data.get("headline")
+                summary_texts = parsed_data.get("summary_sentences", [])
+                entities_data = parsed_data.get("entities", [])
+                relationships_data = parsed_data.get("relationships", [])
+            elif isinstance(parsed_data, list):
+                summary_texts = parsed_data
+                if summary_texts:
+                    headline = summary_texts[0]
+            else:
+                summary_texts = [str(parsed_data)]
+                
+        except Exception as e:
+            print(f"LLM 响应解析失败: {e}")
+            summary_texts = ["(总结生成失败)"]
+
+        # 2. 溯源匹配 (CPU-bound, can keep sync or run in executor if slow)
+        # For simplicity, we keep it sync as it's usually fast enough for now
+        summary_objects = []
+        if not isinstance(summary_texts, list):
+            summary_texts = [str(summary_texts)]
+
+        for text in summary_texts:
+            spans = self._find_source_spans(text, chapter.content)
+            summary_objects.append(SummarySentence(
+                summary_text=text,
+                source_spans=spans,
+                confidence=1.0 if spans else 0.5
+            ))
+
+        # 3. 构建实体对象
+        entity_objects = []
+        for ent in entities_data:
+            try:
+                entity_objects.append(Entity(
+                    name=ent.get("name", "Unknown"),
+                    type=ent.get("type", "Other"),
+                    description=ent.get("description", ""),
+                    confidence=0.9
+                ))
+            except Exception as e:
+                print(f"实体解析失败: {ent}, error: {e}")
+
+        # 4. 构建关系对象
+        relationship_objects = []
+        for rel in relationships_data:
+            try:
+                source = rel.get("source", "").strip()
+                target = rel.get("target", "").strip()
+                relation = rel.get("relation", "").strip()
+                description = rel.get("description", "").strip()
+                
+                if not source or not target or not relation:
+                    continue
+                    
+                relationship_objects.append(Relationship(
+                    source=source,
+                    target=target,
+                    relation=relation,
+                    description=description,
+                    confidence=0.9
+                ))
+            except Exception as e:
+                print(f"关系解析失败: {rel}, error: {e}")
+
+        return ChapterSummary(
+            chapter_id=chapter.id,
+            chapter_title=chapter.title,
+            headline=headline,
+            summary_sentences=summary_objects,
+            entities=entity_objects,
+            relationships=relationship_objects
+        )
+
+    def generate_summary(self, chapter: Chapter) -> ChapterSummary:
+        """为单个章节生成总结"""
+        print(f"正在总结章节: {chapter.title} (字数: {chapter.word_count})")
+        
+        # 1. 调用 LLM 生成总结文本
+        prompt_messages = Prompts.get_summary_prompt(chapter.title, chapter.content[:4000]) # 限制长度以避免超 token
+        headline = None
+        summary_texts = []
+        entities_data = []
+        
+        try:
+            raw_response = self.llm.chat_completion(prompt_messages)
+            parsed_data = self._parse_json_response(raw_response)
+            
+            if isinstance(parsed_data, dict):
+                headline = parsed_data.get("headline")
+                summary_texts = parsed_data.get("summary_sentences", [])
+                entities_data = parsed_data.get("entities", [])
+                relationships_data = parsed_data.get("relationships", [])
+            elif isinstance(parsed_data, list):
+                # 兼容旧格式（如果是 list，则视为 detailed summaries）
+                summary_texts = parsed_data
+                # 尝试用第一句作为 headline 的 fallback
+                if summary_texts:
+                    headline = summary_texts[0]
+            else:
+                summary_texts = [str(parsed_data)]
+                
+        except Exception as e:
+            print(f"LLM 响应解析失败: {e}")
+            summary_texts = ["(总结生成失败)"]
+
+        # 2. 溯源匹配 (简单实现：基于关键词匹配)
+        summary_objects = []
+        
+        # 确保 summary_texts 是列表
+        if not isinstance(summary_texts, list):
+            summary_texts = [str(summary_texts)]
+
+        for text in summary_texts:
+            spans = self._find_source_spans(text, chapter.content)
+            summary_objects.append(SummarySentence(
+                summary_text=text,
+                source_spans=spans,
+                confidence=1.0 if spans else 0.5
+            ))
+
+        # 3. 构建实体对象
+        entity_objects = []
+        for ent in entities_data:
+            try:
+                entity_objects.append(Entity(
+                    name=ent.get("name", "Unknown"),
+                    type=ent.get("type", "Other"),
+                    description=ent.get("description", ""),
+                    confidence=0.9 # 默认置信度
+                ))
+            except Exception as e:
+                print(f"实体解析失败: {ent}, error: {e}")
+
+        # 4. 构建关系对象
+        relationship_objects = []
+        for rel in relationships_data:
+            try:
+                # 显式检查必要字段，因为 .get() 会返回默认空字符串，可能绕过 Pydantic 校验
+                # 但如果模型定义为 source: str = Field(...)，传入 "" 是合法的字符串。
+                # 然而，空的 source/target/relation 是没有意义的。
+                source = rel.get("source", "").strip()
+                target = rel.get("target", "").strip()
+                relation = rel.get("relation", "").strip()
+                description = rel.get("description", "").strip()
+                
+                if not source or not target or not relation:
+                    # 缺少关键信息，跳过
+                    continue
+                    
+                relationship_objects.append(Relationship(
+                    source=source,
+                    target=target,
+                    relation=relation,
+                    description=description,
+                    confidence=0.9
+                ))
+            except Exception as e:
+                print(f"关系解析失败: {rel}, error: {e}")
+
+        return ChapterSummary(
+            chapter_id=chapter.id,
+            chapter_title=chapter.title,
+            headline=headline,
+            summary_sentences=summary_objects,
+            entities=entity_objects,
+            relationships=relationship_objects
+        )
+
+    def _parse_json_response(self, response: str) -> object:
+        """解析 LLM 返回的 JSON 字符串"""
+        import re
+        
+        # 1. 移除思维链 <think>...</think>
+        cleaned = re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL).strip()
+        
+        # 2. 尝试直接解析
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            pass
+            
+        # 3. 尝试提取 Markdown 代码块 ```json ... ```
+        match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', cleaned, re.DOTALL)
+        if match:
+            try:
+                return json.loads(match.group(1))
+            except json.JSONDecodeError:
+                pass
+                
+        # 4. 尝试提取最外层的大括号 {}
+        # 寻找第一个 { 和最后一个 }
+        start = cleaned.find('{')
+        end = cleaned.rfind('}')
+        
+        if start != -1 and end != -1 and end > start:
+            json_str = cleaned[start:end+1]
+            try:
+                return json.loads(json_str)
+            except json.JSONDecodeError:
+                print(f"无法解析提取的 JSON 片段: {json_str[:100]}...")
+        
+        print(f"无法解析 JSON: {cleaned[:200]}...")
+        # 降级策略：如果无法解析 JSON，尝试按行分割，并假设每行是一条总结
+        lines = [line.strip() for line in cleaned.split('\n') if line.strip()]
+        return {
+            "headline": lines[0] if lines else None,
+            "summary_sentences": lines
+        }
+
+    def _find_source_spans(self, summary: str, content: str) -> List[TextSpan]:
+        """
+        在原文中寻找与总结句最相关的片段。
+        采用基于关键词密度的滑动窗口算法。
+        """
+        # 1. 分词并过滤停用词
+        keywords = [w for w in jieba.lcut(summary) if w not in STOPWORDS and len(w) > 1]
+        
+        if not keywords:
+            # 降级：如果找不到关键词，尝试直接搜索前10个字符
+            start = content.find(summary[:10])
+            if start != -1:
+                return [TextSpan(text=content[start:start+len(summary)], start_index=start, end_index=start+len(summary))]
+            return []
+
+        # 2. 找到所有关键词在原文中的位置
+        # 格式: (index, word)
+        keyword_positions = []
+        for w in keywords:
+            start = 0
+            while True:
+                idx = content.find(w, start)
+                if idx == -1: break
+                keyword_positions.append((idx, w))
+                start = idx + 1
+        
+        if not keyword_positions:
+            return []
+
+        # 按位置排序
+        keyword_positions.sort(key=lambda x: x[0])
+
+        # 3. 滑动窗口寻找最佳匹配区域
+        # 窗口大小设定为总结句长度的 2 倍 + 50 字符冗余，确保能覆盖概括性的描述
+        window_size = len(summary) * 2 + 50
+        
+        best_score = 0
+        best_span_indices = None # (start, end)
+        
+        left = 0
+        current_keywords_count = defaultdict(int)
+        
+        for right in range(len(keyword_positions)):
+            pos_r, word_r = keyword_positions[right]
+            current_keywords_count[word_r] += 1
+            
+            # 收缩左边界，保证窗口大小不超过限制
+            while pos_r - keyword_positions[left][0] > window_size:
+                pos_l, word_l = keyword_positions[left]
+                current_keywords_count[word_l] -= 1
+                if current_keywords_count[word_l] <= 0:
+                    del current_keywords_count[word_l]
+                left += 1
+            
+            # 计算得分：唯一关键词的数量
+            # (未来可以优化为 TF-IDF 加权)
+            score = len(current_keywords_count)
+            
+            if score > best_score:
+                best_score = score
+                # 记录当前的跨度
+                span_start = keyword_positions[left][0]
+                span_end = pos_r + len(word_r)
+                best_span_indices = (span_start, span_end)
+
+        # 4. 返回结果
+        if best_span_indices:
+            start, end = best_span_indices
+            # 稍微扩展一点上下文 (前后 5 个字符)，但不要越界
+            start = max(0, start - 5)
+            end = min(len(content), end + 5)
+            
+            return [TextSpan(
+                text=content[start:end],
+                start_index=start,
+                end_index=end
+            )]
+            
+        return []
+
+
+==================== FILE: core\summarizer\llm_client.py ====================
+
+from abc import ABC, abstractmethod
+from typing import Optional, List, Dict, Any
+from openai import OpenAI, AsyncOpenAI
+import asyncio
+
+class LLMClient(ABC):
+    """LLM 客户端抽象基类"""
+    @abstractmethod
+    def chat_completion(self, messages: List[Dict[str, str]], temperature: float = 0.7) -> str:
+        pass
+
+    @abstractmethod
+    async def chat_completion_async(self, messages: List[Dict[str, str]], temperature: float = 0.7) -> str:
+        """异步调用接口"""
+        pass
+
+class OpenAIClient(LLMClient):
+    """基于 OpenAI SDK 的通用客户端 (支持 OpenRouter, Local, DeepSeek 等)"""
+    def __init__(self, api_key: str, base_url: str, model: str):
+        self.client = OpenAI(api_key=api_key, base_url=base_url)
+        self.async_client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+        self.model = model
+
+    def chat_completion(self, messages: List[Dict[str, str]], temperature: float = 0.7) -> str:
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=temperature
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"LLM 同步调用失败: {e}")
+            raise e
+
+    async def chat_completion_async(self, messages: List[Dict[str, str]], temperature: float = 0.7) -> str:
+        try:
+            response = await self.async_client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=temperature
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"LLM 异步调用失败: {e}")
+            raise e
+
+class ClientFactory:
+    """工厂类，用于创建不同类型的 LLM 客户端"""
+    @staticmethod
+    def create_client(provider: str, **kwargs) -> LLMClient:
+        if provider == "local":
+            return OpenAIClient(
+                api_key="lm-studio", # 本地通常不需要真实 Key
+                base_url=kwargs.get("base_url", "http://localhost:1234/v1"),
+                model=kwargs.get("model", "local-model")
+            )
+        elif provider == "openrouter":
+            return OpenAIClient(
+                api_key=kwargs.get("api_key"),
+                base_url="https://openrouter.ai/api/v1",
+                model=kwargs.get("model", "openai/gpt-3.5-turbo")
+            )
+        elif provider == "deepseek":
+            return OpenAIClient(
+                api_key=kwargs.get("api_key"),
+                base_url="https://api.deepseek.com",
+                model=kwargs.get("model", "deepseek-chat")
+            )
+        else:
+            raise ValueError(f"不支持的 Provider: {provider}")
+
+
+==================== FILE: core\summarizer\prompts.py ====================
+
+from typing import List, Dict
+
+import hashlib
+
+class Prompts:
+    """Prompt 模板管理"""
+    
+    SYSTEM_PROMPT = """你是一个专业的文学分析师。你的任务是对给定的小说章节进行总结，并提取其中的关键实体。
+请遵循以下规则，涵盖小说的三要素（人物、情节、环境）：
+
+### 1. 情节 (Story/Plot)
+*   总结应概括本章的核心事件、人物互动和重要情节转折。
+*   总结应该分为若干个独立的句子，每个句子描述一个具体的事件点。
+*   **严禁在总结中重复章节标题**（如“本章标题是xxx”），直接开始总结情节。
+
+### 2. 人物 (Characters)
+*   提取本章出现的关键人物，标记为 'Person' 类型。
+*   描述中应包含人物的身份、性格特征或本章中的重要行为。
+
+### 3. 环境 (Environment/Setting)
+*   提取本章出现的关键地点或环境描写，标记为 'Location' 类型。
+*   提取社会环境（如组织、门派、国家），标记为 'Organization' 类型。
+*   提取关键物品（道具、武器），标记为 'Item' 类型。
+*   提取特殊概念（功法、境界、设定），标记为 'Concept' 类型。
+
+### 4. 关系 (Relationships)
+*   提取本章内发生的显式人物互动或实体关系。
+*   关系三元组格式: (Source, Relation, Target)。
+*   例如: ("张三", "攻击", "李四"), ("王五", "加入", "青云门")。
+*   仅提取本章明确提及的重要关系。
+
+### 通用规则
+*   保持客观、准确，不要添加个人的主观评价。
+*   输出格式必须是 JSON 对象，包含 'headline', 'summary_sentences', 'entities' 和 'relationships'。
+*   如果章节内容为空或无实质情节，请返回空 JSON。
+*   IMPORTANT: Output ONLY the JSON object. Do not include any explanations, thinking process (<think>...</think>), or markdown formatting outside the JSON.
+"""
+
+    USER_PROMPT_TEMPLATE = """请总结以下小说章节的内容，并基于“小说三要素”提取实体：
+
+标题：{title}
+内容：
+{content}
+
+请输出 JSON 格式，例如：
+{{
+    "headline": "张三离家出走并结识了李四。",
+    "summary_sentences": ["张三离开了家乡。", "他在路上遇到了李四。", "两人决定结伴同行。"],
+    "entities": [
+        {{"name": "张三", "type": "Person", "description": "主角，性格坚毅，决定离开家乡闯荡"}},
+        {{"name": "李四", "type": "Person", "description": "路遇的神秘剑客，外表冷漠"}},
+        {{"name": "青云山", "type": "Location", "description": "故事开始的地方，终年云雾缭绕"}},
+        {{"name": "青云门", "type": "Organization", "description": "当地的第一大修仙门派"}},
+        {{"name": "青云剑", "type": "Item", "description": "李四随身携带的武器"}}
+    ],
+    "relationships": [
+        {{"source": "张三", "relation": "遇见", "target": "李四", "description": "在山脚下偶遇"}},
+        {{"source": "张三", "relation": "前往", "target": "青云山", "description": "为了拜师学艺"}},
+        {{"source": "李四", "relation": "持有", "target": "青云剑", "description": "随身佩戴"}}
+    ]
+}}
+"""
+
+    @classmethod
+    def get_prompt_hash(cls) -> str:
+        """计算 Prompt 模板的哈希值，用于缓存校验"""
+        content = cls.SYSTEM_PROMPT + cls.USER_PROMPT_TEMPLATE
+        return hashlib.sha256(content.encode('utf-8')).hexdigest()
+
+    @staticmethod
+    def get_summary_prompt(title: str, content: str) -> List[Dict[str, str]]:
+
+        """生成用于总结的 Prompt"""
+        return [
+            {"role": "system", "content": Prompts.SYSTEM_PROMPT},
+            {"role": "user", "content": Prompts.USER_PROMPT_TEMPLATE.format(title=title, content=content)}
+        ]
+
+
+==================== FILE: core\world_builder\aggregator.py ====================
+
+import json
+import os
+from typing import List, Dict, Tuple
+from collections import defaultdict
+import zhconv
+from data_protocol.models import ChapterSummary, Entity, AggregatedEntity, AggregatedRelationship
+
+class EntityAggregator:
+    """
+    实体与关系聚合器 (World Builder)
+    负责将分散在各个章节中的实体和关系信息汇总成全局档案。
+    """
+
+    def __init__(self, alias_file=None):
+        self.aliases = self._load_aliases(alias_file)
+
+    def _load_aliases(self, alias_file):
+        """加载别名配置文件"""
+        if not alias_file:
+            # 默认路径
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            alias_file = os.path.join(base_dir, "config", "aliases.json")
+        
+        if os.path.exists(alias_file):
+            try:
+                with open(alias_file, 'r', encoding='utf-8') as f:
+                    print(f"DEBUG: Loaded aliases from {alias_file}")
+                    return json.load(f)
+            except Exception as e:
+                print(f"WARNING: Failed to load aliases from {alias_file}: {e}")
+                return {}
+        return {}
+
+    def _normalize_text(self, text: str) -> str:
+        """
+        标准化文本：去除首尾空格，应用别名映射，并转为简体中文。
+        解决繁简混杂及别名导致同一实体被识别为两个节点的问题。
+        """
+        if not text:
+            return ""
+        
+        text = text.strip()
+        
+        # 1. 应用别名映射 (在转简体之前还是之后？建议之前，如果别名表里的key也是原文形式)
+        # 但为了稳健，先转简体再查别名？或者查两次？
+        # 假设 aliases.json 中的 key 已经尽可能涵盖了常见形式。
+        # 策略：先查一次 -> 转简体 -> 再查一次 (防止 alias key 是简体的)
+        
+        if text in self.aliases:
+            text = self.aliases[text]
+            
+        text = zhconv.convert(text, 'zh-cn')
+        
+        if text in self.aliases:
+            text = self.aliases[text]
+            
+        return text
+
+    def aggregate_entities(self, summaries: List[ChapterSummary]) -> List[AggregatedEntity]:
+        """
+        聚合所有章节的实体。
+        
+        Args:
+            summaries: 章节总结列表
+
+        Returns:
+            List[AggregatedEntity]: 聚合后的全局实体列表，按出现频率降序排列。
+        """
+        # Key: (name, type), Value: dict to accumulate data
+        entity_map: Dict[Tuple[str, str], Dict] = defaultdict(lambda: {
+            "name": "",
+            "type": "",
+            "descriptions": [],
+            "history": [],
+            "chapter_ids": set(),
+            "count": 0
+        })
+
+        for summary in summaries:
+            if not summary.entities:
+                continue
+                
+            for entity in summary.entities:
+                # 标准化处理：去除首尾空格，转简体，应用别名
+                name = self._normalize_text(entity.name)
+                type_ = entity.type.strip()
+                
+                if not name:
+                    continue
+
+                key = (name, type_)
+                entry = entity_map[key]
+                
+                if not entry["name"]:
+                    entry["name"] = name
+                    entry["type"] = type_
+                
+                if entity.description:
+                    entry["descriptions"].append(entity.description)
+                    entry["history"].append({
+                        "chapter_id": summary.chapter_id,
+                        "content": entity.description
+                    })
+                
+                entry["chapter_ids"].add(summary.chapter_id)
+                entry["count"] += 1
+
+        results = []
+        for key, data in entity_map.items():
+            # 描述合并策略：
+            # 1. 优先选择最长的描述（通常包含更多细节）
+            # 2. 如果没有描述，使用空字符串
+            descriptions = data["descriptions"]
+            final_desc = max(descriptions, key=len) if descriptions else "暂无描述"
+
+            # 章节列表排序
+            sorted_chapters = sorted(list(data["chapter_ids"]))
+
+            agg_entity = AggregatedEntity(
+                name=data["name"],
+                type=data["type"],
+                description=final_desc,
+                history=data["history"],
+                chapter_ids=sorted_chapters,
+                count=data["count"]
+            )
+            results.append(agg_entity)
+
+        # 按出现频率降序排列
+        return sorted(results, key=lambda x: x.count, reverse=True)
+
+    def aggregate_relationships(self, summaries: List[ChapterSummary]) -> List[AggregatedRelationship]:
+        """
+        聚合所有章节的关系。
+        将多个章节中出现的 (A, B) 互动合并为一条带有时间线的全局关系。
+        """
+        print(f"DEBUG: Aggregating relationships for {len(summaries)} summaries")
+        # Key: (source, target), Value: dict
+        # 注意：需要规范化 source/target 的顺序吗？
+        # 目前不需要，因为 A->B (攻击) 和 B->A (被攻击) 是不同的方向。
+        # 暂时保持有向图。
+        rel_map: Dict[Tuple[str, str], Dict] = defaultdict(lambda: {
+            "source": "",
+            "target": "",
+            "timeline": [],
+            "weight": 0
+        })
+
+        total_rels = 0
+        
+        for summary in summaries:
+            if not summary.relationships:
+                continue
+                
+            total_rels += len(summary.relationships)
+            valid_rel_count = 0
+            for rel in summary.relationships:
+                # 标准化处理：转简体，应用别名
+                s = self._normalize_text(rel.source)
+                t = self._normalize_text(rel.target)
+                
+                # 简单的数据清洗：跳过无效数据
+                if not s or not t:
+                    print(f"DEBUG: Skipped invalid rel: '{rel.source}'->'{rel.target}' => '{s}'->'{t}'")
+                    continue
+                    
+                key = (s, t)
+                entry = rel_map[key]
+                
+                if not entry["source"]:
+                    entry["source"] = s
+                    entry["target"] = t
+                
+                valid_rel_count += 1
+                
+                # 添加到时间线
+                entry["timeline"].append({
+                    "chapter_id": summary.chapter_id,
+                    "relation": rel.relation,
+                    "description": rel.description,
+                    "order": valid_rel_count  # 记录本章内的有效顺序 (1-based, 连续)
+                })
+                
+                entry["weight"] += 1
+
+        results = []
+        for key, data in rel_map.items():
+            # 按章节顺序排序时间线? 假设 summaries 已经是按顺序传入的
+            # 如果不确定，可以在这里 sort timeline by chapter_id (如果 id 可排序)
+            
+            agg_rel = AggregatedRelationship(
+                source=data["source"],
+                target=data["target"],
+                timeline=data["timeline"],
+                weight=data["weight"]
+            )
+            results.append(agg_rel)
+
+        print(f"DEBUG: Total raw rels: {total_rels}, Final unique edges: {len(results)}")
+        # 按权重降序排列
+        return sorted(results, key=lambda x: x.weight, reverse=True)
+
+
+==================== FILE: core\world_builder\merger.py ====================
+
+import os
+import json
+import re
+from typing import List, Dict, Optional
+from data_protocol.models import ChapterSummary
+
+class ResultMerger:
+    """
+    负责将不同时间戳运行的结果进行合并 (Best-Effort Merging)。
+    """
+    
+    @staticmethod
+    def _extract_chapter_number(chapter_id: str) -> float:
+        """从 chapter_id 提取数字用于排序 (例如 'ch_10' -> 10.0)"""
+        if not chapter_id:
+            return 0.0
+        
+        # 尝试提取数字
+        match = re.search(r'(\d+(\.\d+)?)', chapter_id)
+        if match:
+            return float(match.group(1))
+        return 0.0
+
+    def merge_summaries(self, run_path: str) -> List[ChapterSummary]:
+        """
+        加载指定 run_path 的 summary，并尝试从同级目录的其他 run 中补全缺失章节。
+        
+        Args:
+            run_path: 当前选中的运行结果目录 (例如 .../20240220_120000)
+            
+        Returns:
+            合并后的 ChapterSummary 列表，按章节号排序。
+        """
+        base_summaries = []
+        
+        # 1. 加载 Base Run (当前选中的)
+        base_file = os.path.join(run_path, "summaries.json")
+        if os.path.exists(base_file):
+            try:
+                with open(base_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    for item in data:
+                        try:
+                            # 兼容旧数据: 确保必要字段存在
+                            if "entities" not in item: item["entities"] = []
+                            if "relationships" not in item: item["relationships"] = []
+                            base_summaries.append(ChapterSummary(**item))
+                        except Exception as e:
+                            print(f"Skipping malformed summary in base run: {e}")
+            except Exception as e:
+                print(f"Error loading base run: {e}")
+        
+        # 建立 map: chapter_id -> summary
+        # 优先信赖当前选中的 run
+        merged_map: Dict[str, ChapterSummary] = {}
+        for s in base_summaries:
+            merged_map[s.chapter_id] = s
+            
+        print(f"DEBUG: Base run has {len(merged_map)} chapters.")
+
+        # 2. 扫描同级目录 (Sibling Runs)
+        parent_dir = os.path.dirname(run_path) # .../file_hash/
+        if not os.path.exists(parent_dir):
+            return base_summaries
+            
+        # 获取所有 timestamp 目录
+        all_runs = []
+        for d in os.listdir(parent_dir):
+            full_path = os.path.join(parent_dir, d)
+            if os.path.isdir(full_path) and full_path != run_path: # 排除自己
+                # 检查是否包含 summaries.json
+                if os.path.exists(os.path.join(full_path, "summaries.json")):
+                    all_runs.append(full_path)
+        
+        # 按时间倒序排序 (优先使用最新的其他 run)
+        all_runs.sort(key=lambda x: os.path.basename(x), reverse=True)
+        
+        # 3. 补全缺失章节
+        for other_run in all_runs:
+            try:
+                summary_file = os.path.join(other_run, "summaries.json")
+                with open(summary_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    
+                added_count = 0
+                for item in data:
+                    chap_id = item.get("chapter_id")
+                    if chap_id and chap_id not in merged_map:
+                        try:
+                            # 兼容性检查
+                            if "entities" not in item: item["entities"] = []
+                            if "relationships" not in item: item["relationships"] = []
+                            
+                            summary = ChapterSummary(**item)
+                            merged_map[chap_id] = summary
+                            added_count += 1
+                        except Exception:
+                            continue
+                
+                if added_count > 0:
+                    print(f"DEBUG: Merged {added_count} chapters from {os.path.basename(other_run)}")
+                    
+            except Exception as e:
+                print(f"Error reading sibling run {os.path.basename(other_run)}: {e}")
+                continue
+
+        # 4. 排序并返回
+        result_list = list(merged_map.values())
+        
+        # 按章节号排序
+        result_list.sort(key=lambda x: self._extract_chapter_number(x.chapter_id))
+        
+        print(f"DEBUG: Final merged result has {len(result_list)} chapters.")
+        return result_list
+
+
+==================== FILE: data_protocol\__init__.py ====================
+
+
+
+
+==================== FILE: data_protocol\models.py ====================
+
+from typing import List, Optional, Dict
+from pydantic import BaseModel, Field
+
+class TextSpan(BaseModel):
+    """表示文本中的一个片段及其位置"""
+    text: str = Field(..., description="片段内容")
+    start_index: int = Field(..., description="在原文中的起始字符偏移量")
+    end_index: int = Field(..., description="在原文中的结束字符偏移量")
+
+class Chapter(BaseModel):
+    """章节数据模型"""
+    id: str = Field(..., description="唯一标识符 (如 'vol1_ch1')")
+    title: str = Field(..., description="章节标题 (如 '第一章 序幕')")
+    volume_title: Optional[str] = Field(None, description="所属分卷标题 (可选)")
+    content: str = Field(..., description="章节完整文本")
+    word_count: int = Field(..., description="字数")
+
+class BookStructure(BaseModel):
+    """整书结构模型"""
+    book_name: str = Field(..., description="书名")
+    chapters: List[Chapter] = Field(default_factory=list, description="章节列表")
+    metadata: Dict = Field(default_factory=dict, description="额外元数据")
+
+class SummarySentence(BaseModel):
+    """单句总结及其溯源"""
+    summary_text: str = Field(..., description="总结的句子 (LLM 生成)")
+    source_spans: List[TextSpan] = Field(default_factory=list, description="对应的原文片段 (用于点击跳转)")
+    confidence: Optional[float] = Field(None, description="置信度 (可选)")
+
+class Entity(BaseModel):
+    """实体模型 (世界观构建)"""
+    name: str = Field(..., description="实体名称 (如 '孙杰克', '玄天宗')")
+    type: str = Field(..., description="实体类型: Person(人物), Location(地点/自然环境), Organization(组织/社会环境), Item(物品), Concept(概念)")
+    description: str = Field(..., description="本章中的相关描述或状态更新")
+    confidence: Optional[float] = Field(None, description="置信度")
+
+class Relationship(BaseModel):
+    """实体关系模型 (v6.0)"""
+    source: str = Field(..., description="主体 (Subject)，如 '孙杰克'")
+    target: str = Field(..., description="客体 (Object)，如 '塔派'")
+    relation: str = Field(..., description="关系类型/谓语，如 '朋友', '敌人', '攻击', '遇见'")
+    description: str = Field(..., description="关系描述，如 '在垃圾场捡到的机器人'")
+    confidence: float = Field(default=1.0)
+
+class ChapterSummary(BaseModel):
+    """单章总结"""
+    chapter_id: str = Field(..., description="关联的章节 ID")
+    chapter_title: Optional[str] = Field(None, description="章节标题")
+    headline: Optional[str] = Field(None, description="一句话核心总结 (Overview Mode)")
+    summary_sentences: List[SummarySentence] = Field(default_factory=list, description="总结句子列表")
+    entities: List[Entity] = Field(default_factory=list, description="本章出现的关键实体及其描述")
+    relationships: List[Relationship] = Field(default_factory=list, description="本章内发生的实体互动关系")
+    # key_entities: List[str]  # Deprecated in v5, replaced by entities list
+
+class AggregatedEntity(BaseModel):
+    """聚合后的全局实体"""
+    name: str = Field(..., description="实体名称")
+    type: str = Field(..., description="实体类型")
+    description: str = Field(..., description="合并后的描述 (通常取首次出现或最详细的描述)")
+    history: List[Dict] = Field(default_factory=list, description="实体描述历史: [{'chapter_id': 'ch1', 'content': '...'}, ...]")
+    chapter_ids: List[str] = Field(default_factory=list, description="出现的章节ID列表")
+    count: int = Field(0, description="出现次数")
+
+class AggregatedRelationship(BaseModel):
+    """聚合后的全局关系 (v6.0)"""
+    source: str = Field(..., description="主体")
+    target: str = Field(..., description="客体")
+    # 关系是动态的，所以不应该只有一个静态的 relation 字段
+    # 而是存储一个时间线列表
+    timeline: List[Dict] = Field(
+        default_factory=list, 
+        description="关系演变历史: [{'chapter_id': 'ch1', 'relation': 'stranger', 'description': '...'}, ...]"
+    )
+    weight: int = Field(0, description="互动次数权重")

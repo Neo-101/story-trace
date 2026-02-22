@@ -2,7 +2,7 @@
 
 **基于 LLM 的智能小说分析与可视化系统**
 
-StoryTrace (原 split-novel-txt) 将纯文本小说转化为结构化、可探索的知识库。它不仅是一个强大的文本分割工具，更深度集成 LLM (如 DeepSeek) 生成章节摘要、提取人物关系，并通过现代化的 Web 界面提供交互式知识图谱和沉浸式阅读体验。
+StoryTrace (原 split-novel-txt) 将纯文本小说转化为结构化、可探索的知识库。它不仅是一个强大的文本分割工具，更深度集成 LLM (如 DeepSeek, Gemini, Qwen) 生成章节摘要、提取人物关系，并通过现代化的 Web 界面提供交互式知识图谱和沉浸式阅读体验。
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
@@ -10,22 +10,26 @@ StoryTrace (原 split-novel-txt) 将纯文本小说转化为结构化、可探�
 
 ## ✨ 核心特性
 
-*   **📖 智能结构化**：自动识别并分割卷/章，支持复杂的中文数字与格式解析（借助 `cn2an`）。
+*   **📖 智能结构化**：自动识别并分割卷/章，支持复杂的中文数字与格式解析。
 *   **🧠 AI 深度分析**：集成 LLM 生成剧情摘要，智能提取人物、地点、组织等实体。
 *   **🕸️ 交互式图谱**：
     *   **全局概览 (Global Mode)**：宏观展示人物关系网络，支持按权重过滤。
     *   **聚焦模式 (Focus Mode)**：查看特定章节内的实体互动细节。
+    *   **时间轴漫游**：拖动时间轴，动态回放故事发展过程中的关系演变。
 *   **⚡ 现代化界面**：
     *   基于 **Vue 3 + TypeScript + Vite** 构建的响应式 Web UI。
     *   提供虚拟滚动列表、自动定位阅读、实体高亮等“Vibe Coding”体验。
-*   **🚀 高性能架构**：支持异步并行处理、SQLite 缓存以及断点续传 (Best-effort Merge)。
+*   **🚀 高性能架构**：
+    *   **Vibe Coding 友好**：内置自动化运维脚本 (`manage.py`) 和上下文打包工具。
+    *   **缓存机制**：智能缓存 LLM 响应，节省 Token 并加速二次处理。
+    *   **断点续传**：支持 Best-effort Merge，多次运行结果自动合并。
 
 ## 🛠️ 技术栈
 
 *   **Backend**: Python, FastAPI, SQLModel (SQLite), AsyncIO
 *   **Frontend**: Vue 3, TypeScript, Vite, Pinia, Tailwind CSS v4
 *   **Visualization**: Vis.js (Network Graph)
-*   **AI/LLM**: OpenAI API 兼容接口 (支持 DeepSeek, ChatGPT 等)
+*   **AI/LLM**: OpenAI API 兼容接口 (支持 DeepSeek, ChatGPT, Gemini, Local Ollama 等)
 
 ## 🚀 快速开始
 
@@ -42,7 +46,20 @@ pip install -r requirements.txt
 
 ### 3. 配置 LLM
 
-在项目根目录创建 `.env` 文件或直接在界面配置 API Key。
+在项目根目录创建 `.env` 文件（参考 `core/config.py`）：
+
+```ini
+# 数据库配置
+DATABASE_URL=sqlite:///storytrace.db
+
+# LLM 配置 (OpenRouter)
+OPENROUTER_API_KEY=sk-or-v1-...
+OPENROUTER_MODEL=google/gemini-2.0-flash-001
+
+# LLM 配置 (Local Ollama)
+LOCAL_LLM_BASE_URL=http://localhost:11434/v1
+LOCAL_LLM_MODEL=qwen2.5:14b
+```
 
 ### 4. 运行项目
 
@@ -51,37 +68,51 @@ pip install -r requirements.txt
 #### 启动后端 API 服务
 
 ```bash
-python -m web_ui.server
+# 推荐方式
+python app/main.py serve
 ```
-服务默认运行在 `http://localhost:8000`。
+服务默认运行在 `http://localhost:8000`。API 文档位于 `/docs`。
 
 #### 启动前端界面 (开发模式)
 
-进入 `web_ui_v2` 目录：
+进入 `frontend` 目录：
 
 ```bash
-cd web_ui_v2
+cd frontend
 npm install
 npm run dev
 ```
 访问终端输出的本地地址 (如 `http://localhost:5173`) 即可开始使用。
 
+## 🛠️ 常用运维命令
+
+使用 `manage.py` 进行一站式运维：
+
+```bash
+# 环境自检
+python manage.py check
+
+# 清理 LLM 缓存
+python manage.py clean-cache
+
+# 重置数据库 (开发调试用)
+python manage.py reset-db
+
+# 启动上下文监控 (Vibe Coding 模式)
+python manage.py context watch
+```
+
+更多详细命令请参考 [COMMANDS.md](COMMANDS.md)。
+
 ## 📂 项目结构
 
 *   `app/`: CLI 入口与流程控制
+*   `backend/`: FastAPI 后端服务
 *   `core/`: 核心业务逻辑 (Splitter, Summarizer, Graph)
-*   `web_ui/`: FastAPI 后端服务
-*   `web_ui_v2/`: Vue 3 前端工程
+*   `frontend/`: Vue 3 前端工程
 *   `data_protocol/`: 数据模型定义
-*   `storytrace.db`: SQLite 数据存储 (自动生成)
-
-## 📝 命令行工具 (CLI)
-
-除了 Web 界面，你仍然可以使用命令行工具进行基础的文本分割：
-
-```bash
-python main.py -i input.txt -m volume -o output
-```
+*   `scripts/`: 运维与辅助脚本 (Context Tools)
+*   `docs/`: 项目文档与统计数据
 
 ## 📄 License
 

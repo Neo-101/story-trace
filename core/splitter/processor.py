@@ -4,6 +4,8 @@ from typing import List, Tuple, Optional
 from data_protocol.models import Chapter, BookStructure
 from core.utils import extract_line_by_match
 
+from core.identifiers import IdentifierGenerator
+
 class Splitter:
     """
     核心分割器类，负责将文本分割为章节对象。
@@ -149,7 +151,7 @@ class Splitter:
             chapter_content = content[content_start:content_end].strip()
             
             chapters.append(Chapter(
-                id=f"ch_{original_idx + 1}", # Keep original ID to maintain consistency across runs
+                id=IdentifierGenerator.generate_chapter_id(original_idx + 1),
                 title=title_line,
                 content=chapter_content,
                 word_count=len(chapter_content)
@@ -200,7 +202,7 @@ class Splitter:
             # 如果卷内找不到章节（例如序卷），可能整卷就是一个内容
             if not volume_chapters and volume_content:
                  volume_chapters = [Chapter(
-                     id=f"vol_{i+1}_content",
+                     id=f"{IdentifierGenerator.generate_volume_id(i+1)}_content",
                      title=volume_title_line, # 使用卷名作为章名
                      content=volume_content,
                      word_count=len(volume_content)
@@ -210,7 +212,7 @@ class Splitter:
                 ch.volume_title = volume_title_line
                 # 更新ID以包含卷信息，确保唯一性
                 # ch.id 已经是 ch_1, ch_2...
-                ch.id = f"vol_{i+1}_{ch.id}"
+                ch.id = f"{IdentifierGenerator.generate_volume_id(i+1)}_{ch.id}"
                 all_chapters.append(ch)
                 
         return all_chapters
@@ -234,7 +236,7 @@ class Splitter:
             title = f"第{start_ch}-{end_ch}章"
             
             batched_chapters.append(Chapter(
-                id=f"batch_{start_ch}_{end_ch}",
+                id=IdentifierGenerator.generate_batch_id(start_ch, end_ch),
                 title=title,
                 content=combined_content,
                 word_count=len(combined_content)

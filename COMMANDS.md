@@ -1,89 +1,160 @@
 # 常用命令指南 (Cheat Sheet)
 
-本文档整理了 StoryTrace 项目开发和运行中最常用的命令。
+本文档整理了 StoryTrace 项目重构后（V2 架构）的最常用命令。
 
-## 1. 核心功能
+## 1. 🚀 启动可视化服务 (Web UI)
 
-### 启动新版 Web 可视化前端 (Web UI V2 - Recommended)
-这是重构后的现代化前端，提供更流畅的交互体验（自动滚动、响应式布局）。
-```bash
-# 1. 确保后端服务已运行 (Backend)
-python -m web_ui.server
+StoryTrace 采用前后端分离架构。你需要分别启动后端 API 服务和前端开发服务器。
 
-# 2. 新开一个终端窗口，启动前端开发服务器 (Frontend)
-cd web_ui_v2
+### 1.1 启动后端 API (Backend)
+后端基于 FastAPI，提供数据分析和图谱接口。
+
+```powershell
+# 方式 A: 通过主程序入口 (推荐)
+# 在项目根目录下运行:
+$env:PYTHONPATH = "."; python app/main.py serve
+
+# 方式 B: 直接运行模块
+$env:PYTHONPATH = "."; python -m backend.server
+```
+*   **API 文档**: http://localhost:8000/docs
+*   **服务地址**: http://localhost:8000
+
+### 1.2 启动前端界面 (Frontend)
+前端基于 Vue 3 + Vite，提供交互式图谱和阅读器。
+
+```powershell
+# 新开一个终端窗口
+cd frontend
+
+# 首次运行需要安装依赖
+npm install
+
+# 启动开发服务器
 npm run dev
 ```
-*   前端访问地址: http://localhost:5173 (如果端口被占用，可能会自动切换到 5174)
-*   后端 API 地址: http://localhost:8000
+*   **访问地址**: http://localhost:5173
 
-### 启动旧版 Web 可视化服务 (Legacy Backend Server)
-这是查看图谱、阅读小说和调试的最常用方式。
-```bash
-python -m web_ui.server
+---
+
+## 2. 🛠️ 项目管理与运维 (Management Script)
+
+使用 `manage.py` 脚本进行环境检查、缓存清理和数据库重置。
+
+```powershell
+# 环境自检 (检查依赖、路径和 API Key)
+python manage.py check
+
+# 清理 LLM 缓存 (删除 output/.cache)
+# 注意：下次运行总结时会重新消耗 Token
+python manage.py clean-cache
+
+# 重置数据库 (删除 storytrace.db 并重建表)
+# 注意：会清空 Web 端显示的所有数据，但不会删除已生成的 output 文件
+# 重置后需重新运行迁移脚本或处理流程
+python manage.py reset-db
+
+# 清理所有输出 (删除 output/ 下所有文件，慎用！)
+python manage.py clean-all
 ```
-*   服务地址: http://localhost:8000
-*   Swagger API 文档: http://localhost:8000/docs
-*   **注意**: 如果修改了后端代码 (`core/`, `web_ui/`)，必须重启此服务才能生效。
 
-### 运行主程序 (CLI Mode)
-用于处理小说文件（分割、AI 总结）。
-```bash
-python main.py
+### 上下文管理 (Context Tools)
+
+用于辅助 LLM 开发的工具集，包括代码打包和行数统计。
+
+```powershell
+# 启动实时监控 (Watch Mode)
+# 自动检测代码变动，更新 docs/project_stats/ 下的统计文件
+python manage.py context watch
+
+# 执行代码打包 (Pack Mode)
+# 将核心架构代码打包成 docs/project_stats/project_context_packed.txt
+python manage.py context pack
+
+# 生成统计报告 (Stats Mode)
+# 生成一次性的行数和 Token 统计报告
+python manage.py context stats
 ```
-*   运行后会进入交互式向导，按提示输入文件路径、选择模式等。
-*   如果配置了 `config.json`，会提示是否直接加载配置。
 
-### 带参数运行主程序
-适用于自动化脚本或不想交互的情况。
-```bash
+---
+
+## 3. 📂 核心处理工具 (CLI)
+
+用于处理小说文件（分割章节、调用 LLM 生成摘要和提取实体）。
+
+### 交互式模式 (Interactive Mode)
+按提示输入文件路径和配置。
+```powershell
+$env:PYTHONPATH = "."; python app/main.py
+```
+
+### 命令行模式 (Command Line Mode)
+适用于自动化脚本。
+
+```powershell
 # 仅分割 (默认按章)
-python main.py -i inputs/novel.txt -m chapter
+$env:PYTHONPATH = "."; python app/main.py -i inputs/novel.txt -m chapter
 
-# 分割并开启 AI 总结
-python main.py -i inputs/novel.txt -m chapter --summarize --provider openrouter
+# 分割并开启 AI 总结 (使用 OpenRouter)
+$env:PYTHONPATH = "."; python app/main.py -i inputs/novel.txt -m chapter --summarize --provider openrouter
+
+# 分割并开启 AI 总结 (使用本地 Ollama)
+$env:PYTHONPATH = "."; python app/main.py -i inputs/novel.txt -m chapter --summarize --provider local --model qwen2.5:14b
 ```
 
-## 2. 调试与测试
-
-### 运行测试脚本
-用于验证特定模块的功能。
-```bash
-# 测试实体聚合逻辑 (包含别名测试)
-python tests/test_aggregator.py
-
-# 复现图谱生成逻辑
-python tests/repro_graph_logic.py
+### 数据迁移 (Migration)
+将处理生成的 JSON 数据导入 SQLite 数据库以供前端展示。
+```powershell
+# 自动扫描 output 目录并导入所有小说数据
+$env:PYTHONPATH = "."; python scripts/migrate_json_to_sqlite.py
 ```
 
-## 3. 配置文件
+---
+
+## 4. 📂 项目结构说明
+
+*   **`frontend/`**: 现代前端项目 (Vue 3 + Vite + TypeScript)。
+    *   `src/components/GraphView.vue`: 核心图谱组件。
+    *   `src/stores/novel.ts`: 状态管理。
+*   **`backend/`**: 后端 API 服务。
+    *   `server.py`: FastAPI 入口。
+    *   `routers/`: API 路由定义。
+    *   `schemas.py`: Pydantic 数据模型定义。
+*   **`app/`**: 应用程序入口。
+    *   `main.py`: CLI 和 Server 的统一入口。
+*   **`core/`**: 核心业务逻辑。
+    *   `config.py`: 全局配置管理 (Pydantic Settings)。
+    *   `identifiers.py`: 统一 ID 生成逻辑。
+    *   `paths.py`: 统一路径管理逻辑。
+    *   `splitter/`: 小说分割逻辑。
+    *   `summarizer/`: LLM 摘要生成。
+    *   `world_builder/`: 实体聚合与图谱构建。
+*   **`manage.py`**: 项目管理脚本。
+
+---
+
+## 5. ⚙️ 配置与调试
+
+### 统一配置 (Configuration)
+项目现在支持通过 `.env` 文件或环境变量进行统一配置。
+请在根目录下创建 `.env` 文件：
+
+```ini
+# .env 示例
+DATABASE_URL=sqlite:///storytrace.db
+OPENROUTER_API_KEY=sk-or-v1-...
+OPENROUTER_MODEL=google/gemini-2.0-flash-001
+LOCAL_LLM_BASE_URL=http://localhost:11434/v1
+LOCAL_LLM_MODEL=qwen2.5:14b
+```
 
 ### 别名配置 (Alias Mapping)
-当遇到同一实体的不同称呼（如“机器人”和“塔派”）未合并时，修改此文件。
-*   文件路径: `config/aliases.json`
-*   格式:
-    ```json
-    {
-        "机器人": "塔派",
-        "宋6": "宋6PUS"
-    }
-    ```
-*   **修改后操作**: 无需重新运行 `main.py`，只需**重启 Web 服务**并刷新页面即可看到合并效果。
+解决实体同名异指问题（如“哈利”和“波特”）。
+*   文件路径: `config/aliases.json` (如果不存在可手动创建)
+*   **生效方式**: 修改后需**重启后端服务**。
 
-## 4. 常见问题排查
-
-*   **图谱显示空白**:
-    *   检查浏览器控制台 (F12) 是否有报错。
-    *   检查后端服务是否正在运行。
-    *   检查“单章专注”模式下是否因全局过滤器（如最少互动次数）设置过高导致（已修复，但需留意）。
-*   **实体未合并**:
-    *   检查 `config/aliases.json` 是否正确配置。
-    *   **重启 Web 服务**以加载新的别名配置。
-
-## 5. 项目结构速查
-*   `web_ui_v2/`: **新版前端 (Vue 3 + Vite)**。
-*   `main.py`: CLI 入口。
-*   `web_ui/server.py`: 后端 API 服务入口。
-*   `web_ui/static/js/`: 旧版前端逻辑 (已废弃，仅供参考)。
-*   `core/world_builder/aggregator.py`: 实体/关系聚合逻辑 (含别名处理)。
-*   `output/`: 处理结果输出目录。
+### 常见问题
+*   **ModuleNotFoundError: No module named 'core'**:
+    *   请确保在项目根目录下运行，并设置 `PYTHONPATH`。
+    *   PowerShell: `$env:PYTHONPATH = "."; python ...`
+    *   CMD: `set PYTHONPATH=. && python ...`

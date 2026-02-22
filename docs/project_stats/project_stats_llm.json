@@ -1,0 +1,590 @@
+{
+  "project": "split-novel-txt",
+  "last_updated": "2026-02-22 08:37:24",
+  "summary": {
+    "total_files": 98,
+    "total_lines": 6900,
+    "total_tokens": 87965
+  },
+  "structure": {
+    "name": "split-novel-txt",
+    "lines": 6900,
+    "files": 98,
+    "children": [
+      {
+        "name": "app",
+        "lines": 549,
+        "files": 1,
+        "children": [
+          {
+            "name": "main.py",
+            "lines": 549
+          }
+        ]
+      },
+      {
+        "name": "backend",
+        "lines": 440,
+        "files": 6,
+        "children": [
+          {
+            "name": "routers",
+            "lines": 328,
+            "files": 2,
+            "children": [
+              {
+                "name": "analysis.py",
+                "lines": 290
+              },
+              {
+                "name": "novels.py",
+                "lines": 38
+              }
+            ]
+          },
+          {
+            "name": "__init__.py",
+            "lines": 0
+          },
+          {
+            "name": "schemas.py",
+            "lines": 67
+          },
+          {
+            "name": "server.py",
+            "lines": 23
+          },
+          {
+            "name": "utils.py",
+            "lines": 22
+          }
+        ]
+      },
+      {
+        "name": "config",
+        "lines": 4,
+        "files": 1,
+        "children": [
+          {
+            "name": "aliases.json",
+            "lines": 4
+          }
+        ]
+      },
+      {
+        "name": "core",
+        "lines": 1165,
+        "files": 17,
+        "children": [
+          {
+            "name": "db",
+            "lines": 59,
+            "files": 3,
+            "children": [
+              {
+                "name": "__init__.py",
+                "lines": 0
+              },
+              {
+                "name": "engine.py",
+                "lines": 5
+              },
+              {
+                "name": "models.py",
+                "lines": 54
+              }
+            ]
+          },
+          {
+            "name": "splitter",
+            "lines": 224,
+            "files": 3,
+            "children": [
+              {
+                "name": "__init__.py",
+                "lines": 0
+              },
+              {
+                "name": "processor.py",
+                "lines": 197
+              },
+              {
+                "name": "saver.py",
+                "lines": 27
+              }
+            ]
+          },
+          {
+            "name": "summarizer",
+            "lines": 410,
+            "files": 3,
+            "children": [
+              {
+                "name": "generator.py",
+                "lines": 282
+              },
+              {
+                "name": "llm_client.py",
+                "lines": 65
+              },
+              {
+                "name": "prompts.py",
+                "lines": 63
+              }
+            ]
+          },
+          {
+            "name": "world_builder",
+            "lines": 257,
+            "files": 2,
+            "children": [
+              {
+                "name": "aggregator.py",
+                "lines": 163
+              },
+              {
+                "name": "merger.py",
+                "lines": 94
+              }
+            ]
+          },
+          {
+            "name": "__init__.py",
+            "lines": 0
+          },
+          {
+            "name": "cache_manager.py",
+            "lines": 50
+          },
+          {
+            "name": "config.py",
+            "lines": 35
+          },
+          {
+            "name": "identifiers.py",
+            "lines": 40
+          },
+          {
+            "name": "paths.py",
+            "lines": 36
+          },
+          {
+            "name": "utils.py",
+            "lines": 54
+          }
+        ]
+      },
+      {
+        "name": "data_protocol",
+        "lines": 65,
+        "files": 2,
+        "children": [
+          {
+            "name": "__init__.py",
+            "lines": 0
+          },
+          {
+            "name": "models.py",
+            "lines": 65
+          }
+        ]
+      },
+      {
+        "name": "docs",
+        "lines": 1484,
+        "files": 28,
+        "children": [
+          {
+            "name": "00_planning",
+            "lines": 165,
+            "files": 3,
+            "children": [
+              {
+                "name": "optimization_plan_llm_collaboration.md",
+                "lines": 62
+              },
+              {
+                "name": "roadmap_advanced_features.md",
+                "lines": 83
+              },
+              {
+                "name": "roadmap_vibe_coding.md",
+                "lines": 20
+              }
+            ]
+          },
+          {
+            "name": "01_specs",
+            "lines": 137,
+            "files": 4,
+            "children": [
+              {
+                "name": "design_doc_v10_relationship_arc.md",
+                "lines": 41
+              },
+              {
+                "name": "feature_best_effort_merging.md",
+                "lines": 36
+              },
+              {
+                "name": "feature_parallel_summarization.md",
+                "lines": 25
+              },
+              {
+                "name": "ui_ux_report.md",
+                "lines": 35
+              }
+            ]
+          },
+          {
+            "name": "02_issues",
+            "lines": 119,
+            "files": 5,
+            "children": [
+              {
+                "name": "bug_report_autoscroll.md",
+                "lines": 21
+              },
+              {
+                "name": "bug_report_chapter_indexing_chaos.md",
+                "lines": 29
+              },
+              {
+                "name": "bug_report_duplicate_chapters.md",
+                "lines": 20
+              },
+              {
+                "name": "bug_report_json_parsing.md",
+                "lines": 30
+              },
+              {
+                "name": "bug_report_view_arc_missing.md",
+                "lines": 19
+              }
+            ]
+          },
+          {
+            "name": "99_meta",
+            "lines": 133,
+            "files": 1,
+            "children": [
+              {
+                "name": "project_structure_summary.md",
+                "lines": 133
+              }
+            ]
+          },
+          {
+            "name": "archive",
+            "lines": 904,
+            "files": 14,
+            "children": [
+              {
+                "name": "bug_report_autoscroll.md",
+                "lines": 21
+              },
+              {
+                "name": "bug_report_duplicate_chapters.md",
+                "lines": 20
+              },
+              {
+                "name": "bug_report_json_parsing.md",
+                "lines": 30
+              },
+              {
+                "name": "bug_report_view_arc_missing.md",
+                "lines": 19
+              },
+              {
+                "name": "design_doc_v1.md",
+                "lines": 114
+              },
+              {
+                "name": "design_doc_v10_relationship_arc.md",
+                "lines": 41
+              },
+              {
+                "name": "design_doc_v2_visualization.md",
+                "lines": 62
+              },
+              {
+                "name": "design_doc_v3_caching.md",
+                "lines": 48
+              },
+              {
+                "name": "design_doc_v4_overview_mode.md",
+                "lines": 66
+              },
+              {
+                "name": "design_doc_v5_entity_extraction.md",
+                "lines": 68
+              },
+              {
+                "name": "design_doc_v6_graph_timeline.md",
+                "lines": 173
+              },
+              {
+                "name": "design_doc_v7_interactive_processing.md",
+                "lines": 155
+              },
+              {
+                "name": "design_doc_v8_modern_refactor.md",
+                "lines": 39
+              },
+              {
+                "name": "design_doc_v9_entity_description_history.md",
+                "lines": 48
+              }
+            ]
+          },
+          {
+            "name": "README.md",
+            "lines": 26
+          }
+        ]
+      },
+      {
+        "name": "frontend",
+        "lines": 1499,
+        "files": 20,
+        "children": [
+          {
+            "name": "src",
+            "lines": 1404,
+            "files": 14,
+            "children": [
+              {
+                "name": "api",
+                "lines": 44,
+                "files": 1,
+                "children": [
+                  {
+                    "name": "client.ts",
+                    "lines": 44
+                  }
+                ]
+              },
+              {
+                "name": "components",
+                "lines": 1109,
+                "files": 6,
+                "children": [
+                  {
+                    "name": "AppNavbar.vue",
+                    "lines": 84
+                  },
+                  {
+                    "name": "EntityChronicleDrawer.vue",
+                    "lines": 106
+                  },
+                  {
+                    "name": "GraphView.vue",
+                    "lines": 540
+                  },
+                  {
+                    "name": "OverviewGrid.vue",
+                    "lines": 64
+                  },
+                  {
+                    "name": "ReaderView.vue",
+                    "lines": 154
+                  },
+                  {
+                    "name": "RelationshipArcDrawer.vue",
+                    "lines": 161
+                  }
+                ]
+              },
+              {
+                "name": "router",
+                "lines": 13,
+                "files": 1,
+                "children": [
+                  {
+                    "name": "index.ts",
+                    "lines": 13
+                  }
+                ]
+              },
+              {
+                "name": "stores",
+                "lines": 95,
+                "files": 1,
+                "children": [
+                  {
+                    "name": "novel.ts",
+                    "lines": 95
+                  }
+                ]
+              },
+              {
+                "name": "types",
+                "lines": 80,
+                "files": 1,
+                "children": [
+                  {
+                    "name": "index.ts",
+                    "lines": 80
+                  }
+                ]
+              },
+              {
+                "name": "views",
+                "lines": 44,
+                "files": 1,
+                "children": [
+                  {
+                    "name": "Dashboard.vue",
+                    "lines": 44
+                  }
+                ]
+              },
+              {
+                "name": "App.vue",
+                "lines": 6
+              },
+              {
+                "name": "main.ts",
+                "lines": 10
+              },
+              {
+                "name": "style.css",
+                "lines": 3
+              }
+            ]
+          },
+          {
+            "name": "index.html",
+            "lines": 12
+          },
+          {
+            "name": "package.json",
+            "lines": 30
+          },
+          {
+            "name": "postcss.config.js",
+            "lines": 6
+          },
+          {
+            "name": "tailwind.config.js",
+            "lines": 13
+          },
+          {
+            "name": "tsconfig.app.json",
+            "lines": 13
+          },
+          {
+            "name": "vite.config.ts",
+            "lines": 21
+          }
+        ]
+      },
+      {
+        "name": "scripts",
+        "lines": 511,
+        "files": 3,
+        "children": [
+          {
+            "name": "generate_stats.py",
+            "lines": 124
+          },
+          {
+            "name": "migrate_json_to_sqlite.py",
+            "lines": 200
+          },
+          {
+            "name": "watch_stats.py",
+            "lines": 187
+          }
+        ]
+      },
+      {
+        "name": "tests",
+        "lines": 735,
+        "files": 12,
+        "children": [
+          {
+            "name": "repro_graph_logic.py",
+            "lines": 77
+          },
+          {
+            "name": "test_aggregator.py",
+            "lines": 101
+          },
+          {
+            "name": "test_api_entities.py",
+            "lines": 56
+          },
+          {
+            "name": "test_api_global_entities.py",
+            "lines": 60
+          },
+          {
+            "name": "test_api_live.py",
+            "lines": 56
+          },
+          {
+            "name": "test_api_overview.py",
+            "lines": 62
+          },
+          {
+            "name": "test_entity_model.py",
+            "lines": 41
+          },
+          {
+            "name": "test_frontend.py",
+            "lines": 19
+          },
+          {
+            "name": "test_generator_entity.py",
+            "lines": 84
+          },
+          {
+            "name": "test_generator_relationships.py",
+            "lines": 62
+          },
+          {
+            "name": "test_new_summary_format.py",
+            "lines": 58
+          },
+          {
+            "name": "test_source_span.py",
+            "lines": 59
+          }
+        ]
+      },
+      {
+        "name": "COMMANDS.md",
+        "lines": 107
+      },
+      {
+        "name": "config.json",
+        "lines": 14
+      },
+      {
+        "name": "debug_api.py",
+        "lines": 57
+      },
+      {
+        "name": "main.py",
+        "lines": 7
+      },
+      {
+        "name": "manage.py",
+        "lines": 80
+      },
+      {
+        "name": "pack_context.py",
+        "lines": 88
+      },
+      {
+        "name": "README.md",
+        "lines": 60
+      },
+      {
+        "name": "tasks.md",
+        "lines": 35
+      }
+    ]
+  }
+}
