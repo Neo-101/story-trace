@@ -31,7 +31,7 @@ const enterIntensiveReading = async (chapterId: string) => {
 </script>
 
 <template>
-  <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-24">
+  <div class="h-full overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-24">
     <div 
       v-for="chap in chapters" 
       :key="chap.id"

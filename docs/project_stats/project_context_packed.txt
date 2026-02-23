@@ -937,6 +937,7 @@ class NovelInfo(BaseModel):
 
 class RunInfo(BaseModel):
     timestamp: str
+    file_hash: str
     metadata: Optional[Dict[str, Any]] = None
 
 class ChapterPreview(BaseModel):
@@ -983,12 +984,15 @@ class RelationshipInteraction(BaseModel):
 
 class RelationshipTimelineEvent(BaseModel):
     chapter_id: str
-    chapter_index: int  # Added for sorting
+    chapter_index: int
     chapter_title: str
-    interactions: List[RelationshipInteraction]
+    interactions: List[RelationshipInteraction] = []
     
     # Narrative State (Added in v4.2)
-    narrative_state: Optional[Dict[str, Any]] = None # Serialized RelationshipState
+    narrative_state: Optional[Dict[str, Any]] = None
+    
+    class Config:
+        arbitrary_types_allowed = True
 
 class GraphNode(BaseModel):
     name: str
@@ -1243,6 +1247,15 @@ class NarrativeEvolutionEngine:
             if prev_state:
                 new_state = prev_state.model_copy()
                 new_state.updated_at = "now"
+                new_state.chapter_index = target_chapter_index # Update index
+                
+                # OPTIMIZATION: Do NOT save cloned states to DB to avoid "timeline bloating".
+                # We only return it so the memory chain is preserved in this process.
+                # The next time we run, get_latest_state will find the last ACTUAL analysis (prev_state),
+                # which is fine because the LLM prompt handles "time skip" naturally.
+                if progress_callback:
+                    progress_callback(100, "Skipped (Low Density), state cloned in memory.")
+                return new_state
             else:
                 # First chapter, no trigger? Then no state.
                 # Actually, if it's the first chapter and no interaction, we don't need a state.
@@ -1278,6 +1291,7 @@ class JobStatus(BaseModel):
     error: Optional[str] = None
     created_at: float
     updated_at: float
+    metadata: Optional[Dict[str, Any]] = None  # New field for metadata
 
 class JobManager:
     _instance = None
@@ -1322,7 +1336,8 @@ class JobManager:
                 progress=0,
                 message="Job submitted",
                 created_at=now,
-                updated_at=now
+                updated_at=now,
+                metadata=metadata
             )
             self.jobs[job_id] = job
             
@@ -1471,7 +1486,14 @@ class StateStore:
         Constructs the storage path: cache/narrative/{hash}/{plugin}/{entity_id}/
         """
         # Sanitize entity_id for filesystem
-        safe_id = "".join([c if c.isalnum() or c in ('_', '-') else '_' for c in entity_id])
+        # Replace non-alphanumeric chars (except _ and -) with _
+        # IMPORTANT: entity_id might contain Chinese characters which are alphanumeric in Unicode.
+        # But we want to avoid spaces and slashes.
+        # Let's just replace spaces and slashes.
+        # Or better: keep Chinese chars.
+        
+        safe_id = entity_id.replace(" ", "_").replace("/", "_").replace("\\", "_")
+        
         path = self.base_path / novel_hash / plugin_type / safe_id
         path.mkdir(parents=True, exist_ok=True)
         return path
@@ -2070,7 +2092,24 @@ def delete_relationship_cache(
     """
     Delete cached relationship analysis for a specific pair.
     """
-    aggregator = EntityAggregator()
+    # 5. Normalize Names - using the same logic as get_relationship_timeline
+    # We must explicitly load aliases from project root because EntityAggregator() 
+    # without args might not find the file if cwd is different (though usually it is project root).
+    # But let's be safe and use the same logic as jobs.py or rely on default if cwd is correct.
+    # Given server runs from root, default should work.
+    
+    # Actually, we should check if we need to load aliases.
+    # Let's try to load it explicitly to be safe.
+    import os
+    base_dir = os.getcwd()
+    alias_path = os.path.join(base_dir, "config", "aliases.json")
+    
+    # Check if file exists, otherwise use default
+    if os.path.exists(alias_path):
+        aggregator = EntityAggregator(alias_file=alias_path)
+    else:
+        aggregator = EntityAggregator()
+
     norm_source = aggregator._normalize_text(source)
     norm_target = aggregator._normalize_text(target)
     
@@ -2083,14 +2122,14 @@ def delete_relationship_cache(
     success = _state_store.delete_history(file_hash, "relationship", pair_id)
     
     if not success:
-        # It's fine if it doesn't exist, but if deletion failed due to error, we might log it.
-        # delete_history returns False if directory doesn't exist.
         pass
         
     return None
 
 @router.get("/{novel_name}/{file_hash}/{timestamp}/relationship", response_model=List[RelationshipTimelineEvent])
-def get_relationship_timeline( 
+def get_relationship_timeline(
+    novel_name: str, 
+    file_hash: str, 
     timestamp: str, 
     source: str, 
     target: str, 
@@ -2104,7 +2143,15 @@ def get_relationship_timeline(
     chapters = get_merged_chapters(session, novel_name, file_hash)
     timeline_events = []
     
-    aggregator = EntityAggregator()
+    # Load aliases explicitly to match job runner logic
+    import os
+    base_dir = os.getcwd()
+    alias_path = os.path.join(base_dir, "config", "aliases.json")
+    if os.path.exists(alias_path):
+        aggregator = EntityAggregator(alias_file=alias_path)
+    else:
+        aggregator = EntityAggregator()
+
     norm_source = aggregator._normalize_text(source)
     norm_target = aggregator._normalize_text(target)
     
@@ -2166,21 +2213,27 @@ def get_relationship_timeline(
         if chapter.chapter_index in state_map:
             current_state = state_map[chapter.chapter_index]
         
-        # If we have interactions OR a state update, we add an event
-        narrative_state_dict = None
-        if current_state and current_state.chapter_index == chapter.chapter_index:
-             # We dump the state to dict
-             narrative_state_dict = current_state.model_dump()
+        # Determine if this is a state update event
+        is_state_update = current_state and current_state.chapter_index == chapter.chapter_index
 
         # Filter: Only show chapters with actual interactions or significant state changes.
-        if interactions or narrative_state_dict:
-            timeline_events.append(RelationshipTimelineEvent(
+        if interactions or is_state_update:
+            # If we are outputting an event, include the current state if available (context)
+            if current_state:
+                 # We dump the state to dict
+                 # Use model_dump(mode='json') to ensure everything is JSON serializable
+                 narrative_state_dict = current_state.model_dump(mode='json')
+
+            # Construct RelationshipTimelineEvent
+            # Ensure interactions list is not None (schema default is [])
+            event = RelationshipTimelineEvent(
                 chapter_id=str(chapter.id),
                 chapter_index=chapter.chapter_index,
                 chapter_title=chapter.title,
-                interactions=interactions,
+                interactions=interactions or [],
                 narrative_state=narrative_state_dict
-            ))
+            )
+            timeline_events.append(event)
             
     return timeline_events
 
@@ -2190,6 +2243,7 @@ def get_relationship_timeline(
 import asyncio
 from typing import List, Optional, Dict
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 
@@ -2200,6 +2254,7 @@ from core.world_builder.aggregator import EntityAggregator
 from core.summarizer.llm_client import ClientFactory
 from core.config import settings
 from sqlmodel import Session
+from core.db.engine import engine
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"])
 
@@ -2210,136 +2265,271 @@ class RelationshipJobRequest(BaseModel):
     target: str
     force: bool = False
 
+class RelationshipPair(BaseModel):
+    source: str
+    target: str
+
+class BatchRelationshipJobRequest(BaseModel):
+    novel_name: str
+    file_hash: str
+    pairs: List[RelationshipPair] 
+    force: bool = False
+
+def analyze_relationship_core(novel_name: str, file_hash: str, source: str, target: str, progress_callback):
+    """
+    Core logic for relationship analysis, decoupled from JobManager for reusability.
+    """
+    with Session(engine) as session:
+        # 3. Load Chapters
+        progress_callback(5, "Loading chapters...")
+        chapters = get_merged_chapters(session, novel_name, file_hash)
+        
+        if not chapters:
+            raise Exception("No chapters found")
+
+        # 4. Setup LLM Client
+        provider = "openrouter"
+        api_key = settings.OPENROUTER_API_KEY or os.getenv("OPENROUTER_API_KEY")
+        
+        if not api_key:
+             raise Exception("OpenRouter API Key not found. Please set OPENROUTER_API_KEY env var.")
+
+        llm_client = ClientFactory.create_client(
+            provider="openrouter",
+            api_key=api_key,
+            model=settings.OPENROUTER_MODEL or "google/gemini-2.0-flash-001"
+        )
+        
+        # 5. Normalize Names
+        base_dir = os.getcwd()
+        alias_path = os.path.join(base_dir, "config", "aliases.json")
+        aggregator = EntityAggregator(alias_file=alias_path)
+        
+        norm_source = aggregator._normalize_text(source)
+        norm_target = aggregator._normalize_text(target)
+        pair_id = "_".join(sorted([norm_source, norm_target]))
+        
+        total_chapters = len(chapters)
+        
+        # 6. Pre-calculate Interaction Density
+        progress_callback(8, "Pre-calculating interaction density...")
+        
+        chapter_scores = []
+        for chapter in chapters:
+            summary = db_chapter_to_summary(chapter)
+            score = 0.0
+            
+            # 1. Explicit Relationships
+            for rel in summary.relationships:
+                r_s = aggregator._normalize_text(rel.source)
+                r_t = aggregator._normalize_text(rel.target)
+                if (r_s == norm_source and r_t == norm_target) or (r_s == norm_target and r_t == norm_source):
+                    score += 3.0
+                    
+            # 2. Text Mentions
+            for sent in summary.summary_sentences:
+                if (norm_source in sent.summary_text and norm_target in sent.summary_text):
+                    score += 1.0
+                    
+            # 3. Co-occurrence
+            source_in_chapter = False
+            target_in_chapter = False
+            for e in summary.entities:
+                norm_name = aggregator._normalize_text(e.name)
+                if norm_name == norm_source: source_in_chapter = True
+                if norm_name == norm_target: target_in_chapter = True
+            
+            if source_in_chapter and target_in_chapter:
+                score += 0.5
+                
+            chapter_scores.append(score)
+
+        # Calculate Dynamic Threshold
+        avg_score = sum(chapter_scores) / len(chapter_scores) if chapter_scores else 0
+        threshold = max(0.6, avg_score * 0.2)
+        
+        print(f"[Core {pair_id}] Density Analysis: Avg={avg_score:.2f}, Threshold={threshold:.2f}")
+
+        # 7. Iterate and Evolve
+        has_started = False
+        for i, chapter in enumerate(chapters):
+            progress_base = 10 + int((i / total_chapters) * 80)
+            score = chapter_scores[i]
+            
+            should_skip_llm = score < threshold
+            
+            # Special Logic: Not Started & Low Score -> Skip entirely
+            if not has_started and should_skip_llm:
+                # progress_callback(progress_base, f"Skipping Ch {chapter.chapter_index} (Low Score)...")
+                continue
+
+            progress_callback(progress_base, f"Analyzing Ch {chapter.chapter_index} (Score: {score:.1f})...")
+            
+            # Prepare events
+            summary = db_chapter_to_summary(chapter)
+            relevant_sentences = []
+            
+            for rel in summary.relationships:
+                r_s = aggregator._normalize_text(rel.source)
+                r_t = aggregator._normalize_text(rel.target)
+                if (r_s == norm_source and r_t == norm_target) or (r_s == norm_target and r_t == norm_source):
+                    relevant_sentences.append(f"Interaction ({rel.relation}): {rel.description}")
+            
+            for sent in summary.summary_sentences:
+                if (norm_source in sent.summary_text and norm_target in sent.summary_text):
+                        relevant_sentences.append(sent.summary_text)
+
+            source_in_chapter = False
+            target_in_chapter = False
+            for e in summary.entities:
+                norm_name = aggregator._normalize_text(e.name)
+                if norm_name == norm_source: source_in_chapter = True
+                if norm_name == norm_target: target_in_chapter = True
+            
+            if not relevant_sentences and source_in_chapter and target_in_chapter:
+                relevant_sentences.append("Both characters appear in this chapter, implying potential implicit interaction or co-presence.")
+
+            if should_skip_llm:
+                relevant_sentences = [] 
+                
+            new_events = [AnalysisEvent(
+                chapter_index=chapter.chapter_index,
+                content=relevant_sentences
+            )] if relevant_sentences else []
+            
+            def step_callback(step_progress, msg):
+                pass
+
+            try:
+                result_state = _narrative_engine.evolve_state(
+                    novel_hash=file_hash,
+                    plugin_type="relationship",
+                    entity_id=pair_id,
+                    target_chapter_index=chapter.chapter_index,
+                    new_events=new_events,
+                    llm_client=llm_client,
+                    progress_callback=step_callback
+                )
+                
+                if result_state:
+                    has_started = True
+
+            except Exception as evo_err:
+                    print(f"Error evolving state for Ch {chapter.chapter_index}: {evo_err}")
+
+        return {"pair_id": pair_id, "chapters_analyzed": total_chapters}
+
 def run_relationship_analysis_task(job_id: str, request: RelationshipJobRequest):
     """
-    Background task to run the relationship analysis.
+    Background task wrapper for single relationship analysis.
     """
     try:
-        # 1. Update status to processing
         job_manager.update_progress(job_id, 0, "Initializing analysis...")
         
-        # 2. Setup Context (Need a new session for background task?)
-        # Actually we need DB access. We can create a new session here.
-        from core.db.engine import engine
+        def progress_callback(pct, msg):
+            job_manager.update_progress(job_id, pct, msg)
+            
+        result = analyze_relationship_core(
+            request.novel_name, 
+            request.file_hash, 
+            request.source, 
+            request.target, 
+            progress_callback
+        )
         
-        with Session(engine) as session:
-            # 3. Load Chapters
-            job_manager.update_progress(job_id, 5, "Loading chapters...")
-            chapters = get_merged_chapters(session, request.novel_name, request.file_hash)
-            
-            if not chapters:
-                job_manager.fail_job(job_id, "No chapters found")
-                return
-
-            # 4. Setup LLM Client
-            # config = load_config()  <-- Deprecated
-            
-            # Prefer OpenRouter for analysis
-            # We want to force OpenRouter if possible, or use config
-            # User said: "All future calls default to OpenRouter"
-            
-            provider = "openrouter"
-            # Try to get key from settings or env
-            api_key = settings.OPENROUTER_API_KEY or os.getenv("OPENROUTER_API_KEY")
-            
-            if not api_key:
-                 job_manager.fail_job(job_id, "OpenRouter API Key not found. Please set OPENROUTER_API_KEY env var.")
-                 return
-
-            llm_client = ClientFactory.create_client(
-                provider="openrouter",
-                api_key=api_key,
-                model=settings.OPENROUTER_MODEL or "google/gemini-2.0-flash-001" # Default model
-            )
-            
-            # 5. Normalize Names
-            # Explicitly load aliases from project root
-            base_dir = os.getcwd()
-            alias_path = os.path.join(base_dir, "config", "aliases.json")
-            aggregator = EntityAggregator(alias_file=alias_path)
-            
-            norm_source = aggregator._normalize_text(request.source)
-            norm_target = aggregator._normalize_text(request.target)
-            pair_id = "_".join(sorted([norm_source, norm_target]))
-            
-            total_chapters = len(chapters)
-            
-            # 6. Iterate and Evolve
-            for i, chapter in enumerate(chapters):
-                progress_base = 10 + int((i / total_chapters) * 80)
-                job_manager.update_progress(job_id, progress_base, f"Analyzing Chapter {chapter.chapter_index}...")
-                
-                # Prepare events
-                summary = db_chapter_to_summary(chapter)
-                
-                # Filter relevant events
-                relevant_sentences = []
-                # Check explicit relationships
-                for rel in summary.relationships:
-                    r_s = aggregator._normalize_text(rel.source)
-                    r_t = aggregator._normalize_text(rel.target)
-                    if (r_s == norm_source and r_t == norm_target) or (r_s == norm_target and r_t == norm_source):
-                        relevant_sentences.append(f"Interaction ({rel.relation}): {rel.description}")
-                
-                # Check text mentions
-                for sent in summary.summary_sentences:
-                    if (norm_source in sent.summary_text and norm_target in sent.summary_text):
-                         relevant_sentences.append(sent.summary_text)
-
-                # Check entity co-occurrence (Weak Interaction)
-                source_in_chapter = False
-                target_in_chapter = False
-                for e in summary.entities:
-                    norm_name = aggregator._normalize_text(e.name)
-                    if norm_name == norm_source: source_in_chapter = True
-                    if norm_name == norm_target: target_in_chapter = True
-                
-                if not relevant_sentences and source_in_chapter and target_in_chapter:
-                    relevant_sentences.append("Both characters appear in this chapter, implying potential implicit interaction or co-presence.")
-
-                if not relevant_sentences:
-                    # Skip empty chapters to save time/cost, unless we want to decay relationship?
-                    # For now, just skip.
-                    continue
-                    
-                # Prepare event object
-                new_events = [AnalysisEvent(
-                    chapter_index=chapter.chapter_index,
-                    content=relevant_sentences
-                )]
-                
-                # Define callback for sub-steps (LLM generation)
-                def step_callback(step_progress, msg):
-                    # Map step_progress (0-100) to a small range within the chapter progress
-                    # e.g., current chapter takes 5% of total progress
-                    # We don't want to spam updates, so maybe just update message
-                    # job_manager.update_progress(job_id, progress_base, f"Ch {chapter.chapter_index}: {msg}")
-                    pass
-
-                # Evolve State
-                # Add try/except for evolution to not crash whole job
-                try:
-                    _narrative_engine.evolve_state(
-                        novel_hash=request.file_hash,
-                        plugin_type="relationship",
-                        entity_id=pair_id,
-                        target_chapter_index=chapter.chapter_index,
-                        new_events=new_events,
-                        llm_client=llm_client,
-                        progress_callback=step_callback
-                    )
-                except Exception as evo_err:
-                     print(f"Error evolving state for Ch {chapter.chapter_index}: {evo_err}")
-                     # Continue to next chapter
-
-            
-            # 7. Finish
-            job_manager.complete_job(job_id, {"pair_id": pair_id, "chapters_analyzed": total_chapters})
+        job_manager.complete_job(job_id, result)
             
     except Exception as e:
         import traceback
         traceback.print_exc()
         job_manager.fail_job(job_id, str(e))
+
+def run_batch_analysis_orchestrator(job_id: str, request: BatchRelationshipJobRequest):
+    """
+    Orchestrator for batch analysis with concurrency control.
+    """
+    try:
+        job_manager.update_progress(job_id, 0, f"Initializing batch of {len(request.pairs)} pairs...")
+        
+        total_pairs = len(request.pairs)
+        completed_pairs = 0
+        
+        # Helper to update parent job
+        def update_parent_progress(current_pair_idx, current_pair_name, sub_pct, sub_msg):
+            # Global progress = (completed_pairs * 100 + sub_pct) / total_pairs
+            # But simpler: just show which pair is being processed
+            # job_manager.update_progress(job_id, ...)
+            # Let's just track completed pairs for the progress bar
+            global_pct = int((completed_pairs / total_pairs) * 100)
+            job_manager.update_progress(job_id, global_pct, f"Processing {completed_pairs + 1}/{total_pairs}: {current_pair_name} - {sub_msg}")
+
+        # ThreadPoolExecutor
+        # We process pairs in queue, but max 3 concurrently.
+        # Since we want to update the Parent Job with "Current Activity", it's a bit tricky with threads.
+        # We can just report "Processing X/Y pairs" and let the sub-tasks log to console or something.
+        # Or we can pass a callback that doesn't overwrite the main message too frantically.
+        
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            future_to_pair = {}
+            
+            for pair in request.pairs:
+                source = pair.source
+                target = pair.target
+                pair_label = f"{source} & {target}"
+                
+                # Define a thread-safe callback for this specific task
+                # Note: job_manager.update_progress is likely thread-safe (dict update)
+                # But we share the same job_id! Race conditions on the message string.
+                # So we should probably NOT update the main job details from sub-threads frequently.
+                # We can just update it when a task starts or finishes.
+                
+                def silent_callback(pct, msg):
+                    # Maybe log to console?
+                    pass
+                
+                future = executor.submit(
+                    analyze_relationship_core,
+                    request.novel_name,
+                    request.file_hash,
+                    source,
+                    target,
+                    silent_callback
+                )
+                future_to_pair[future] = pair_label
+
+            for future in as_completed(future_to_pair):
+                pair_label = future_to_pair[future]
+                completed_pairs += 1
+                try:
+                    res = future.result()
+                    print(f"Batch sub-task finished: {pair_label}")
+                except Exception as exc:
+                    print(f"Batch sub-task failed: {pair_label} generated an exception: {exc}")
+                
+                pct = int((completed_pairs / total_pairs) * 100)
+                job_manager.update_progress(job_id, pct, f"Completed {completed_pairs}/{total_pairs} pairs")
+
+        job_manager.complete_job(job_id, {"total": total_pairs, "completed": completed_pairs})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        job_manager.fail_job(job_id, str(e))
+
+@router.post("/batch-relationship", response_model=Dict[str, str])
+def submit_batch_relationship_job(request: BatchRelationshipJobRequest, background_tasks: BackgroundTasks):
+    """
+    Submit a batch relationship analysis job.
+    """
+    # Store request details in metadata for debugging/UI
+    metadata = {
+        "novel_name": request.novel_name,
+        "pair_count": len(request.pairs)
+    }
+    job_id = job_manager.submit_job("batch_relationship_analysis", metadata=metadata)
+    background_tasks.add_task(run_batch_analysis_orchestrator, job_id, request)
+    return {"job_id": job_id}
+
 
 @router.post("/relationship", response_model=Dict[str, str])
 def submit_relationship_job(request: RelationshipJobRequest, background_tasks: BackgroundTasks):
@@ -2418,7 +2608,7 @@ def list_runs(novel_name: str, file_hash: str, session: Session = Depends(get_se
                 metadata = json.loads(run.config_snapshot)
             except:
                 pass
-        runs.append(RunInfo(timestamp=run.timestamp, metadata=metadata))
+        runs.append(RunInfo(timestamp=run.timestamp, file_hash=file_hash, metadata=metadata))
     
     # Sort descending
     runs.sort(key=lambda x: x.timestamp, reverse=True)
@@ -2429,7 +2619,10 @@ def list_runs(novel_name: str, file_hash: str, session: Session = Depends(get_se
 
 {
     "机器人": "塔派",
-    "宋6": "宋6PUS"
+    "我去有没有搞错这么麻烦": "塔派",
+    "宋6": "宋6PUS",
+    "猫女": "琳达",
+    "光头男人": "光头"
 }
 
 ==================== FILE: core\__init__.py ====================
@@ -4082,6 +4275,70 @@ export default {
 }
 
 
+==================== FILE: frontend\tsconfig.json ====================
+
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
+}
+
+
+==================== FILE: frontend\tsconfig.node.json ====================
+
+{
+  "compilerOptions": {
+    "composite": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "types": ["node"]
+  },
+  "include": ["vite.config.ts"]
+}
+
+
+==================== FILE: frontend\vite.config.d.ts ====================
+
+declare const _default: import("vite").UserConfig;
+export default _default;
+
+
+==================== FILE: frontend\vite.config.js ====================
+
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import path from 'path';
+// https://vitejs.dev/config/
+export default defineConfig({
+    plugins: [vue()],
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, './src'),
+        },
+    },
+    server: {
+        proxy: {
+            '/api': {
+                target: 'http://localhost:8000',
+                changeOrigin: true,
+                // rewrite: (path) => path.replace(/^\/api/, ''), // Backend API routes are like /api/novels, so no rewrite needed
+            },
+        },
+    },
+});
+
+
 ==================== FILE: frontend\vite.config.ts ====================
 
 import { defineConfig } from 'vite'
@@ -4163,6 +4420,17 @@ app.use(router)
 app.mount('#app')
 
 
+==================== FILE: frontend\src\vite-env.d.ts ====================
+
+/// <reference types="vite/client" />
+
+declare module '*.vue' {
+  import type { DefineComponent } from 'vue'
+  const component: DefineComponent<{}, {}, any>
+  export default component
+}
+
+
 ==================== FILE: frontend\src\api\client.ts ====================
 
 import axios from 'axios';
@@ -4218,10 +4486,19 @@ export const API = {
     return response.data;
   },
 
-  async deleteRelationshipAnalysis(novelName: string, hash: string, source: string, target: string): Promise<void> {
-    await apiClient.delete(`/novels/${novelName}/${hash}/relationship`, {
+  async deleteRelationshipAnalysis(novelName: string, hash: string, timestamp: string, source: string, target: string): Promise<void> {
+    await apiClient.delete(`/novels/${novelName}/${hash}/${timestamp}/relationship`, {
       params: { source, target }
     });
+  },
+
+  async submitBatchRelationshipAnalysis(novelName: string, fileHash: string, pairs: {source: string, target: string}[]): Promise<{ job_id: string }> {
+    const response = await apiClient.post<{ job_id: string }>('/jobs/batch-relationship', {
+      novel_name: novelName,
+      file_hash: fileHash,
+      pairs: pairs
+    });
+    return response.data;
   }
 };
 
@@ -4322,6 +4599,324 @@ const formatTime = (ts: string) => {
     </div>
   </header>
 </template>
+
+
+==================== FILE: frontend\src\components\BatchAnalysisDialog.vue ====================
+
+<template>
+  <div v-if="isOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl w-3/4 max-h-[85vh] flex flex-col">
+      <div class="p-4 border-b flex justify-between items-center">
+        <h2 class="text-xl font-bold">Batch Relationship Analysis</h2>
+        <button @click="close" class="text-gray-500 hover:text-gray-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Type Filters -->
+      <div class="p-4 bg-gray-50 border-b space-y-3">
+        <div class="flex items-center gap-4 text-sm">
+          <span class="font-bold w-16">Source:</span>
+          <div class="flex flex-wrap gap-2">
+             <label v-for="type in availableTypes" :key="'s-'+type" 
+                class="inline-flex items-center gap-1.5 cursor-pointer px-2 py-1 rounded hover:bg-white hover:shadow-sm border border-transparent transition-all" 
+                :class="{'bg-white shadow-sm border-gray-200': sourceFilters.includes(type)}">
+                <input type="checkbox" :value="type" v-model="sourceFilters" class="rounded text-indigo-600 focus:ring-indigo-500">
+                
+                <!-- Icon -->
+                <div class="w-3 h-3 flex items-center justify-center" :style="{ color: typeColors[type] }">
+                    <div v-if="typeShapes[type] === 'dot'" class="w-2.5 h-2.5 rounded-full bg-current"></div>
+                    <div v-else-if="typeShapes[type] === 'square'" class="w-2.5 h-2.5 bg-current rounded-[1px]"></div>
+                    <div v-else-if="typeShapes[type] === 'triangle'" class="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[9px] border-l-transparent border-r-transparent border-b-current mb-0.5"></div>
+                    <div v-else-if="typeShapes[type] === 'diamond'" class="w-2 h-2 bg-current rotate-45"></div>
+                    <svg v-else-if="typeShapes[type] === 'star'" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg v-else-if="typeShapes[type] === 'hexagon'" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3"><path d="M12 2l8.66 5v10L12 22l-8.66-5V7L12 2z"/></svg>
+                </div>
+
+                <span>{{ typeLabels[type] || type }}</span>
+             </label>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 text-sm">
+          <span class="font-bold w-16">Target:</span>
+          <div class="flex flex-wrap gap-2">
+             <label v-for="type in availableTypes" :key="'t-'+type" 
+                class="inline-flex items-center gap-1.5 cursor-pointer px-2 py-1 rounded hover:bg-white hover:shadow-sm border border-transparent transition-all" 
+                :class="{'bg-white shadow-sm border-gray-200': targetFilters.includes(type)}">
+                <input type="checkbox" :value="type" v-model="targetFilters" class="rounded text-pink-600 focus:ring-pink-500">
+                
+                 <!-- Icon -->
+                <div class="w-3 h-3 flex items-center justify-center" :style="{ color: typeColors[type] }">
+                    <div v-if="typeShapes[type] === 'dot'" class="w-2.5 h-2.5 rounded-full bg-current"></div>
+                    <div v-else-if="typeShapes[type] === 'square'" class="w-2.5 h-2.5 bg-current rounded-[1px]"></div>
+                    <div v-else-if="typeShapes[type] === 'triangle'" class="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[9px] border-l-transparent border-r-transparent border-b-current mb-0.5"></div>
+                    <div v-else-if="typeShapes[type] === 'diamond'" class="w-2 h-2 bg-current rotate-45"></div>
+                    <svg v-else-if="typeShapes[type] === 'star'" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg v-else-if="typeShapes[type] === 'hexagon'" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3"><path d="M12 2l8.66 5v10L12 22l-8.66-5V7L12 2z"/></svg>
+                </div>
+
+                <span>{{ typeLabels[type] || type }}</span>
+             </label>
+          </div>
+        </div>
+        <div class="text-xs text-gray-500 italic">
+          * Matches are bidirectional (A-B matches if A=Source, B=Target OR A=Target, B=Source)
+        </div>
+      </div>
+
+      <div class="p-4 flex-1 overflow-auto">
+        <div class="flex justify-between mb-2">
+          <div class="space-x-2">
+            <button @click="selectAll" class="text-sm text-blue-600 hover:underline">Select All</button>
+            <span class="text-gray-300">|</span>
+            <button @click="deselectAll" class="text-sm text-blue-600 hover:underline">Deselect All</button>
+          </div>
+          <div class="text-sm text-gray-500">
+            Selected: {{ selectedCount }} / {{ filteredPairs.length }} (Total visible: {{ pairs.length }})
+          </div>
+        </div>
+
+        <table class="min-w-full border text-sm">
+          <thead class="bg-gray-50 sticky top-0 z-10">
+            <tr>
+              <th class="p-2 border w-10">
+                <input type="checkbox" :checked="isAllSelected" @change="toggleAll" />
+              </th>
+              <th class="p-2 border text-left">Source Entity</th>
+              <th class="p-2 border text-left">Target Entity</th>
+              <th class="p-2 border text-right">Interactions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="pair in filteredPairs" :key="pair.id" class="hover:bg-gray-50">
+              <td class="p-2 border text-center">
+                <input type="checkbox" v-model="pair.selected" />
+              </td>
+              <td class="p-2 border">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded flex items-center justify-center bg-opacity-20" :style="{ backgroundColor: typeColors[pair.sourceType] + '20' }">
+                        <div class="w-3 h-3 flex items-center justify-center" :style="{ color: typeColors[pair.sourceType] }">
+                            <div v-if="typeShapes[pair.sourceType] === 'dot'" class="w-2.5 h-2.5 rounded-full bg-current"></div>
+                            <div v-else-if="typeShapes[pair.sourceType] === 'square'" class="w-2.5 h-2.5 bg-current rounded-[1px]"></div>
+                            <div v-else-if="typeShapes[pair.sourceType] === 'triangle'" class="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[9px] border-l-transparent border-r-transparent border-b-current mb-0.5"></div>
+                            <div v-else-if="typeShapes[pair.sourceType] === 'diamond'" class="w-2 h-2 bg-current rotate-45"></div>
+                            <svg v-else-if="typeShapes[pair.sourceType] === 'star'" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            <svg v-else-if="typeShapes[pair.sourceType] === 'hexagon'" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3"><path d="M12 2l8.66 5v10L12 22l-8.66-5V7L12 2z"/></svg>
+                        </div>
+                    </div>
+                    <span class="font-medium">{{ pair.source }}</span>
+                </div>
+              </td>
+              <td class="p-2 border">
+                 <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded flex items-center justify-center bg-opacity-20" :style="{ backgroundColor: typeColors[pair.targetType] + '20' }">
+                        <div class="w-3 h-3 flex items-center justify-center" :style="{ color: typeColors[pair.targetType] }">
+                            <div v-if="typeShapes[pair.targetType] === 'dot'" class="w-2.5 h-2.5 rounded-full bg-current"></div>
+                            <div v-else-if="typeShapes[pair.targetType] === 'square'" class="w-2.5 h-2.5 bg-current rounded-[1px]"></div>
+                            <div v-else-if="typeShapes[pair.targetType] === 'triangle'" class="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[9px] border-l-transparent border-r-transparent border-b-current mb-0.5"></div>
+                            <div v-else-if="typeShapes[pair.targetType] === 'diamond'" class="w-2 h-2 bg-current rotate-45"></div>
+                            <svg v-else-if="typeShapes[pair.targetType] === 'star'" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            <svg v-else-if="typeShapes[pair.targetType] === 'hexagon'" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3"><path d="M12 2l8.66 5v10L12 22l-8.66-5V7L12 2z"/></svg>
+                        </div>
+                    </div>
+                    <span class="font-medium">{{ pair.target }}</span>
+                </div>
+              </td>
+              <td class="p-2 border text-right">{{ pair.weight }}</td>
+            </tr>
+            <tr v-if="filteredPairs.length === 0">
+              <td colspan="4" class="p-8 text-center text-gray-500">
+                No pairs match the selected type filters.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="p-4 border-t flex justify-end space-x-3">
+        <button @click="close" class="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100">Cancel</button>
+        <button 
+          @click="startBatch" 
+          :disabled="selectedCount === 0 || isSubmitting"
+          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 flex items-center"
+        >
+          <span v-if="isSubmitting" class="mr-2 animate-spin">⏳</span>
+          Start Analysis ({{ selectedCount }})
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue';
+import { API } from '@/api/client';
+import { useJobStore } from '@/stores/jobStore';
+import { useNovelStore } from '@/stores/novel';
+
+const props = defineProps<{
+  isOpen: boolean;
+  visibleEdges: any[]; // Vis.js edges with injected sourceType/targetType
+}>();
+
+const emit = defineEmits(['close', 'job-started']);
+
+const jobStore = useJobStore();
+const novelStore = useNovelStore();
+
+interface BatchPair {
+  id: string;
+  source: string;
+  target: string;
+  sourceType: string;
+  targetType: string;
+  weight: number;
+  selected: boolean;
+}
+
+const pairs = ref<BatchPair[]>([]);
+const isSubmitting = ref(false);
+
+// Filters
+const availableTypes = ['Person', 'Location', 'Organization', 'Event', 'Object', 'Concept'];
+const sourceFilters = ref<string[]>(['Person']); // Default to Person
+const targetFilters = ref<string[]>(['Person', 'Location', 'Organization']); // Default broad
+
+// --- Style Constants (Copied from GraphView.vue) ---
+const typeColors: Record<string, string> = {
+  'Person': '#fbbf24', // amber-400
+  'Location': '#60a5fa', // blue-400
+  'Organization': '#a78bfa', // purple-400
+  'Event': '#f87171', // red-400
+  'Object': '#34d399', // emerald-400
+  'Concept': '#f472b6', // pink-400
+  'Other': '#9ca3af'   // gray-400
+};
+
+const typeShapes: Record<string, string> = {
+  'Person': 'dot',
+  'Location': 'triangle',
+  'Organization': 'square',
+  'Event': 'star',
+  'Object': 'diamond',
+  'Concept': 'hexagon',
+  'Other': 'dot'
+};
+
+const typeLabels: Record<string, string> = {
+  'Person': '人物',
+  'Location': '地点',
+  'Organization': '组织',
+  'Event': '事件',
+  'Object': '物品',
+  'Concept': '概念',
+  'Other': '其他'
+};
+
+// Initialize pairs when dialog opens
+watch(() => props.isOpen, (newVal) => {
+  if (newVal) {
+    // Deduplicate pairs based on sorted names
+    const seen = new Set<string>();
+    const uniquePairs: BatchPair[] = [];
+
+    props.visibleEdges.forEach(edge => {
+      // Vis.js uses 'from'/'to' which are names/ids
+      const source = edge.from; 
+      const target = edge.to;
+      const sType = edge.sourceType || 'Unknown';
+      const tType = edge.targetType || 'Unknown';
+
+      // Create a unique key regardless of order
+      const key = [source, target].sort().join('_');
+      
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniquePairs.push({
+          id: edge.id,
+          source: source,
+          target: target,
+          sourceType: sType,
+          targetType: tType,
+          weight: edge.value || 0,
+          selected: true // Default select, but will be filtered by display logic
+        });
+      }
+    });
+    
+    // Sort by weight (interactions) descending for better UX
+    pairs.value = uniquePairs.sort((a, b) => b.weight - a.weight);
+  }
+});
+
+// Computed filtered pairs based on type selection
+const filteredPairs = computed(() => {
+  return pairs.value.filter(p => {
+    // Check direct match: Source -> SourceFilter AND Target -> TargetFilter
+    const directMatch = sourceFilters.value.includes(p.sourceType) && targetFilters.value.includes(p.targetType);
+    
+    // Check reverse match (Symmetry): Source -> TargetFilter AND Target -> SourceFilter
+    // Because relationship analysis is undirected (A-B is same as B-A)
+    const reverseMatch = sourceFilters.value.includes(p.targetType) && targetFilters.value.includes(p.sourceType);
+
+    return directMatch || reverseMatch;
+  });
+});
+
+const selectedCount = computed(() => filteredPairs.value.filter(p => p.selected).length);
+const isAllSelected = computed(() => filteredPairs.value.length > 0 && selectedCount.value === filteredPairs.value.length);
+
+function selectAll() {
+  filteredPairs.value.forEach(p => p.selected = true);
+}
+
+function deselectAll() {
+  filteredPairs.value.forEach(p => p.selected = false);
+}
+
+function toggleAll(e: Event) {
+  const checked = (e.target as HTMLInputElement).checked;
+  filteredPairs.value.forEach(p => p.selected = checked);
+}
+
+function close() {
+  emit('close');
+}
+
+async function startBatch() {
+  const selectedPairs = filteredPairs.value.filter(p => p.selected);
+  if (selectedPairs.length === 0) return;
+
+  isSubmitting.value = true;
+  try {
+    const payload = selectedPairs.map(p => ({
+      source: p.source,
+      target: p.target
+    }));
+
+    if (!novelStore.currentNovel || !novelStore.currentRun) {
+        throw new Error("No novel context");
+    }
+
+    const res = await API.submitBatchRelationshipAnalysis(
+        novelStore.currentNovel.name,
+        novelStore.currentRun.file_hash,
+        payload
+    );
+
+    jobStore.trackJob(res.job_id);
+    emit('job-started', res.job_id);
+    close();
+  } catch (e) {
+    console.error(e);
+    alert("Failed to start batch job: " + e);
+  } finally {
+    isSubmitting.value = false;
+  }
+}
+</script>
 
 
 ==================== FILE: frontend\src\components\EntityChronicleDrawer.vue ====================
@@ -4459,6 +5054,7 @@ import type { Entity, TimelineEvent, RelationshipTimelineEvent } from '@/types';
 import { API } from '@/api/client';
 import EntityChronicleDrawer from './EntityChronicleDrawer.vue';
 import RelationshipArcDrawer from './RelationshipArcDrawer.vue';
+import BatchAnalysisDialog from './BatchAnalysisDialog.vue';
 import { useNovelStore } from '@/stores/novel';
 import { useJobStore } from '@/stores/jobStore';
 
@@ -4467,6 +5063,30 @@ const jobStore = useJobStore();
 
 const container = ref<HTMLElement | null>(null);
 const network = shallowRef<Network | null>(null);
+
+// Batch Analysis State
+const isBatchDialogOpen = ref(false);
+const visibleEdgesForBatch = ref<any[]>([]);
+
+const openBatchDialog = () => {
+  if (!store.currentNovel || !store.graphData) return;
+  
+  // Create a map of node types for quick lookup
+  const nodeTypeMap = new Map<string, string>();
+  store.graphData.nodes.forEach(node => {
+      nodeTypeMap.set(node.name, node.type);
+  });
+
+  // Get all currently visible edges from the DataSet and inject types
+  const edges = edgesDataSet.get();
+  visibleEdgesForBatch.value = edges.map(edge => ({
+      ...edge,
+      sourceType: nodeTypeMap.get(edge.from) || 'Unknown',
+      targetType: nodeTypeMap.get(edge.to) || 'Unknown'
+  }));
+
+  isBatchDialogOpen.value = true;
+};
 
 // State for filtering
 const minWeight = ref(1);
@@ -4718,7 +5338,9 @@ const initGraph = () => {
       width: 1,
       color: { color: '#d1d5db', highlight: '#6366f1' }, // gray-300, indigo-500
       smooth: {
-        type: 'continuous'
+        type: 'continuous',
+        enabled: true,
+        roundness: 0.5
       },
       arrows: {
           to: { enabled: false } // undirected by default
@@ -4807,6 +5429,9 @@ const updateGraphData = () => {
     const activeEdges: any[] = [];
     const nodeWeights: Record<string, number> = {};
 
+    // Create a set of active node IDs for O(1) lookup
+    const activeNodeIds = new Set(activeNodes.map(n => n.name));
+
     try {
         // Optimization: Create map for O(1) chapter index lookup
         const chapterIndexMap = new Map<string, number>();
@@ -4817,6 +5442,11 @@ const updateGraphData = () => {
         
         store.graphData.edges.forEach((edge) => {
             if (!edge.timeline) return;
+
+            // Strict consistency check: Both source and target must be visible nodes
+            if (!activeNodeIds.has(edge.source) || !activeNodeIds.has(edge.target)) {
+                return;
+            }
 
             let weight = 0;
             let label = '';
@@ -5129,6 +5759,20 @@ const displayDescription = computed(() => {
                 class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-400"
             >
         </div>
+
+        <hr class="border-gray-100" v-if="graphMode === 'cumulative'">
+
+        <!-- Batch Analysis Button -->
+        <button 
+            v-if="graphMode === 'cumulative'"
+            @click="openBatchDialog"
+            class="w-full py-2 px-3 bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+            Batch Analyze ({{ stats.edges }})
+        </button>
         
         <!-- Stats -->
         <div class="text-[10px] text-gray-400 font-mono text-center pt-2">
@@ -5266,6 +5910,13 @@ const displayDescription = computed(() => {
         :is-loading="isChronicleLoading"
         @close="isChronicleOpen = false"
         @jump-to-chapter="handleChronicleJump"
+    />
+
+    <!-- Batch Analysis Dialog -->
+    <BatchAnalysisDialog
+        :is-open="isBatchDialogOpen"
+        :visible-edges="visibleEdgesForBatch"
+        @close="isBatchDialogOpen = false"
     />
   </div>
 </template>
@@ -6092,6 +6743,22 @@ export const useJobStore = defineStore('jobs', () => {
     isPolling.value = false;
   }
   
+  function trackJob(jobId: string) {
+    // Initialize job placeholder
+    jobs.value[jobId] = {
+      job_id: jobId,
+      type: 'batch_relationship_analysis', // Assume batch for now, or fetch to correct
+      status: 'pending',
+      progress: 0,
+      message: 'Job tracked',
+      created_at: Date.now() / 1000,
+      updated_at: Date.now() / 1000
+    };
+    
+    activeJobId.value = jobId;
+    startPolling();
+  }
+
   function clearActiveJob() {
       activeJobId.value = null;
       stopPolling();
@@ -6104,6 +6771,7 @@ export const useJobStore = defineStore('jobs', () => {
     allJobs,
     submitRelationshipJob,
     fetchJobStatus,
+    trackJob,
     clearActiveJob
   };
 });
@@ -6131,7 +6799,7 @@ export const useNovelStore = defineStore('novel', {
 
     // UI State
     loading: false,
-    viewMode: 'overview' as 'overview' | 'focus' | 'encyclopedia' | 'graph',
+    viewMode: 'overview' as 'overview' | 'focus' | 'encyclopedia' | 'graph' | 'reader',
     error: null as string | null,
   }),
 

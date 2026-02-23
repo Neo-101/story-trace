@@ -24,6 +24,16 @@ const selectRun = (event: Event) => {
   }
 };
 
+const handleChapterChange = async (event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  const chapterId = target.value;
+  if (!chapterId) return;
+
+  store.selectedChapterId = chapterId;
+  await store.loadChapterDetail(chapterId);
+  store.viewMode = 'focus';
+};
+
 // Formatting
 const formatTime = (ts: string) => {
   if (ts.length === 15) {
@@ -65,7 +75,7 @@ const formatTime = (ts: string) => {
       <select 
         v-if="store.currentRun"
         :value="store.selectedChapterId || ''" 
-        @change="(e) => store.selectedChapterId = (e.target as HTMLSelectElement).value" 
+        @change="handleChapterChange" 
         class="border rounded px-2 py-1 text-sm bg-white hover:border-indigo-400 transition-colors max-w-[200px]"
       >
         <option value="" disabled>跳转章节</option>

@@ -5,7 +5,8 @@ from core.db.engine import engine
 from core.db.models import Novel, NovelVersion, AnalysisRun, Chapter, Summary, Entity, StoryRelationship
 from backend.schemas import (
     ChapterPreview, ChapterDetail, EntityDetail, SummarySentence, SourceSpan,
-    GraphData, GraphNode, GraphEdge, EdgeEvent, TimelineEvent, RelationshipTimelineEvent, RelationshipInteraction
+    GraphData, GraphNode, GraphEdge, EdgeEvent, TimelineEvent, RelationshipTimelineEvent,
+    RelationshipInteraction
 )
 from data_protocol.models import (
     ChapterSummary, 
@@ -42,7 +43,7 @@ def db_chapter_to_summary(db_chapter: Chapter) -> ChapterSummary:
             name=e.name,
             type=e.type,
             description=e.description or "",
-            confidence=1.0 
+            confidence=e.confidence or 1.0 
         ))
 
     # Convert relationships
@@ -53,7 +54,7 @@ def db_chapter_to_summary(db_chapter: Chapter) -> ChapterSummary:
             target=r.target,
             relation=r.relation,
             description=r.description or "",
-            confidence=1.0
+            confidence=r.confidence or 1.0
         ))
     
     return ChapterSummary(
@@ -123,23 +124,39 @@ def get_chapter_detail(novel_name: str, file_hash: str, timestamp: str, chapter_
     summary = db_chapter_to_summary(chapter)
     
     # Convert Proto models to Schema models
-    summary_sentences = [
-        SummarySentence(
+    summary_sentences = []
+    chapter_content = chapter.content or ""
+
+    for s in summary.summary_sentences:
+        spans = []
+        for span in s.source_spans:
+            if isinstance(span, dict):
+                spans.append(SourceSpan(**span))
+            else:
+                # Extract text from content if empty (common for DB-stored summaries)
+                span_text = span.text
+                if not span_text and chapter_content and span.start_index is not None and span.end_index is not None:
+                    span_text = chapter_content[span.start_index:span.end_index]
+                
+                spans.append(SourceSpan(
+                    text=span_text,
+                    start_index=span.start_index,
+                    end_index=span.end_index
+                ))
+                
+        summary_sentences.append(SummarySentence(
             summary_text=s.summary_text,
-            source_spans=[SourceSpan(**span.dict()) for span in s.source_spans]
-        )
-        for s in summary.summary_sentences
-    ]
+            source_spans=spans
+        ))
     
-    entities = [
-        EntityDetail(
+    entities = []
+    for e in summary.entities:
+        entities.append(EntityDetail(
             name=e.name,
             type=e.type,
             description=e.description,
             confidence=e.confidence or 1.0
-        )
-        for e in summary.entities
-    ]
+        ))
     
     return ChapterDetail(
         id=str(chapter.id),
@@ -404,6 +421,8 @@ def get_relationship_timeline(
             # Direction 1: A -> B
             if r_source == norm_source and r_target == norm_target:
                 interactions.append(RelationshipInteraction(
+                    source=rel.source,
+                    target=rel.target,
                     direction="forward", 
                     relation=rel.relation,
                     description=rel.description,
@@ -413,6 +432,8 @@ def get_relationship_timeline(
             # Direction 2: B -> A
             elif r_source == norm_target and r_target == norm_source:
                 interactions.append(RelationshipInteraction(
+                    source=rel.source,
+                    target=rel.target,
                     direction="backward",
                     relation=rel.relation,
                     description=rel.description,

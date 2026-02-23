@@ -3,7 +3,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.routers import novels, analysis, jobs
 
-app = FastAPI(title="StoryTrace API")
+app = FastAPI(
+    title="StoryTrace API",
+    generate_unique_id_function=lambda route: route.name # Use function name as operation ID
+)
 
 # 允许跨域
 app.add_middleware(

@@ -1,14 +1,14 @@
 {
   "project": "split-novel-txt",
   "summary": {
-    "total_files": 126,
-    "total_lines": 10694,
+    "total_files": 138,
+    "total_lines": 11760,
     "description": "Line counts exclude empty lines. Ignored dirs: node_modules, output, .git, etc."
   },
   "structure": {
     "name": "split-novel-txt",
-    "lines": 10694,
-    "files": 126,
+    "lines": 11760,
+    "files": 138,
     "children": [
       {
         "name": "app",
@@ -23,26 +23,26 @@
       },
       {
         "name": "backend",
-        "lines": 1180,
+        "lines": 1372,
         "files": 14,
         "children": [
           {
             "name": "narrative_engine",
-            "lines": 542,
+            "lines": 576,
             "files": 7,
             "children": [
               {
                 "name": "core",
-                "lines": 379,
+                "lines": 413,
                 "files": 4,
                 "children": [
                   {
                     "name": "engine.py",
-                    "lines": 113
+                    "lines": 121
                   },
                   {
                     "name": "job_manager.py",
-                    "lines": 96
+                    "lines": 98
                   },
                   {
                     "name": "models.py",
@@ -50,7 +50,7 @@
                   },
                   {
                     "name": "store.py",
-                    "lines": 114
+                    "lines": 138
                   }
                 ]
               },
@@ -77,16 +77,16 @@
           },
           {
             "name": "routers",
-            "lines": 521,
+            "lines": 676,
             "files": 3,
             "children": [
               {
                 "name": "analysis.py",
-                "lines": 330
+                "lines": 378
               },
               {
                 "name": "jobs.py",
-                "lines": 153
+                "lines": 260
               },
               {
                 "name": "novels.py",
@@ -100,7 +100,7 @@
           },
           {
             "name": "schemas.py",
-            "lines": 71
+            "lines": 74
           },
           {
             "name": "server.py",
@@ -114,12 +114,12 @@
       },
       {
         "name": "config",
-        "lines": 4,
+        "lines": 7,
         "files": 1,
         "children": [
           {
             "name": "aliases.json",
-            "lines": 4
+            "lines": 7
           }
         ]
       },
@@ -243,14 +243,18 @@
       },
       {
         "name": "docs",
-        "lines": 3187,
-        "files": 35,
+        "lines": 3602,
+        "files": 41,
         "children": [
           {
             "name": "00_planning",
-            "lines": 296,
-            "files": 4,
+            "lines": 407,
+            "files": 6,
             "children": [
+              {
+                "name": "handover_status.md",
+                "lines": 47
+              },
               {
                 "name": "optimization_plan_llm_collaboration.md",
                 "lines": 62
@@ -266,6 +270,10 @@
               {
                 "name": "roadmap_vibe_coding.md",
                 "lines": 20
+              },
+              {
+                "name": "vibe_coding_architecture.md",
+                "lines": 64
               }
             ]
           },
@@ -313,12 +321,16 @@
           },
           {
             "name": "02_issues",
-            "lines": 133,
-            "files": 6,
+            "lines": 180,
+            "files": 7,
             "children": [
               {
                 "name": "bug_report_autoscroll.md",
                 "lines": 21
+              },
+              {
+                "name": "bug_report_batch_analysis_view_result.md",
+                "lines": 47
               },
               {
                 "name": "bug_report_chapter_indexing_chaos.md",
@@ -418,16 +430,42 @@
           },
           {
             "name": "project_stats",
-            "lines": 1305,
+            "lines": 1465,
             "files": 2,
             "children": [
               {
                 "name": "project_stats_llm.json",
-                "lines": 590
+                "lines": 750
               },
               {
                 "name": "project_stats_tokens.json",
                 "lines": 715
+              }
+            ]
+          },
+          {
+            "name": "specs",
+            "lines": 97,
+            "files": 3,
+            "children": [
+              {
+                "name": "batch_analysis",
+                "lines": 97,
+                "files": 3,
+                "children": [
+                  {
+                    "name": "checklist.md",
+                    "lines": 18
+                  },
+                  {
+                    "name": "spec.md",
+                    "lines": 55
+                  },
+                  {
+                    "name": "tasks.md",
+                    "lines": 24
+                  }
+                ]
               }
             ]
           },
@@ -439,33 +477,37 @@
       },
       {
         "name": "frontend",
-        "lines": 1985,
-        "files": 22,
+        "lines": 2426,
+        "files": 28,
         "children": [
           {
             "name": "src",
-            "lines": 1890,
-            "files": 16,
+            "lines": 2283,
+            "files": 18,
             "children": [
               {
                 "name": "api",
-                "lines": 44,
+                "lines": 57,
                 "files": 1,
                 "children": [
                   {
                     "name": "client.ts",
-                    "lines": 44
+                    "lines": 57
                   }
                 ]
               },
               {
                 "name": "components",
-                "lines": 1447,
-                "files": 7,
+                "lines": 1806,
+                "files": 8,
                 "children": [
                   {
                     "name": "AppNavbar.vue",
                     "lines": 84
+                  },
+                  {
+                    "name": "BatchAnalysisDialog.vue",
+                    "lines": 278
                   },
                   {
                     "name": "EntityChronicleDrawer.vue",
@@ -473,7 +515,7 @@
                   },
                   {
                     "name": "GraphView.vue",
-                    "lines": 682
+                    "lines": 763
                   },
                   {
                     "name": "JobStatusWidget.vue",
@@ -506,12 +548,12 @@
               },
               {
                 "name": "stores",
-                "lines": 208,
+                "lines": 223,
                 "files": 2,
                 "children": [
                   {
                     "name": "jobStore.ts",
-                    "lines": 113
+                    "lines": 128
                   },
                   {
                     "name": "novel.ts",
@@ -552,6 +594,10 @@
               {
                 "name": "style.css",
                 "lines": 3
+              },
+              {
+                "name": "vite-env.d.ts",
+                "lines": 6
               }
             ]
           },
@@ -574,6 +620,22 @@
           {
             "name": "tsconfig.app.json",
             "lines": 13
+          },
+          {
+            "name": "tsconfig.json",
+            "lines": 11
+          },
+          {
+            "name": "tsconfig.node.json",
+            "lines": 14
+          },
+          {
+            "name": "vite.config.d.ts",
+            "lines": 2
+          },
+          {
+            "name": "vite.config.js",
+            "lines": 21
           },
           {
             "name": "vite.config.ts",
@@ -637,7 +699,7 @@
       },
       {
         "name": "tests",
-        "lines": 1006,
+        "lines": 1007,
         "files": 16,
         "children": [
           {
@@ -685,7 +747,7 @@
           },
           {
             "name": "test_api_relationship_response.py",
-            "lines": 50
+            "lines": 51
           },
           {
             "name": "test_entity_model.py",
@@ -739,7 +801,7 @@
       },
       {
         "name": "README.md",
-        "lines": 84
+        "lines": 98
       },
       {
         "name": "tasks.md",

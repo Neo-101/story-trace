@@ -1,11 +1,34 @@
 from typing import List, Optional, Dict
 from pydantic import BaseModel, Field
 
-class TextSpan(BaseModel):
-    """表示文本中的一个片段及其位置"""
+# --- Base Models (Shared Fields) ---
+
+class BaseTextSpan(BaseModel):
+    """文本片段基础定义"""
     text: str = Field(..., description="片段内容")
     start_index: int = Field(..., description="在原文中的起始字符偏移量")
     end_index: int = Field(..., description="在原文中的结束字符偏移量")
+
+class BaseEntity(BaseModel):
+    """实体基础字段"""
+    name: str = Field(..., description="实体名称 (如 '孙杰克', '玄天宗')")
+    type: str = Field(..., description="实体类型: Person(人物), Location(地点/自然环境), Organization(组织/社会环境), Item(物品), Concept(概念)")
+    description: str = Field(..., description="相关描述或状态更新")
+    confidence: Optional[float] = Field(None, description="置信度")
+
+class BaseRelationship(BaseModel):
+    """关系基础字段"""
+    source: str = Field(..., description="主体 (Subject)，如 '孙杰克'")
+    target: str = Field(..., description="客体 (Object)，如 '塔派'")
+    relation: str = Field(..., description="关系类型/谓语，如 '朋友', '敌人', '攻击', '遇见'")
+    description: str = Field(..., description="关系描述，如 '在垃圾场捡到的机器人'")
+    confidence: float = Field(default=1.0)
+
+# --- Concrete Models (Protocol Implementations) ---
+
+class TextSpan(BaseTextSpan):
+    """表示文本中的一个片段及其位置"""
+    pass
 
 class Chapter(BaseModel):
     """章节数据模型"""
@@ -27,20 +50,13 @@ class SummarySentence(BaseModel):
     source_spans: List[TextSpan] = Field(default_factory=list, description="对应的原文片段 (用于点击跳转)")
     confidence: Optional[float] = Field(None, description="置信度 (可选)")
 
-class Entity(BaseModel):
+class Entity(BaseEntity):
     """实体模型 (世界观构建)"""
-    name: str = Field(..., description="实体名称 (如 '孙杰克', '玄天宗')")
-    type: str = Field(..., description="实体类型: Person(人物), Location(地点/自然环境), Organization(组织/社会环境), Item(物品), Concept(概念)")
-    description: str = Field(..., description="本章中的相关描述或状态更新")
-    confidence: Optional[float] = Field(None, description="置信度")
+    pass
 
-class Relationship(BaseModel):
+class Relationship(BaseRelationship):
     """实体关系模型 (v6.0)"""
-    source: str = Field(..., description="主体 (Subject)，如 '孙杰克'")
-    target: str = Field(..., description="客体 (Object)，如 '塔派'")
-    relation: str = Field(..., description="关系类型/谓语，如 '朋友', '敌人', '攻击', '遇见'")
-    description: str = Field(..., description="关系描述，如 '在垃圾场捡到的机器人'")
-    confidence: float = Field(default=1.0)
+    pass
 
 class ChapterSummary(BaseModel):
     """单章总结"""
@@ -52,11 +68,9 @@ class ChapterSummary(BaseModel):
     relationships: List[Relationship] = Field(default_factory=list, description="本章内发生的实体互动关系")
     # key_entities: List[str]  # Deprecated in v5, replaced by entities list
 
-class AggregatedEntity(BaseModel):
+class AggregatedEntity(BaseEntity):
     """聚合后的全局实体"""
-    name: str = Field(..., description="实体名称")
-    type: str = Field(..., description="实体类型")
-    description: str = Field(..., description="合并后的描述 (通常取首次出现或最详细的描述)")
+    # 继承 BaseEntity: name, type, description, confidence
     history: List[Dict] = Field(default_factory=list, description="实体描述历史: [{'chapter_id': 'ch1', 'content': '...'}, ...]")
     chapter_ids: List[str] = Field(default_factory=list, description="出现的章节ID列表")
     count: int = Field(0, description="出现次数")

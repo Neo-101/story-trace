@@ -1,5 +1,6 @@
 from typing import List, Dict, Optional, Any
 from pydantic import BaseModel
+from data_protocol.models import BaseEntity, BaseRelationship, SummarySentence, TextSpan as SourceSpan
 
 class NovelInfo(BaseModel):
     name: str
@@ -16,20 +17,9 @@ class ChapterPreview(BaseModel):
     headline: str
     has_summary: bool = True
 
-class SourceSpan(BaseModel):
-    start_index: int
-    end_index: int
-    text: str
-
-class SummarySentence(BaseModel):
-    summary_text: str
-    source_spans: List[SourceSpan] = []
-
-class EntityDetail(BaseModel):
-    name: str
-    type: str
-    description: str
-    confidence: float = 1.0
+class EntityDetail(BaseEntity):
+    """继承 BaseEntity"""
+    pass
 
 class ChapterDetail(BaseModel):
     id: str
@@ -46,11 +36,9 @@ class TimelineEvent(BaseModel):
     content: List[str]
     gap_before: int
 
-class RelationshipInteraction(BaseModel):
-    direction: str # forward or backward
-    relation: str
-    description: str
-    confidence: float
+class RelationshipInteraction(BaseRelationship):
+    """继承 BaseRelationship"""
+    direction: str = "forward" # forward or backward
 
 class RelationshipTimelineEvent(BaseModel):
     chapter_id: str
@@ -64,10 +52,8 @@ class RelationshipTimelineEvent(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-class GraphNode(BaseModel):
-    name: str
-    type: str
-    description: str
+class GraphNode(BaseEntity):
+    """继承 BaseEntity，用于图谱节点"""
     count: int = 1
     chapter_ids: List[str] = []
     history: List[Dict[str, Any]] = [] # Detailed history per chapter
