@@ -2,18 +2,15 @@
   "entity_id": "塔派_孙杰克",
   "chapter_index": 3,
   "version": "1.0",
-  "updated_at": "2026-02-23T00:46:34.399164",
-  "summary_so_far": "Initial state. No interactions yet.\n在第三章中，孙杰克主动向机器人询问关键信息，并带领其返回观光舱寻找显示屏，显示出初步的指挥与依赖倾向。随后，在危机解除、孙杰克因太空暴露而脱力时，机器人主动上前搀扶。这一系列基于生存需求的行为，将他们的关系从纯粹的陌生人推进到了临时的、以共同生存为目标的伙伴阶段。机器人表现出的基础功能性支持，为孙杰克提供了必要的帮助，建立了初步的、基于实用主义的信任。",
+  "updated_at": "2026-02-23T10:56:01.692868",
+  "summary_so_far": "Initial state. No interactions yet.",
   "key_tags": [],
-  "unresolved_threads": [
-    "机器人对孙杰克的指令服从是出于程序设定还是自主判断？",
-    "孙杰克对机器人的依赖是否会随着环境变化而加深或转变？"
-  ],
+  "unresolved_threads": [],
   "source": "塔派",
   "target": "孙杰克",
-  "trust_level": 65,
+  "trust_level": 50,
   "romance_level": 0,
   "conflict_level": 0,
-  "dominant_archetype": "临时的伙伴",
-  "current_stage": "初步合作"
+  "dominant_archetype": "Stranger",
+  "current_stage": "Introduction"
 }

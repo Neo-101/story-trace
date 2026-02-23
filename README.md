@@ -88,6 +88,7 @@ npm run dev
 
 使用 `manage.py` 进行一站式运维：
 
+### 基础管理
 ```bash
 # 环境自检
 python manage.py check
@@ -97,10 +98,27 @@ python manage.py clean-cache
 
 # 重置数据库 (开发调试用)
 python manage.py reset-db
-
-# 启动上下文监控 (Vibe Coding 模式)
-python manage.py context watch
 ```
+
+### 👩‍💻 上下文工具 (Context Tools)
+专为 **Vibe Coding** (LLM 辅助开发) 设计，帮助快速生成项目上下文。
+
+```bash
+# 1. 启动实时监控 (Watch Mode)
+# 自动检测代码变动，更新 docs/project_stats/ 下的统计文件 (含 Token 计数)
+python manage.py context watch
+
+# 2. 执行代码打包 (Pack Mode)
+# 将核心架构代码 (排除 tests/scripts) 打包成 docs/project_stats/project_context_packed.txt
+# 适合直接发送给 LLM 作为 Context
+python manage.py context pack
+
+# 3. 生成统计报告 (Stats Mode)
+# 生成一次性的行数和 Token 统计报告
+python manage.py context stats
+```
+
+> **提示**: 上下文工具会读取 `scripts/context_tools/.contextignore` 文件来过滤非核心代码（如 `tests`, `scripts`, `cache`），确保生成的上下文精简且聚焦于业务逻辑。
 
 更多详细命令请参考 [COMMANDS.md](COMMANDS.md)。
 

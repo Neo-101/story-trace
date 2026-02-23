@@ -18,7 +18,14 @@ class StateStore:
         Constructs the storage path: cache/narrative/{hash}/{plugin}/{entity_id}/
         """
         # Sanitize entity_id for filesystem
-        safe_id = "".join([c if c.isalnum() or c in ('_', '-') else '_' for c in entity_id])
+        # Replace non-alphanumeric chars (except _ and -) with _
+        # IMPORTANT: entity_id might contain Chinese characters which are alphanumeric in Unicode.
+        # But we want to avoid spaces and slashes.
+        # Let's just replace spaces and slashes.
+        # Or better: keep Chinese chars.
+        
+        safe_id = entity_id.replace(" ", "_").replace("/", "_").replace("\\", "_")
+        
         path = self.base_path / novel_hash / plugin_type / safe_id
         path.mkdir(parents=True, exist_ok=True)
         return path
@@ -126,3 +133,25 @@ class StateStore:
             except Exception:
                 continue
         return states
+
+    def delete_history(self, novel_hash: str, plugin_type: str, entity_id: str) -> bool:
+        """
+        Deletes all history for a specific entity pair.
+        Returns True if successful (or directory didn't exist), False on error.
+        """
+        entity_dir = self._get_entity_dir(novel_hash, plugin_type, entity_id)
+        if not entity_dir.exists():
+            return True
+            
+        try:
+            # Delete all files in directory
+            for file in entity_dir.iterdir():
+                if file.is_file():
+                    file.unlink()
+            
+            # Remove directory
+            entity_dir.rmdir()
+            return True
+        except Exception as e:
+            print(f"[StateStore] Failed to delete history for {entity_id}: {e}")
+            return False

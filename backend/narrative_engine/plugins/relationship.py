@@ -1,7 +1,8 @@
 import json
 from typing import List, Type
 from backend.narrative_engine.plugins.base import NarrativePlugin
-from backend.narrative_engine.core.models import BaseNarrativeState, RelationshipState
+from backend.narrative_engine.core.models import BaseNarrativeState, RelationshipState, AnalysisEvent
+from backend.narrative_engine.prompts import RELATIONSHIP_ANALYSIS_TEMPLATE
 
 class RelationshipPlugin(NarrativePlugin):
     """
@@ -31,70 +32,46 @@ class RelationshipPlugin(NarrativePlugin):
             current_stage="Introduction"
         )
         
-    def check_trigger(self, prev_state: RelationshipState, new_events: List[dict]) -> bool:
+    def check_trigger(self, prev_state: RelationshipState, new_events: List[AnalysisEvent]) -> bool:
         """
         Heuristic: Trigger if there are ANY interactions in the new block.
         Future Optimization: Check for 'strong verbs' or specific keywords.
         """
-        # new_events is a list of relationship timeline events for this pair
-        # If the list is empty, it means no interactions found in this block.
+        # new_events is a list of AnalysisEvent objects
         if not new_events:
             return False
             
         # Basic density check: If interaction count > 0, trigger.
         return len(new_events) > 0
 
-    def generate_prompt(self, prev_state: RelationshipState, new_events: List[dict]) -> str:
+    def generate_prompt(self, prev_state: RelationshipState, new_events: List[AnalysisEvent]) -> str:
         """
         Constructs the incremental analysis prompt.
         """
         # 1. Format Events Digest
         events_text = ""
         for event in new_events:
-            # Handle the structure passed from jobs.py: {"chapter_index": int, "content": [str]}
-            idx = event.get('chapter_index', '?')
-            content = event.get('content', [])
+            # Handle AnalysisEvent object
+            idx = event.chapter_index
+            content = event.content
             
-            if isinstance(content, list):
-                desc = "\n  ".join(content)
-            else:
-                desc = str(content)
-                
+            desc = "\n  ".join(content)
             events_text += f"- Ch {idx}:\n  {desc}\n"
             
-        # 2. Build Prompt
-        prompt = f"""
-You are a literary analyst tracking the relationship between {prev_state.source} and {prev_state.target}.
-
-### Previous State (Up to Ch {prev_state.chapter_index})
-- Archetype: {prev_state.dominant_archetype}
-- Stage: {prev_state.current_stage}
-- Trust: {prev_state.trust_level}/100 | Romance: {prev_state.romance_level}/100 | Conflict: {prev_state.conflict_level}/100
-- Summary: {prev_state.summary_so_far}
-- Unresolved Threads: {json.dumps(prev_state.unresolved_threads, ensure_ascii=False)}
-
-### New Events (Current Block)
-{events_text}
-
-### Task
-Analyze how the relationship has EVOLVED based *only* on the new events.
-Update the metrics and summary. If nothing significant changed, keep values stable.
-
-**IMPORTANT: Output MUST be in Chinese (Simplified).**
-- `dominant_archetype` and `current_stage` should be concise Chinese terms (e.g., "盟友", "信任危机").
-- `summary_update` should be a natural Chinese narrative paragraph describing the relationship evolution.
-
-### Output Format (JSON Only)
-{{
-    "trust_level": int,
-    "romance_level": int,
-    "conflict_level": int,
-    "dominant_archetype": "string (Chinese)",
-    "current_stage": "string (Chinese)",
-    "summary_update": "string (Chinese)",
-    "new_unresolved_threads": ["string (Chinese)"]
-}}
-"""
+        # 2. Build Prompt using Template
+        prompt = RELATIONSHIP_ANALYSIS_TEMPLATE.format(
+            source=prev_state.source,
+            target=prev_state.target,
+            prev_chapter_index=prev_state.chapter_index,
+            dominant_archetype=prev_state.dominant_archetype,
+            current_stage=prev_state.current_stage,
+            trust_level=prev_state.trust_level,
+            romance_level=prev_state.romance_level,
+            conflict_level=prev_state.conflict_level,
+            summary_so_far=prev_state.summary_so_far,
+            unresolved_threads=json.dumps(prev_state.unresolved_threads, ensure_ascii=False),
+            events_text=events_text
+        )
         return prompt
 
     def parse_response(self, llm_response: str, base_state: RelationshipState) -> RelationshipState:
@@ -102,14 +79,16 @@ Update the metrics and summary. If nothing significant changed, keep values stab
             # Simple JSON parsing (in prod, use a robust parser/repairer)
             data = json.loads(llm_response)
             
-            # Merge summary: Append new update to history
-            # In a real system, we might want to summarize the summary if it gets too long.
-            new_summary = base_state.summary_so_far + "\n" + data.get("summary_update", "")
+            # Revised summary replaces the old one
+            # If revised_summary is missing (legacy LLM output), fallback to append logic
+            revised_summary = data.get("revised_summary")
+            if not revised_summary:
+                 revised_summary = base_state.summary_so_far + "\n" + data.get("summary_update", "")
             
             return RelationshipState(
                 entity_id=base_state.entity_id,
                 chapter_index=base_state.chapter_index, # Will be updated by engine
-                summary_so_far=new_summary,
+                summary_so_far=revised_summary,
                 source=base_state.source,
                 target=base_state.target,
                 trust_level=data.get("trust_level", base_state.trust_level),

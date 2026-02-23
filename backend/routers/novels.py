@@ -38,7 +38,7 @@ def list_runs(novel_name: str, file_hash: str, session: Session = Depends(get_se
                 metadata = json.loads(run.config_snapshot)
             except:
                 pass
-        runs.append(RunInfo(timestamp=run.timestamp, metadata=metadata))
+        runs.append(RunInfo(timestamp=run.timestamp, file_hash=file_hash, metadata=metadata))
     
     # Sort descending
     runs.sort(key=lambda x: x.timestamp, reverse=True)

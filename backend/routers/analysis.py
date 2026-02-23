@@ -295,6 +295,51 @@ _state_store = StateStore()
 _narrative_engine = NarrativeEvolutionEngine(_state_store)
 _narrative_engine.register_plugin(RelationshipPlugin())
 
+@router.delete("/{novel_name}/{file_hash}/relationship", status_code=204)
+def delete_relationship_cache(
+    novel_name: str, 
+    file_hash: str, 
+    source: str, 
+    target: str, 
+    session: Session = Depends(get_session)
+):
+    """
+    Delete cached relationship analysis for a specific pair.
+    """
+    # 5. Normalize Names - using the same logic as get_relationship_timeline
+    # We must explicitly load aliases from project root because EntityAggregator() 
+    # without args might not find the file if cwd is different (though usually it is project root).
+    # But let's be safe and use the same logic as jobs.py or rely on default if cwd is correct.
+    # Given server runs from root, default should work.
+    
+    # Actually, we should check if we need to load aliases.
+    # Let's try to load it explicitly to be safe.
+    import os
+    base_dir = os.getcwd()
+    alias_path = os.path.join(base_dir, "config", "aliases.json")
+    
+    # Check if file exists, otherwise use default
+    if os.path.exists(alias_path):
+        aggregator = EntityAggregator(alias_file=alias_path)
+    else:
+        aggregator = EntityAggregator()
+
+    norm_source = aggregator._normalize_text(source)
+    norm_target = aggregator._normalize_text(target)
+    
+    if not norm_source or not norm_target:
+        raise HTTPException(status_code=400, detail="Invalid source or target entities")
+    
+    pair_id = "_".join(sorted([norm_source, norm_target]))
+    
+    # Delegate to StateStore
+    success = _state_store.delete_history(file_hash, "relationship", pair_id)
+    
+    if not success:
+        pass
+        
+    return None
+
 @router.get("/{novel_name}/{file_hash}/{timestamp}/relationship", response_model=List[RelationshipTimelineEvent])
 def get_relationship_timeline(
     novel_name: str, 
@@ -312,7 +357,15 @@ def get_relationship_timeline(
     chapters = get_merged_chapters(session, novel_name, file_hash)
     timeline_events = []
     
-    aggregator = EntityAggregator()
+    # Load aliases explicitly to match job runner logic
+    import os
+    base_dir = os.getcwd()
+    alias_path = os.path.join(base_dir, "config", "aliases.json")
+    if os.path.exists(alias_path):
+        aggregator = EntityAggregator(alias_file=alias_path)
+    else:
+        aggregator = EntityAggregator()
+
     norm_source = aggregator._normalize_text(source)
     norm_target = aggregator._normalize_text(target)
     
@@ -374,20 +427,26 @@ def get_relationship_timeline(
         if chapter.chapter_index in state_map:
             current_state = state_map[chapter.chapter_index]
         
-        # If we have interactions OR a state update, we add an event
-        narrative_state_dict = None
-        if current_state and current_state.chapter_index == chapter.chapter_index:
-             # We dump the state to dict
-             narrative_state_dict = current_state.model_dump()
+        # Determine if this is a state update event
+        is_state_update = current_state and current_state.chapter_index == chapter.chapter_index
 
         # Filter: Only show chapters with actual interactions or significant state changes.
-        if interactions or narrative_state_dict:
-            timeline_events.append(RelationshipTimelineEvent(
+        if interactions or is_state_update:
+            # If we are outputting an event, include the current state if available (context)
+            if current_state:
+                 # We dump the state to dict
+                 # Use model_dump(mode='json') to ensure everything is JSON serializable
+                 narrative_state_dict = current_state.model_dump(mode='json')
+
+            # Construct RelationshipTimelineEvent
+            # Ensure interactions list is not None (schema default is [])
+            event = RelationshipTimelineEvent(
                 chapter_id=str(chapter.id),
                 chapter_index=chapter.chapter_index,
                 chapter_title=chapter.title,
-                interactions=interactions,
+                interactions=interactions or [],
                 narrative_state=narrative_state_dict
-            ))
+            )
+            timeline_events.append(event)
             
     return timeline_events

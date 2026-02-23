@@ -12,7 +12,7 @@
   "encoding": "gbk",
   "output_dir": "output",
   "mode": "chapter",
-  "chapter_range": "11-20",
+  "chapter_range": "1-20",
   "batch_size": 10,
   "summarize": {
     "enabled": true,
@@ -113,6 +113,7 @@ import argparse
 import sys
 import os
 import shutil
+import subprocess
 from pathlib import Path
 from core.config import settings
 from core.db.engine import create_db_and_tables
@@ -178,6 +179,23 @@ def check_env():
 
     print("=== End Check ===")
 
+def context_tools(tool_name: str):
+    """运行 Context 工具"""
+    script_map = {
+        "watch": "scripts/context_tools/watch_stats.py",
+        "pack": "scripts/context_tools/pack_context.py",
+        "stats": "scripts/context_tools/generate_stats.py"
+    }
+    
+    script_path = script_map.get(tool_name)
+    if not script_path:
+        print(f"Unknown context tool: {tool_name}")
+        print(f"Available tools: {', '.join(script_map.keys())}")
+        return
+
+    print(f"Running {tool_name}...")
+    subprocess.run([sys.executable, script_path])
+
 def main():
     parser = argparse.ArgumentParser(description='StoryTrace Management Script')
     subparsers = parser.add_subparsers(dest='command', help='Commands')
@@ -186,6 +204,9 @@ def main():
     subparsers.add_parser('clean-all', help='Clear ALL outputs')
     subparsers.add_parser('reset-db', help='Delete and recreate SQLite database')
     subparsers.add_parser('check', help='Check environment configuration')
+    
+    context_parser = subparsers.add_parser('context', help='Manage project context for LLMs')
+    context_parser.add_argument('tool', choices=['watch', 'pack', 'stats'], help='Tool to run (watch, pack, stats)')
     
     args = parser.parse_args()
     
@@ -197,126 +218,13 @@ def main():
         reset_db()
     elif args.command == 'check':
         check_env()
+    elif args.command == 'context':
+        context_tools(args.tool)
     else:
         parser.print_help()
 
 if __name__ == '__main__':
     main()
-
-
-==================== FILE: pack_context.py ====================
-
-import os
-import argparse
-from pathlib import Path
-from typing import List, Set
-
-# --- Configuration ---
-PROJECT_ROOT = Path(".").resolve()
-OUTPUT_FILE = "project_context_packed.txt"
-
-# Directories to EXCLUDE (Noise reduction)
-EXCLUDE_DIRS = {
-    # System / Build
-    ".git", ".idea", ".vscode", "__pycache__", "node_modules", 
-    "venv", "env", "output", "dist", "build", "legacy_archive",
-    ".pytest_cache", "coverage", "htmlcov", ".mypy_cache",
-    
-    # User Requested Exclusions (Focus on Core Architecture)
-    "docs",          # All documentation (including archive, planning, specs)
-    "tests",         # Unit tests
-    "scripts",       # Helper scripts
-    "frontend",      # Frontend code (optional, keep if needed for full stack context, but user said "core architecture")
-}
-
-# Files to EXCLUDE
-EXCLUDE_FILES = {
-    "package-lock.json", "yarn.lock", "pnpm-lock.yaml", 
-    "storytrace.db", ".DS_Store", "Thumbs.db",
-    "poetry.lock", "bun.lockb", 
-    "project_context_packed.txt", # Self
-    "project_stats_human.txt", "project_stats_llm.json", "project_stats_tokens.json",
-    "COMMANDS.md", "README.md", "tasks.md", "LICENSE"
-}
-
-# Only include these source code extensions
-INCLUDE_EXTENSIONS = {
-    ".py", ".ts", ".vue", ".js", ".json" # Core logic files
-}
-
-def is_excluded(path: Path) -> bool:
-    """Check if path should be excluded based on rules."""
-    # Check directories in path
-    for part in path.parts:
-        if part in EXCLUDE_DIRS:
-            return True
-            
-    # Check filename
-    if path.name in EXCLUDE_FILES:
-        return True
-        
-    # Check extension (Allow listed extensions OR generic files like Dockerfile)
-    if path.suffix not in INCLUDE_EXTENSIONS and path.name != "Dockerfile":
-        return True
-        
-    return False
-
-def pack_project():
-    """Scan and pack project content into a single file."""
-    print(f"Packing project context from: {PROJECT_ROOT}")
-    print(f"Excluding: {', '.join(sorted(list(EXCLUDE_DIRS)))}")
-    
-    packed_content = []
-    file_count = 0
-    total_lines = 0
-    
-    # Header
-    packed_content.append(f"# Project Context Pack")
-    packed_content.append(f"# Generated for LLM Context Window Optimization")
-    packed_content.append(f"# Focus: Core Architecture (Backend + Core Logic)")
-    packed_content.append(f"# Root: {PROJECT_ROOT.name}")
-    packed_content.append("-" * 40 + "\n")
-
-    # Walk through directory
-    # Use sorted walk for deterministic output
-    for root, dirs, files in os.walk(PROJECT_ROOT):
-        # Modify dirs in-place to skip excluded directories during traversal
-        dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS and not d.startswith(".")]
-        
-        # Sort for consistency
-        dirs.sort()
-        files.sort()
-        
-        for file in files:
-            file_path = Path(root) / file
-            rel_path = file_path.relative_to(PROJECT_ROOT)
-            
-            if is_excluded(rel_path):
-                continue
-                
-            try:
-                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-                    content = f.read()
-                    
-                # Add file marker
-                packed_content.append(f"\n{'='*20} FILE: {rel_path} {'='*20}\n")
-                packed_content.append(content)
-                
-                file_count += 1
-                total_lines += len(content.splitlines())
-                print(f"Packed: {rel_path}")
-                
-            except Exception as e:
-                print(f"Error reading {rel_path}: {e}")
-
-    # Write to output file
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        f.write("\n".join(packed_content))
-        
-    print(f"\nDone! Packed {file_count} files ({total_lines} lines) into {OUTPUT_FILE}")
-
-if __name__ == "__main__":
-    pack_project()
 
 
 ==================== FILE: app\main.py ====================
@@ -399,6 +307,17 @@ def get_user_input():
                 print(f"输出: {output_dir}")
                 
                 summ_conf = config.get('summarize', {})
+                
+                # 自动填充 API Key 逻辑 (Fix for .env loading)
+                if summ_conf.get('enabled') and summ_conf.get('provider') == 'openrouter':
+                    current_key = summ_conf.get('api_key')
+                    if not current_key:  # If None or Empty String
+                        # 优先从 settings (Pydantic加载的.env) 获取，其次才是 os.getenv
+                        env_key = settings.OPENROUTER_API_KEY or os.getenv("OPENROUTER_API_KEY")
+                        if env_key:
+                            summ_conf['api_key'] = env_key
+                            print(f"  (已自动从 .env/环境变量 加载 OPENROUTER_API_KEY)")
+
                 print(f"AI总结: {'开启' if summ_conf.get('enabled') else '关闭'}")
                 if summ_conf.get('enabled'):
                     print(f"  Provider: {summ_conf.get('provider')}")
@@ -659,9 +578,9 @@ def main():
         
         # 如果 Config 中没有提供 API Key，尝试从环境变量获取
         if not api_key and provider == 'openrouter':
-            api_key = os.getenv("OPENROUTER_API_KEY")
+            api_key = settings.OPENROUTER_API_KEY or os.getenv("OPENROUTER_API_KEY")
             if api_key:
-                print("DEBUG: 使用环境变量中的 OPENROUTER_API_KEY")
+                print("DEBUG: 使用 .env/环境变量 中的 OPENROUTER_API_KEY")
     else:
         args = parser.parse_args()
         if not args.input:
@@ -681,20 +600,20 @@ def main():
         provider = args.provider
         
         # 优先从命令行参数获取，如果没有，则尝试从环境变量获取
-        api_key = args.api_key or os.getenv("OPENROUTER_API_KEY")
+        api_key = args.api_key or settings.OPENROUTER_API_KEY or os.getenv("OPENROUTER_API_KEY")
         model = args.model
         base_url = args.base_url
 
         # 如果是 OpenRouter 且没有指定 Model，尝试从环境变量获取默认 Model
         if provider == 'openrouter' and not model:
-             model = os.getenv("OPENROUTER_MODEL")
+             model = settings.OPENROUTER_MODEL or os.getenv("OPENROUTER_MODEL")
              
         # 如果是 Local 且没有指定参数，尝试从环境变量获取
         if provider == 'local':
              if not base_url:
-                 base_url = os.getenv("LOCAL_LLM_BASE_URL")
+                 base_url = settings.LOCAL_LLM_BASE_URL or os.getenv("LOCAL_LLM_BASE_URL")
              if not model:
-                 model = os.getenv("LOCAL_LLM_MODEL")
+                 model = settings.LOCAL_LLM_MODEL or os.getenv("LOCAL_LLM_MODEL")
 
     # 构建最终输出目录结构
     # 1. 获取小说名（输入文件名，不含扩展名）
@@ -851,8 +770,8 @@ def main():
                         "model": model,
                         "base_url": base_url
                     }
-                    # 过滤掉 None 值
-                    client_kwargs = {k: v for k, v in client_kwargs.items() if v is not None}
+                    # 过滤掉 None 值和空字符串
+                    client_kwargs = {k: v for k, v in client_kwargs.items() if v}
                     
                     llm_client = ClientFactory.create_client(**client_kwargs)
                     generator = SummaryGenerator(llm_client)
@@ -879,7 +798,6 @@ def main():
                             print(f"[{i+1}/{total_chapters}] 处理章节: {ch.title} ... ", end="", flush=True)
                             
                             # 1. Try Cache
-                            # Cache read is synchronous, but fast
                             cached_summary = cache_manager.get_cached_summary(ch.content, prompt_hash, model_config)
                             
                             summary_data = None
@@ -889,21 +807,41 @@ def main():
                                 cached_summary.chapter_id = ch.id 
                                 summary_data = cached_summary.model_dump()
                             else:
-                                # 2. Generate (Async)
-                                try:
-                                    summary = await generator.generate_summary_async(ch)
-                                    # 3. Save to Cache (Sync)
+                                # 2. Generate (Async) with Retry
+                                max_retries = 3
+                                retry_delay = 2
+                                
+                                for attempt in range(max_retries):
                                     try:
-                                        cache_manager.save_summary(ch.content, prompt_hash, model_config, summary)
-                                    except Exception as cache_err:
-                                        print(f"(Cache Write Failed: {cache_err}) ", end="")
+                                        summary = await generator.generate_summary_async(ch)
                                         
-                                    summary_data = summary.model_dump()
-                                    print("✨ 生成完成")
-                                except Exception as e:
-                                    print(f"❌ 失败: {e}")
-                                    return None
-
+                                        # 3. Save to Cache
+                                        try:
+                                            cache_manager.save_summary(ch.content, prompt_hash, model_config, summary)
+                                        except Exception as cache_err:
+                                            print(f"(Cache Write Failed: {cache_err}) ", end="")
+                                            
+                                        summary_data = summary.model_dump()
+                                        print("✨ 生成完成")
+                                        break # Success
+                                    except Exception as e:
+                                        if attempt < max_retries - 1:
+                                            print(f"⚠️ 失败(重试 {attempt+1}/{max_retries}): {e} ... ", end="", flush=True)
+                                            await asyncio.sleep(retry_delay * (2 ** attempt)) # Exponential backoff
+                                        else:
+                                            print(f"❌ 最终失败: {e}")
+                                            # Create Empty Placeholder to keep chapter in timeline
+                                            from data_protocol.models import ChapterSummary
+                                            empty_summary = ChapterSummary(
+                                                chapter_id=ch.id,
+                                                chapter_title=ch.title,
+                                                headline="生成失败",
+                                                summary_sentences=[],
+                                                entities=[],
+                                                relationships=[]
+                                            )
+                                            summary_data = empty_summary.model_dump()
+                                
                             # Real-time save to summaries.jsonl (with lock)
                             if summary_data:
                                 async with file_lock:
@@ -956,6 +894,17 @@ def main():
                     with open(os.path.join(final_output_dir, "run_metadata.json"), 'w', encoding='utf-8') as f:
                         json.dump(metadata, f, ensure_ascii=False, indent=2)
                     
+                    # --- 自动执行数据库迁移 (Auto Migration) ---
+                    print("\n=== 正在自动更新图谱数据库 ===")
+                    try:
+                        from scripts.migrate_json_to_sqlite import migrate
+                        print("正在同步数据到 storytrace.db ...")
+                        migrate()
+                        print("✅ 数据库同步完成！现在可以启动 Web 服务查看图谱了。")
+                    except Exception as me:
+                        print(f"⚠️ 自动迁移失败: {me}")
+                        print("请稍后手动运行: python scripts/migrate_json_to_sqlite.py")
+
                 except Exception as e:
                     print(f"智能总结失败: {e}")
                     import traceback
@@ -1021,6 +970,7 @@ class ChapterDetail(BaseModel):
 
 class TimelineEvent(BaseModel):
     chapter_id: str
+    chapter_index: int
     chapter_title: str
     content: List[str]
     gap_before: int
@@ -1033,8 +983,12 @@ class RelationshipInteraction(BaseModel):
 
 class RelationshipTimelineEvent(BaseModel):
     chapter_id: str
+    chapter_index: int  # Added for sorting
     chapter_title: str
     interactions: List[RelationshipInteraction]
+    
+    # Narrative State (Added in v4.2)
+    narrative_state: Optional[Dict[str, Any]] = None # Serialized RelationshipState
 
 class GraphNode(BaseModel):
     name: str
@@ -1067,7 +1021,7 @@ class GraphData(BaseModel):
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routers import novels, analysis
+from backend.routers import novels, analysis, jobs
 
 app = FastAPI(title="StoryTrace API")
 
@@ -1083,6 +1037,7 @@ app.add_middleware(
 # Include Routers
 app.include_router(novels.router)
 app.include_router(analysis.router)
+app.include_router(jobs.router)
 
 @app.get("/")
 async def index():
@@ -1122,6 +1077,687 @@ def resolve_run_path(novel_name: str, file_hash: str, timestamp: str) -> str:
 
 def get_output_dir() -> str:
     return str(settings.OUTPUT_DIR)
+
+
+==================== FILE: backend\narrative_engine\prompts.py ====================
+
+from typing import List
+import json
+
+RELATIONSHIP_ANALYSIS_TEMPLATE = """
+You are a literary analyst tracking the relationship between {source} and {target}.
+
+### Previous State (Up to Ch {prev_chapter_index})
+- Archetype: {dominant_archetype}
+- Stage: {current_stage}
+- Trust: {trust_level}/100 | Romance: {romance_level}/100 | Conflict: {conflict_level}/100
+- Summary: {summary_so_far}
+- Unresolved Threads: {unresolved_threads}
+
+### New Events (Current Block)
+{events_text}
+
+### Task
+Analyze how the relationship has EVOLVED based on the new events.
+1. Update the metrics (Trust/Romance/Conflict).
+2. **REWRITE** the `summary_so_far` to incorporate the new events.
+   - The new summary should be a holistic description of the relationship status.
+   - Keep it concise (under 300 words).
+   - Retain important history while integrating new developments.
+
+**IMPORTANT: Output MUST be in Chinese (Simplified).**
+- `dominant_archetype` and `current_stage` should be concise Chinese terms (e.g., "盟友", "信任危机").
+- `revised_summary` should be the updated narrative summary (replacing the old one).
+
+### Output Format (JSON Only)
+{{
+    "trust_level": int,
+    "romance_level": int,
+    "conflict_level": int,
+    "dominant_archetype": "string (Chinese)",
+    "current_stage": "string (Chinese)",
+    "revised_summary": "string (Chinese)",
+    "new_unresolved_threads": ["string (Chinese)"]
+}}
+"""
+
+
+==================== FILE: backend\narrative_engine\core\engine.py ====================
+
+from typing import List, Dict, Type, Any, Union, Callable
+from backend.narrative_engine.core.store import StateStore
+from backend.narrative_engine.core.models import BaseNarrativeState, AnalysisEvent
+from backend.narrative_engine.plugins.base import NarrativePlugin
+
+class NarrativeEvolutionEngine:
+    """
+    Orchestrates the incremental analysis of narrative entities.
+    """
+    def __init__(self, store: StateStore):
+        self.store = store
+        self.plugins: Dict[str, NarrativePlugin] = {}
+
+    def register_plugin(self, plugin: NarrativePlugin):
+        """Register a plugin (e.g., 'relationship')"""
+        self.plugins[plugin.plugin_type] = plugin
+
+    def evolve_state(
+        self,
+        novel_hash: str,
+        plugin_type: str,
+        entity_id: str,
+        target_chapter_index: int,
+        new_events: List[AnalysisEvent],
+        llm_client: Any = None,
+        progress_callback: Callable[[int, str], None] = None
+    ) -> BaseNarrativeState:
+        """
+        Main Loop:
+        1. Load previous state (Snapshot N).
+        2. Check if we need to run LLM (Adaptive Trigger).
+        3. If yes, generate prompt -> call LLM -> parse -> save new state (Snapshot N+1).
+        4. If no, clone previous state -> save new state (Snapshot N+1).
+        """
+        plugin = self.plugins.get(plugin_type)
+        if not plugin:
+            raise ValueError(f"Plugin '{plugin_type}' not registered.")
+
+        # 1. Load Previous State
+        # We look for the latest checkpoint BEFORE the target chapter
+        prev_state = self.store.get_latest_state(
+            novel_hash, 
+            plugin_type, 
+            entity_id, 
+            before_chapter=target_chapter_index,
+            model_class=plugin.state_model
+        )
+
+        # 1.5. Check if CURRENT State already exists (Cache Hit)
+        # If we already have a state for target_chapter_index, we can skip analysis!
+        # This is crucial for re-running the job on the same pair.
+        current_state = self.store.get_state_at_chapter(
+            novel_hash,
+            plugin_type,
+            entity_id,
+            target_chapter_index,
+            plugin.state_model
+        )
+        
+        if current_state:
+            # Cache Hit!
+            if progress_callback:
+                progress_callback(100, "Cache Hit (Skipping LLM)")
+            return current_state
+
+        # If no history, initialize blank state
+        if not prev_state:
+            if hasattr(plugin, 'get_initial_state'):
+                prev_state = plugin.get_initial_state(entity_id)
+            else:
+                # Fallback or Error?
+                # For now, let's assume all plugins MUST implement this or we fail gracefully
+                print(f"[Engine] No previous state and no get_initial_state for {entity_id}")
+                return None
+
+        # 2. Check Trigger (Adaptive Logic)
+        # Note: prev_state might be None if it's the very first chapter.
+        should_trigger = False
+        
+        # If we have an LLM client, we check if we should trigger
+        if llm_client:
+            if progress_callback:
+                progress_callback(10, "Checking interaction density...")
+            should_trigger = plugin.check_trigger(prev_state, new_events)
+
+        new_state = None
+
+        if should_trigger and llm_client:
+            # 3. LLM Path
+            if progress_callback:
+                progress_callback(30, "Generating LLM prompt...")
+                
+            prompt = plugin.generate_prompt(prev_state, new_events)
+            
+            try:
+                if progress_callback:
+                    progress_callback(50, "Waiting for LLM response...")
+                    
+                # Expecting llm_client to have a .generate(prompt) method
+                response_str = llm_client.generate(prompt)
+                
+                if progress_callback:
+                    progress_callback(80, "Parsing response...")
+                
+                # Parse response
+                new_state = plugin.parse_response(response_str, prev_state)
+                
+            except Exception as e:
+                print(f"[Engine] LLM Failed: {e}")
+                should_trigger = False # Fallback to clone
+                if progress_callback:
+                    progress_callback(50, f"LLM Failed, falling back to clone. Error: {str(e)}")
+
+        if not should_trigger or not new_state:
+            # 4. Fast Path (Clone)
+            # If no previous state, we can't clone. We must initialize.
+            if prev_state:
+                new_state = prev_state.model_copy()
+                new_state.updated_at = "now"
+            else:
+                # First chapter, no trigger? Then no state.
+                # Actually, if it's the first chapter and no interaction, we don't need a state.
+                return None
+
+        # 5. Save & Return
+        if new_state:
+            # Ensure correct index
+            new_state.chapter_index = target_chapter_index
+            self.store.save_state(novel_hash, plugin_type, entity_id, new_state)
+            
+            if progress_callback:
+                progress_callback(100, "State saved.")
+            
+        return new_state
+
+
+==================== FILE: backend\narrative_engine\core\job_manager.py ====================
+
+import time
+import uuid
+import threading
+from typing import Dict, Any, Optional, Callable
+from pydantic import BaseModel
+
+class JobStatus(BaseModel):
+    job_id: str
+    type: str           # "relationship_analysis"
+    status: str         # "pending", "processing", "completed", "failed"
+    progress: int       # 0-100
+    message: str        # "Analyzing Chapter 45/120..."
+    result: Optional[Any] = None
+    error: Optional[str] = None
+    created_at: float
+    updated_at: float
+
+class JobManager:
+    _instance = None
+    _lock = threading.Lock()
+    
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super(JobManager, cls).__new__(cls)
+                    cls._instance._initialized = False
+        return cls._instance
+    
+    def __init__(self):
+        if self._initialized:
+            return
+            
+        self.jobs: Dict[str, JobStatus] = {}
+        self.active_job_id: Optional[str] = None
+        self._job_lock = threading.Lock()
+        self._initialized = True
+        
+    def submit_job(self, job_type: str, metadata: Dict[str, Any] = None) -> str:
+        """
+        Create a new job and return its ID.
+        Note: The actual processing must be triggered by the caller (e.g., BackgroundTasks).
+        """
+        job_id = str(uuid.uuid4())
+        now = time.time()
+        
+        with self._job_lock:
+            # Simple queue logic: If there is an active job, new ones are pending.
+            # But here we just create the record. The worker logic decides when to run.
+            # Since we use FastAPI BackgroundTasks, they run sequentially if we await? 
+            # actually BackgroundTasks run in a threadpool. 
+            # We want to enforce strict sequential execution for LLM tasks.
+            
+            job = JobStatus(
+                job_id=job_id,
+                type=job_type,
+                status="pending",
+                progress=0,
+                message="Job submitted",
+                created_at=now,
+                updated_at=now
+            )
+            self.jobs[job_id] = job
+            
+        return job_id
+
+    def get_job(self, job_id: str) -> Optional[JobStatus]:
+        return self.jobs.get(job_id)
+        
+    def list_jobs(self, active_only: bool = False):
+        if active_only:
+            return [j for j in self.jobs.values() if j.status in ["pending", "processing"]]
+        return list(self.jobs.values())
+
+    def update_progress(self, job_id: str, progress: int, message: str = None):
+        if job_id not in self.jobs:
+            return
+            
+        with self._job_lock:
+            job = self.jobs[job_id]
+            job.progress = progress
+            if message:
+                job.message = message
+            job.updated_at = time.time()
+            
+            if progress >= 100:
+                job.status = "completed"
+            elif job.status == "pending":
+                job.status = "processing"
+                
+    def fail_job(self, job_id: str, error_msg: str):
+        if job_id not in self.jobs:
+            return
+            
+        with self._job_lock:
+            job = self.jobs[job_id]
+            job.status = "failed"
+            job.error = error_msg
+            job.message = f"Failed: {error_msg}"
+            job.updated_at = time.time()
+            
+    def complete_job(self, job_id: str, result: Any = None):
+        if job_id not in self.jobs:
+            return
+            
+        with self._job_lock:
+            job = self.jobs[job_id]
+            job.status = "completed"
+            job.progress = 100
+            job.message = "Analysis complete"
+            job.result = result
+            job.updated_at = time.time()
+
+# Global Singleton
+job_manager = JobManager()
+
+
+==================== FILE: backend\narrative_engine\core\models.py ====================
+
+from typing import List, Optional, Dict, Any, Union
+from pydantic import BaseModel, Field
+from datetime import datetime
+
+class BaseNarrativeState(BaseModel):
+    """
+    Abstract base state for all narrative entities (Characters, Locations, Items, Factions).
+    Represents the state of an entity at a specific point in the narrative timeline.
+    """
+    # Meta
+    entity_id: str = Field(..., description="Unique identifier for the entity or pair (e.g., 'LiXiaoyao_LinYueru')")
+    chapter_index: int = Field(..., description="The end chapter index of this state block")
+    version: str = Field("1.0", description="Schema version")
+    updated_at: str = Field(default_factory=lambda: datetime.now().isoformat())
+    
+    # Narrative Content
+    summary_so_far: str = Field(..., description="LLM-generated summary of the entity's history up to this point")
+    key_tags: List[str] = Field(default_factory=list, description="High-level tags (e.g., 'Rival', 'Cursed', 'Lost')")
+    
+    # Context for Next Analysis
+    unresolved_threads: List[str] = Field(default_factory=list, description="Issues/Questions carried over to next block")
+
+    class Config:
+        extra = "allow" # Allow plugins to add custom fields if needed dynamically
+
+class RelationshipState(BaseNarrativeState):
+    """
+    Specific state for a relationship between two characters.
+    """
+    source: str = Field(..., description="Entity A Name")
+    target: str = Field(..., description="Entity B Name")
+    
+    # Quantitative Metrics (0-100)
+    trust_level: int = Field(50, ge=0, le=100, description="Trust level (0=Betrayal, 100=Blind Faith)")
+    romance_level: int = Field(0, ge=0, le=100, description="Romance level (0=Platonic, 100=Soulmates)")
+    conflict_level: int = Field(0, ge=0, le=100, description="Conflict level (0=Peace, 100=War)")
+    
+    # Qualitative Analysis
+    dominant_archetype: str = Field("Stranger", description="Primary relationship archetype (e.g., 'Enemies to Lovers')")
+    current_stage: str = Field("Initial", description="Current stage description (e.g., 'The Misunderstanding')")
+    
+    @property
+    def pair_id(self) -> str:
+        """Helper to generate consistent ID for undirected pairs (lexicographically sorted)"""
+        return "_".join(sorted([self.source, self.target]))
+
+class NarrativeBlock(BaseModel):
+    """
+    Represents a block of analysis result.
+    It contains the state snapshot and the events that led to it.
+    """
+    range_start: int
+    range_end: int
+    state: Union[RelationshipState, BaseNarrativeState]
+    events_digest: List[Dict[str, Any]] = Field(default_factory=list, description="Summary of key events in this block")
+
+class AnalysisEvent(BaseModel):
+    """
+    Standardized event object passed from Job System to Narrative Engine/Plugins.
+    Replaces the loose dictionary structure {"chapter_index": int, "content": [str]}.
+    """
+    chapter_index: int = Field(..., description="The chapter where this event occurred")
+    content: List[str] = Field(..., description="List of relevant sentences or interaction descriptions")
+    source: Optional[str] = Field(None, description="Source entity name if applicable")
+    target: Optional[str] = Field(None, description="Target entity name if applicable")
+    relation_type: Optional[str] = Field(None, description="Type of interaction (e.g., 'dialogue', 'action')")
+
+
+==================== FILE: backend\narrative_engine\core\store.py ====================
+
+import json
+import os
+from typing import Optional, List, Type
+from pathlib import Path
+from backend.narrative_engine.core.models import BaseNarrativeState, RelationshipState
+
+class StateStore:
+    """
+    Persistence layer for Narrative States.
+    Uses a file-based JSON storage for now (simplest for incremental updates).
+    """
+    def __init__(self, base_path: str = "cache/narrative"):
+        self.base_path = Path(base_path)
+        self.base_path.mkdir(parents=True, exist_ok=True)
+
+    def _get_entity_dir(self, novel_hash: str, plugin_type: str, entity_id: str) -> Path:
+        """
+        Constructs the storage path: cache/narrative/{hash}/{plugin}/{entity_id}/
+        """
+        # Sanitize entity_id for filesystem
+        safe_id = "".join([c if c.isalnum() or c in ('_', '-') else '_' for c in entity_id])
+        path = self.base_path / novel_hash / plugin_type / safe_id
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def save_state(self, novel_hash: str, plugin_type: str, entity_id: str, state: BaseNarrativeState):
+        """
+        Saves a state snapshot to a JSON file.
+        Filename: checkpoint_{chapter_index}.json
+        """
+        entity_dir = self._get_entity_dir(novel_hash, plugin_type, entity_id)
+        file_path = entity_dir / f"checkpoint_{state.chapter_index}.json"
+        
+        with open(file_path, "w", encoding="utf-8") as f:
+            # Pydantic v2 compatible dump
+            f.write(state.model_dump_json(indent=2))
+            
+    def get_latest_state(
+        self, 
+        novel_hash: str, 
+        plugin_type: str, 
+        entity_id: str, 
+        before_chapter: int,
+        model_class: Type[BaseNarrativeState]
+    ) -> Optional[BaseNarrativeState]:
+        """
+        Retrieves the latest state snapshot BEFORE a given chapter index.
+        Used to provide context for analyzing chapter N.
+        """
+        entity_dir = self._get_entity_dir(novel_hash, plugin_type, entity_id)
+        if not entity_dir.exists():
+            return None
+            
+        # Find all checkpoints
+        checkpoints = []
+        for file in entity_dir.glob("checkpoint_*.json"):
+            try:
+                # Parse index from filename "checkpoint_123.json"
+                idx = int(file.stem.split("_")[1])
+                if idx < before_chapter:
+                    checkpoints.append((idx, file))
+            except (ValueError, IndexError):
+                continue
+                
+        if not checkpoints:
+            return None
+            
+        # Sort by index descending (get the latest one)
+        checkpoints.sort(key=lambda x: x[0], reverse=True)
+        latest_file = checkpoints[0][1]
+        
+        try:
+            with open(latest_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return model_class(**data)
+        except Exception as e:
+            print(f"[StateStore] Failed to load checkpoint {latest_file}: {e}")
+            return None
+
+    def get_state_at_chapter(
+        self,
+        novel_hash: str,
+        plugin_type: str,
+        entity_id: str,
+        chapter_index: int,
+        model_class: Type[BaseNarrativeState]
+    ) -> Optional[BaseNarrativeState]:
+        """
+        Retrieves the state snapshot EXACTLY AT a given chapter index.
+        Used for Cache Hit check.
+        """
+        entity_dir = self._get_entity_dir(novel_hash, plugin_type, entity_id)
+        file_path = entity_dir / f"checkpoint_{chapter_index}.json"
+        
+        if not file_path.exists():
+            return None
+            
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return model_class(**data)
+        except Exception as e:
+            print(f"[StateStore] Failed to load checkpoint {file_path}: {e}")
+            return None
+
+    def list_history(
+        self, 
+        novel_hash: str, 
+        plugin_type: str, 
+        entity_id: str,
+        model_class: Type[BaseNarrativeState]
+    ) -> List[BaseNarrativeState]:
+        """
+        Returns the full history of states for an entity, sorted by chapter.
+        """
+        entity_dir = self._get_entity_dir(novel_hash, plugin_type, entity_id)
+        if not entity_dir.exists():
+            return []
+            
+        states = []
+        for file in sorted(entity_dir.glob("checkpoint_*.json"), key=lambda f: int(f.stem.split("_")[1])):
+            try:
+                with open(file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    states.append(model_class(**data))
+            except Exception:
+                continue
+        return states
+
+    def delete_history(self, novel_hash: str, plugin_type: str, entity_id: str) -> bool:
+        """
+        Deletes all history for a specific entity pair.
+        Returns True if successful (or directory didn't exist), False on error.
+        """
+        entity_dir = self._get_entity_dir(novel_hash, plugin_type, entity_id)
+        if not entity_dir.exists():
+            return True
+            
+        try:
+            # Delete all files in directory
+            for file in entity_dir.iterdir():
+                if file.is_file():
+                    file.unlink()
+            
+            # Remove directory
+            entity_dir.rmdir()
+            return True
+        except Exception as e:
+            print(f"[StateStore] Failed to delete history for {entity_id}: {e}")
+            return False
+
+
+==================== FILE: backend\narrative_engine\plugins\base.py ====================
+
+from abc import ABC, abstractmethod
+from typing import Type, List, Optional
+from backend.narrative_engine.core.models import BaseNarrativeState
+
+class NarrativePlugin(ABC):
+    """
+    Abstract interface for all narrative plugins (Relationship, World, Item, Faction).
+    Each plugin defines how to analyze its specific type of entity.
+    """
+    
+    @property
+    @abstractmethod
+    def plugin_type(self) -> str:
+        """e.g. 'relationship', 'world', 'item'"""
+        pass
+        
+    @property
+    @abstractmethod
+    def state_model(self) -> Type[BaseNarrativeState]:
+        """Pydantic model class for the state"""
+        pass
+        
+    @abstractmethod
+    def get_initial_state(self, entity_id: str, **kwargs) -> BaseNarrativeState:
+        """Returns a blank/initial state for a new entity"""
+        pass
+        
+    @abstractmethod
+    def check_trigger(self, prev_state: BaseNarrativeState, new_events: List[dict]) -> bool:
+        """
+        Adaptive Triggering Logic.
+        Returns True if LLM analysis is needed.
+        Returns False if we can skip/clone the previous state.
+        """
+        pass
+        
+    @abstractmethod
+    def generate_prompt(self, prev_state: BaseNarrativeState, new_events: List[dict]) -> str:
+        """Constructs the prompt for the LLM"""
+        pass
+        
+    @abstractmethod
+    def parse_response(self, llm_response: str, base_state: BaseNarrativeState) -> BaseNarrativeState:
+        """Parses LLM JSON response into a State object"""
+        pass
+
+
+==================== FILE: backend\narrative_engine\plugins\relationship.py ====================
+
+import json
+from typing import List, Type
+from backend.narrative_engine.plugins.base import NarrativePlugin
+from backend.narrative_engine.core.models import BaseNarrativeState, RelationshipState, AnalysisEvent
+from backend.narrative_engine.prompts import RELATIONSHIP_ANALYSIS_TEMPLATE
+
+class RelationshipPlugin(NarrativePlugin):
+    """
+    Pilot Plugin: Tracks character relationship dynamics.
+    """
+    
+    @property
+    def plugin_type(self) -> str:
+        return "relationship"
+        
+    @property
+    def state_model(self) -> Type[BaseNarrativeState]:
+        return RelationshipState
+        
+    def get_initial_state(self, entity_id: str, **kwargs) -> RelationshipState:
+        source, target = entity_id.split("_")
+        return RelationshipState(
+            entity_id=entity_id,
+            chapter_index=0,
+            summary_so_far="Initial state. No interactions yet.",
+            source=source,
+            target=target,
+            trust_level=50, # Neutral
+            romance_level=0,
+            conflict_level=0,
+            dominant_archetype="Stranger",
+            current_stage="Introduction"
+        )
+        
+    def check_trigger(self, prev_state: RelationshipState, new_events: List[AnalysisEvent]) -> bool:
+        """
+        Heuristic: Trigger if there are ANY interactions in the new block.
+        Future Optimization: Check for 'strong verbs' or specific keywords.
+        """
+        # new_events is a list of AnalysisEvent objects
+        if not new_events:
+            return False
+            
+        # Basic density check: If interaction count > 0, trigger.
+        return len(new_events) > 0
+
+    def generate_prompt(self, prev_state: RelationshipState, new_events: List[AnalysisEvent]) -> str:
+        """
+        Constructs the incremental analysis prompt.
+        """
+        # 1. Format Events Digest
+        events_text = ""
+        for event in new_events:
+            # Handle AnalysisEvent object
+            idx = event.chapter_index
+            content = event.content
+            
+            desc = "\n  ".join(content)
+            events_text += f"- Ch {idx}:\n  {desc}\n"
+            
+        # 2. Build Prompt using Template
+        prompt = RELATIONSHIP_ANALYSIS_TEMPLATE.format(
+            source=prev_state.source,
+            target=prev_state.target,
+            prev_chapter_index=prev_state.chapter_index,
+            dominant_archetype=prev_state.dominant_archetype,
+            current_stage=prev_state.current_stage,
+            trust_level=prev_state.trust_level,
+            romance_level=prev_state.romance_level,
+            conflict_level=prev_state.conflict_level,
+            summary_so_far=prev_state.summary_so_far,
+            unresolved_threads=json.dumps(prev_state.unresolved_threads, ensure_ascii=False),
+            events_text=events_text
+        )
+        return prompt
+
+    def parse_response(self, llm_response: str, base_state: RelationshipState) -> RelationshipState:
+        try:
+            # Simple JSON parsing (in prod, use a robust parser/repairer)
+            data = json.loads(llm_response)
+            
+            # Revised summary replaces the old one
+            # If revised_summary is missing (legacy LLM output), fallback to append logic
+            revised_summary = data.get("revised_summary")
+            if not revised_summary:
+                 revised_summary = base_state.summary_so_far + "\n" + data.get("summary_update", "")
+            
+            return RelationshipState(
+                entity_id=base_state.entity_id,
+                chapter_index=base_state.chapter_index, # Will be updated by engine
+                summary_so_far=revised_summary,
+                source=base_state.source,
+                target=base_state.target,
+                trust_level=data.get("trust_level", base_state.trust_level),
+                romance_level=data.get("romance_level", base_state.romance_level),
+                conflict_level=data.get("conflict_level", base_state.conflict_level),
+                dominant_archetype=data.get("dominant_archetype", base_state.dominant_archetype),
+                current_stage=data.get("current_stage", base_state.current_stage),
+                unresolved_threads=data.get("new_unresolved_threads", base_state.unresolved_threads)
+            )
+        except Exception as e:
+            print(f"[RelationshipPlugin] Parse Error: {e}")
+            # Fallback: Return previous state
+            return base_state
 
 
 ==================== FILE: backend\routers\analysis.py ====================
@@ -1312,12 +1948,13 @@ def get_graph_data(novel_name: str, file_hash: str, timestamp: str, session: Ses
     
     # Pre-calculate chapter ID to index map for sorting
     # This ensures that 'chapter_ids' list in GraphNode is sorted by logical order, not just string order
-    chap_id_to_index = {str(c.id): c.chapter_index for c in chapters}
+    chap_id_to_index = {str(c.id).strip(): c.chapter_index for c in chapters}
     
     nodes = []
     for e in entities:
         # Sort chapter IDs by index
-        sorted_chapter_ids = sorted(e.chapter_ids, key=lambda x: chap_id_to_index.get(x, 999999))
+        # Ensure x is stripped string before lookup
+        sorted_chapter_ids = sorted(e.chapter_ids, key=lambda x: chap_id_to_index.get(str(x).strip(), 999999))
         
         nodes.append(GraphNode(
             name=e.name,
@@ -1332,7 +1969,7 @@ def get_graph_data(novel_name: str, file_hash: str, timestamp: str, session: Ses
     for r in relationships:
         timeline_events = [
             EdgeEvent(
-                chapter_id=item['chapter_id'],
+                chapter_id=str(item['chapter_id']).strip(),
                 relation=item.get('relation'),
                 description=item.get('description'),
                 order=item.get('order', 0),
@@ -1401,6 +2038,7 @@ def get_entity_timeline(novel_name: str, file_hash: str, timestamp: str, entity_
             
             timeline_events.append(TimelineEvent(
                 chapter_id=str(chapter.id),
+                chapter_index=chapter.chapter_index,
                 chapter_title=chapter.title,
                 content=content if content else ["本章提及该实体。"],
                 gap_before=max(0, gap)
@@ -1410,10 +2048,49 @@ def get_entity_timeline(novel_name: str, file_hash: str, timestamp: str, entity_
             
     return timeline_events
 
-@router.get("/{novel_name}/{file_hash}/{timestamp}/relationship", response_model=List[RelationshipTimelineEvent])
-def get_relationship_timeline(
+from backend.narrative_engine.core.store import StateStore
+from backend.narrative_engine.core.engine import NarrativeEvolutionEngine
+from backend.narrative_engine.plugins.relationship import RelationshipPlugin
+from backend.narrative_engine.core.models import RelationshipState
+
+# Initialize Narrative Engine (Lazy Singleton)
+# In a real app, use dependency injection or app state
+_state_store = StateStore()
+_narrative_engine = NarrativeEvolutionEngine(_state_store)
+_narrative_engine.register_plugin(RelationshipPlugin())
+
+@router.delete("/{novel_name}/{file_hash}/relationship", status_code=204)
+def delete_relationship_cache(
     novel_name: str, 
     file_hash: str, 
+    source: str, 
+    target: str, 
+    session: Session = Depends(get_session)
+):
+    """
+    Delete cached relationship analysis for a specific pair.
+    """
+    aggregator = EntityAggregator()
+    norm_source = aggregator._normalize_text(source)
+    norm_target = aggregator._normalize_text(target)
+    
+    if not norm_source or not norm_target:
+        raise HTTPException(status_code=400, detail="Invalid source or target entities")
+    
+    pair_id = "_".join(sorted([norm_source, norm_target]))
+    
+    # Delegate to StateStore
+    success = _state_store.delete_history(file_hash, "relationship", pair_id)
+    
+    if not success:
+        # It's fine if it doesn't exist, but if deletion failed due to error, we might log it.
+        # delete_history returns False if directory doesn't exist.
+        pass
+        
+    return None
+
+@router.get("/{novel_name}/{file_hash}/{timestamp}/relationship", response_model=List[RelationshipTimelineEvent])
+def get_relationship_timeline( 
     timestamp: str, 
     source: str, 
     target: str, 
@@ -1422,6 +2099,7 @@ def get_relationship_timeline(
     """
     Get the interaction timeline between two entities (bidirectional).
     Returns a list of interactions where Source->Target OR Target->Source.
+    Also returns the Narrative State (Trust, Romance, etc.) if available.
     """
     chapters = get_merged_chapters(session, novel_name, file_hash)
     timeline_events = []
@@ -1432,12 +2110,29 @@ def get_relationship_timeline(
     
     if not norm_source or not norm_target:
         return []
-        
+    
+    # Sort pair ID for consistent state lookup
+    pair_id = "_".join(sorted([norm_source, norm_target]))
+    
+    # Pre-fetch states for all chapters (Optimization: List history once)
+    # But for now, we just want to attach the state to the event.
+    # Actually, we should evolve the state chapter by chapter here if we wanted real-time analysis.
+    # But as per plan, we lazy load or just check if state exists.
+    
+    # To keep response fast, we WON'T trigger LLM here. 
+    # We only read what's in the cache.
+    # If the user wants to trigger analysis, they should call a POST endpoint (future).
+    # OR: We trigger it but with a timeout/background task? 
+    # Let's stick to "Read Only" for GET request to avoid blocking.
+    
+    # Optimization: Load all history for this pair once
+    history = _state_store.list_history(file_hash, "relationship", pair_id, RelationshipState)
+    state_map = {s.chapter_index: s for s in history}
+    
+    current_state = None
+    
     for chapter in chapters:
         summary = db_chapter_to_summary(chapter)
-        
-        # Check for direct relationships
-        # We need to check both directions: Source->Target and Target->Source
         
         interactions = []
         
@@ -1448,7 +2143,7 @@ def get_relationship_timeline(
             # Direction 1: A -> B
             if r_source == norm_source and r_target == norm_target:
                 interactions.append(RelationshipInteraction(
-                    direction="forward", # Source -> Target
+                    direction="forward", 
                     relation=rel.relation,
                     description=rel.description,
                     confidence=rel.confidence
@@ -1457,20 +2152,228 @@ def get_relationship_timeline(
             # Direction 2: B -> A
             elif r_source == norm_target and r_target == norm_source:
                 interactions.append(RelationshipInteraction(
-                    direction="backward", # Target -> Source
+                    direction="backward",
                     relation=rel.relation,
                     description=rel.description,
                     confidence=rel.confidence
                 ))
         
-        if interactions:
+        # Check if we have a narrative state for this chapter (or carried over)
+        # In a perfect world, we'd have a state for every chapter.
+        # Here we look for exact match or closest previous?
+        # Let's check exact match first.
+        narrative_state_dict = None
+        if chapter.chapter_index in state_map:
+            current_state = state_map[chapter.chapter_index]
+        
+        # If we have interactions OR a state update, we add an event
+        narrative_state_dict = None
+        if current_state and current_state.chapter_index == chapter.chapter_index:
+             # We dump the state to dict
+             narrative_state_dict = current_state.model_dump()
+
+        # Filter: Only show chapters with actual interactions or significant state changes.
+        if interactions or narrative_state_dict:
             timeline_events.append(RelationshipTimelineEvent(
                 chapter_id=str(chapter.id),
+                chapter_index=chapter.chapter_index,
                 chapter_title=chapter.title,
-                interactions=interactions
+                interactions=interactions,
+                narrative_state=narrative_state_dict
             ))
             
     return timeline_events
+
+
+==================== FILE: backend\routers\jobs.py ====================
+
+import asyncio
+from typing import List, Optional, Dict
+import os
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
+from pydantic import BaseModel
+
+from backend.narrative_engine.core.job_manager import job_manager, JobStatus
+from backend.routers.analysis import get_session, get_merged_chapters, db_chapter_to_summary, _narrative_engine
+from backend.narrative_engine.core.models import AnalysisEvent
+from core.world_builder.aggregator import EntityAggregator
+from core.summarizer.llm_client import ClientFactory
+from core.config import settings
+from sqlmodel import Session
+
+router = APIRouter(prefix="/api/jobs", tags=["jobs"])
+
+class RelationshipJobRequest(BaseModel):
+    novel_name: str
+    file_hash: str
+    source: str
+    target: str
+    force: bool = False
+
+def run_relationship_analysis_task(job_id: str, request: RelationshipJobRequest):
+    """
+    Background task to run the relationship analysis.
+    """
+    try:
+        # 1. Update status to processing
+        job_manager.update_progress(job_id, 0, "Initializing analysis...")
+        
+        # 2. Setup Context (Need a new session for background task?)
+        # Actually we need DB access. We can create a new session here.
+        from core.db.engine import engine
+        
+        with Session(engine) as session:
+            # 3. Load Chapters
+            job_manager.update_progress(job_id, 5, "Loading chapters...")
+            chapters = get_merged_chapters(session, request.novel_name, request.file_hash)
+            
+            if not chapters:
+                job_manager.fail_job(job_id, "No chapters found")
+                return
+
+            # 4. Setup LLM Client
+            # config = load_config()  <-- Deprecated
+            
+            # Prefer OpenRouter for analysis
+            # We want to force OpenRouter if possible, or use config
+            # User said: "All future calls default to OpenRouter"
+            
+            provider = "openrouter"
+            # Try to get key from settings or env
+            api_key = settings.OPENROUTER_API_KEY or os.getenv("OPENROUTER_API_KEY")
+            
+            if not api_key:
+                 job_manager.fail_job(job_id, "OpenRouter API Key not found. Please set OPENROUTER_API_KEY env var.")
+                 return
+
+            llm_client = ClientFactory.create_client(
+                provider="openrouter",
+                api_key=api_key,
+                model=settings.OPENROUTER_MODEL or "google/gemini-2.0-flash-001" # Default model
+            )
+            
+            # 5. Normalize Names
+            # Explicitly load aliases from project root
+            base_dir = os.getcwd()
+            alias_path = os.path.join(base_dir, "config", "aliases.json")
+            aggregator = EntityAggregator(alias_file=alias_path)
+            
+            norm_source = aggregator._normalize_text(request.source)
+            norm_target = aggregator._normalize_text(request.target)
+            pair_id = "_".join(sorted([norm_source, norm_target]))
+            
+            total_chapters = len(chapters)
+            
+            # 6. Iterate and Evolve
+            for i, chapter in enumerate(chapters):
+                progress_base = 10 + int((i / total_chapters) * 80)
+                job_manager.update_progress(job_id, progress_base, f"Analyzing Chapter {chapter.chapter_index}...")
+                
+                # Prepare events
+                summary = db_chapter_to_summary(chapter)
+                
+                # Filter relevant events
+                relevant_sentences = []
+                # Check explicit relationships
+                for rel in summary.relationships:
+                    r_s = aggregator._normalize_text(rel.source)
+                    r_t = aggregator._normalize_text(rel.target)
+                    if (r_s == norm_source and r_t == norm_target) or (r_s == norm_target and r_t == norm_source):
+                        relevant_sentences.append(f"Interaction ({rel.relation}): {rel.description}")
+                
+                # Check text mentions
+                for sent in summary.summary_sentences:
+                    if (norm_source in sent.summary_text and norm_target in sent.summary_text):
+                         relevant_sentences.append(sent.summary_text)
+
+                # Check entity co-occurrence (Weak Interaction)
+                source_in_chapter = False
+                target_in_chapter = False
+                for e in summary.entities:
+                    norm_name = aggregator._normalize_text(e.name)
+                    if norm_name == norm_source: source_in_chapter = True
+                    if norm_name == norm_target: target_in_chapter = True
+                
+                if not relevant_sentences and source_in_chapter and target_in_chapter:
+                    relevant_sentences.append("Both characters appear in this chapter, implying potential implicit interaction or co-presence.")
+
+                if not relevant_sentences:
+                    # Skip empty chapters to save time/cost, unless we want to decay relationship?
+                    # For now, just skip.
+                    continue
+                    
+                # Prepare event object
+                new_events = [AnalysisEvent(
+                    chapter_index=chapter.chapter_index,
+                    content=relevant_sentences
+                )]
+                
+                # Define callback for sub-steps (LLM generation)
+                def step_callback(step_progress, msg):
+                    # Map step_progress (0-100) to a small range within the chapter progress
+                    # e.g., current chapter takes 5% of total progress
+                    # We don't want to spam updates, so maybe just update message
+                    # job_manager.update_progress(job_id, progress_base, f"Ch {chapter.chapter_index}: {msg}")
+                    pass
+
+                # Evolve State
+                # Add try/except for evolution to not crash whole job
+                try:
+                    _narrative_engine.evolve_state(
+                        novel_hash=request.file_hash,
+                        plugin_type="relationship",
+                        entity_id=pair_id,
+                        target_chapter_index=chapter.chapter_index,
+                        new_events=new_events,
+                        llm_client=llm_client,
+                        progress_callback=step_callback
+                    )
+                except Exception as evo_err:
+                     print(f"Error evolving state for Ch {chapter.chapter_index}: {evo_err}")
+                     # Continue to next chapter
+
+            
+            # 7. Finish
+            job_manager.complete_job(job_id, {"pair_id": pair_id, "chapters_analyzed": total_chapters})
+            
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        job_manager.fail_job(job_id, str(e))
+
+@router.post("/relationship", response_model=Dict[str, str])
+def submit_relationship_job(request: RelationshipJobRequest, background_tasks: BackgroundTasks):
+    """
+    Submit a background job to analyze relationship arc.
+    """
+    # Check for existing active jobs? 
+    # For now, we allow multiple, but JobManager doesn't limit concurrency yet.
+    # The design spec said "limit to 1 concurrent".
+    # We can check JobManager here.
+    active_jobs = job_manager.list_jobs(active_only=True)
+    if len(active_jobs) > 0:
+        # Optional: Reject or Queue.
+        # For simple UX, let's reject with 429 or similar?
+        # Or just let it run if user really wants.
+        # Let's just warn in logs but allow it for v1.
+        pass
+
+    job_id = job_manager.submit_job("relationship_analysis")
+    
+    background_tasks.add_task(run_relationship_analysis_task, job_id, request)
+    
+    return {"job_id": job_id}
+
+@router.get("/{job_id}", response_model=JobStatus)
+def get_job_status(job_id: str):
+    job = job_manager.get_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
+
+@router.get("/", response_model=List[JobStatus])
+def list_jobs(active_only: bool = False):
+    return job_manager.list_jobs(active_only)
 
 
 ==================== FILE: backend\routers\novels.py ====================
@@ -2561,6 +3464,10 @@ class OpenAIClient(LLMClient):
             print(f"LLM 同步调用失败: {e}")
             raise e
 
+    def generate(self, prompt: str) -> str:
+        """Alias for chat_completion with a single user message (for compatibility)"""
+        return self.chat_completion([{"role": "user", "content": prompt}])
+
     async def chat_completion_async(self, messages: List[Dict[str, str]], temperature: float = 0.7) -> str:
         try:
             response = await self.async_client.chat.completions.create(
@@ -2685,7 +3592,7 @@ class Prompts:
 import json
 import os
 from typing import List, Dict, Tuple
-from collections import defaultdict
+from collections import defaultdict, Counter
 import zhconv
 from data_protocol.models import ChapterSummary, Entity, AggregatedEntity, AggregatedRelationship
 
@@ -2750,10 +3657,11 @@ class EntityAggregator:
         Returns:
             List[AggregatedEntity]: 聚合后的全局实体列表，按出现频率降序排列。
         """
-        # Key: (name, type), Value: dict to accumulate data
-        entity_map: Dict[Tuple[str, str], Dict] = defaultdict(lambda: {
+        # Key: name (normalized), Value: dict to accumulate data
+        # Fix: Group by name only, not (name, type), to prevent duplicate nodes with same ID but different types
+        entity_map: Dict[str, Dict] = defaultdict(lambda: {
             "name": "",
-            "type": "",
+            "types": Counter(), # Track frequency of each type
             "descriptions": [],
             "history": [],
             "chapter_ids": set(),
@@ -2772,21 +3680,25 @@ class EntityAggregator:
                 if not name:
                     continue
 
-                key = (name, type_)
+                # Key is now just the name
+                key = name
                 entry = entity_map[key]
                 
                 if not entry["name"]:
                     entry["name"] = name
-                    entry["type"] = type_
+                
+                # Accumulate type
+                if type_:
+                    entry["types"][type_] += 1
                 
                 if entity.description:
                     entry["descriptions"].append(entity.description)
                     entry["history"].append({
-                        "chapter_id": summary.chapter_id,
+                        "chapter_id": str(summary.chapter_id).strip(),
                         "content": entity.description
                     })
                 
-                entry["chapter_ids"].add(summary.chapter_id)
+                entry["chapter_ids"].add(str(summary.chapter_id).strip())
                 entry["count"] += 1
 
         results = []
@@ -2796,13 +3708,19 @@ class EntityAggregator:
             # 2. 如果没有描述，使用空字符串
             descriptions = data["descriptions"]
             final_desc = max(descriptions, key=len) if descriptions else "暂无描述"
+            
+            # 类型决策策略：选择出现频率最高的类型
+            # 如果没有记录到类型，默认为 'Unknown'
+            # data["types"] is a Counter
+            most_common_type = data["types"].most_common(1)
+            final_type = most_common_type[0][0] if most_common_type else "Unknown"
 
             # 章节列表排序
             sorted_chapters = sorted(list(data["chapter_ids"]))
 
             agg_entity = AggregatedEntity(
                 name=data["name"],
-                type=data["type"],
+                type=final_type,
                 description=final_desc,
                 history=data["history"],
                 chapter_ids=sorted_chapters,
@@ -2859,7 +3777,7 @@ class EntityAggregator:
                 
                 # 添加到时间线
                 entry["timeline"].append({
-                    "chapter_id": summary.chapter_id,
+                    "chapter_id": str(summary.chapter_id).strip(),
                     "relation": rel.relation,
                     "description": rel.description,
                     "order": valid_rel_count  # 记录本章内的有效顺序 (1-based, 连续)
@@ -3084,3 +4002,2387 @@ class AggregatedRelationship(BaseModel):
         description="关系演变历史: [{'chapter_id': 'ch1', 'relation': 'stranger', 'description': '...'}, ...]"
     )
     weight: int = Field(0, description="互动次数权重")
+
+
+==================== FILE: frontend\package.json ====================
+
+{
+  "name": "storytrace-ui",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "pinia": "^2.3.1",
+    "vis-network": "^9.1.9",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "@types/node": "^22.13.4",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/tsconfig": "^0.7.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.2",
+    "tailwindcss": "^3.4.17",
+    "typescript": "~5.7.2",
+    "vite": "^6.1.0",
+    "vue-tsc": "^2.2.0"
+  }
+}
+
+
+==================== FILE: frontend\postcss.config.js ====================
+
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+
+==================== FILE: frontend\tailwind.config.js ====================
+
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{vue,js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
+}
+
+
+==================== FILE: frontend\tsconfig.app.json ====================
+
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["src/**/*", "src/**/*.vue"],
+  "exclude": ["src/**/__tests__/*"],
+  "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+
+
+==================== FILE: frontend\vite.config.ts ====================
+
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import path from 'path'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        // rewrite: (path) => path.replace(/^\/api/, ''), // Backend API routes are like /api/novels, so no rewrite needed
+      },
+    },
+  },
+})
+
+
+==================== FILE: frontend\src\App.vue ====================
+
+<script setup lang="ts">
+import { RouterView } from 'vue-router'
+import JobStatusWidget from '@/components/JobStatusWidget.vue'
+import { useJobStore } from '@/stores/jobStore'
+
+const jobStore = useJobStore()
+
+function handleViewResult(result: any) {
+    // Ideally we should emit this event to the current view or use a global event bus
+    // But since GraphView is deeply nested, we might need a better way.
+    // For v1, if we are on GraphView, we can refresh?
+    // Actually, JobStatusWidget is global.
+    // Let's use a global state in jobStore to signal "Show Result for Pair X"
+    // Or just let the user click the button and we close the widget?
+    // The "View Result" button in the widget should probably just trigger the drawer.
+    // But the drawer is inside GraphView.
+    // We can use a global event bus or store flag.
+    
+    // For now, let's just close the widget and let the user manually check.
+    // Wait, that's bad UX.
+    // Let's add a `resultTrigger` to jobStore.
+    jobStore.clearActiveJob()
+    
+    // We need to tell GraphView to open the drawer.
+    // Since we don't have a global event bus handy, let's just log it for now.
+    // Or we can dispatch a custom window event.
+    window.dispatchEvent(new CustomEvent('open-relationship-result', { detail: result }));
+}
+</script>
+
+<template>
+  <RouterView />
+  <JobStatusWidget @view-result="handleViewResult" />
+</template>
+
+
+==================== FILE: frontend\src\main.ts ====================
+
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import './style.css'
+import 'vis-network/styles/vis-network.css'
+import App from './App.vue'
+import router from './router'
+
+const app = createApp(App)
+
+app.use(createPinia())
+app.use(router)
+
+app.mount('#app')
+
+
+==================== FILE: frontend\src\api\client.ts ====================
+
+import axios from 'axios';
+import type { Novel, Run, Chapter, Entity, GraphData, TimelineEvent, RelationshipTimelineEvent } from '@/types';
+
+const apiClient = axios.create({
+  baseURL: '/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export const API = {
+  async fetchNovels(): Promise<Novel[]> {
+    const response = await apiClient.get<Novel[]>('/novels');
+    return response.data;
+  },
+
+  async fetchRuns(novelName: string, hash: string): Promise<Run[]> {
+    const response = await apiClient.get<Run[]>(`/novels/${novelName}/${hash}/runs`);
+    return response.data;
+  },
+
+  async fetchChapters(novelName: string, hash: string, timestamp: string): Promise<Chapter[]> {
+    const response = await apiClient.get<Chapter[]>(`/novels/${novelName}/${hash}/${timestamp}/chapters`);
+    return response.data;
+  },
+
+  async fetchChapterDetail(novelName: string, hash: string, timestamp: string, chapterId: string): Promise<Chapter> {
+    const response = await apiClient.get<Chapter>(`/novels/${novelName}/${hash}/${timestamp}/chapters/${chapterId}`);
+    return response.data;
+  },
+
+  async fetchGlobalEntities(novelName: string, hash: string, timestamp: string): Promise<Entity[]> {
+    const response = await apiClient.get<Entity[]>(`/novels/${novelName}/${hash}/${timestamp}/entities`);
+    return response.data;
+  },
+
+  async fetchGraphData(novelName: string, hash: string, timestamp: string): Promise<GraphData> {
+    const response = await apiClient.get<GraphData>(`/novels/${novelName}/${hash}/${timestamp}/graph`);
+    return response.data;
+  },
+
+  async fetchEntityTimeline(novelName: string, hash: string, timestamp: string, entityName: string): Promise<TimelineEvent[]> {
+    const response = await apiClient.get<TimelineEvent[]>(`/novels/${novelName}/${hash}/${timestamp}/entity/${encodeURIComponent(entityName)}/timeline`);
+    return response.data;
+  },
+
+  async fetchRelationshipTimeline(novelName: string, hash: string, timestamp: string, source: string, target: string): Promise<RelationshipTimelineEvent[]> {
+    const response = await apiClient.get<RelationshipTimelineEvent[]>(`/novels/${novelName}/${hash}/${timestamp}/relationship`, {
+      params: { source, target, _t: Date.now() }
+    });
+    return response.data;
+  },
+
+  async deleteRelationshipAnalysis(novelName: string, hash: string, source: string, target: string): Promise<void> {
+    await apiClient.delete(`/novels/${novelName}/${hash}/relationship`, {
+      params: { source, target }
+    });
+  }
+};
+
+
+==================== FILE: frontend\src\components\AppNavbar.vue ====================
+
+<script setup lang="ts">
+import { useNovelStore } from '@/stores/novel';
+import { computed } from 'vue';
+
+const store = useNovelStore();
+
+const novels = computed(() => store.novels);
+const runs = computed(() => store.runs);
+
+// Actions
+const selectNovel = (event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  const novel = novels.value.find(n => n.name === target.value);
+  if (novel) {
+    store.selectNovel(novel);
+  }
+};
+
+const selectRun = (event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  const run = runs.value.find(r => r.timestamp === target.value);
+  if (run) {
+    store.selectRun(run);
+  }
+};
+
+// Formatting
+const formatTime = (ts: string) => {
+  if (ts.length === 15) {
+    return `${ts.slice(0,4)}-${ts.slice(4,6)}-${ts.slice(6,8)} ${ts.slice(9,11)}:${ts.slice(11,13)}`;
+  }
+  return ts;
+};
+</script>
+
+<template>
+  <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between z-10 sticky top-0">
+    <h1 class="text-xl font-bold text-indigo-600 flex items-center gap-2">
+      <span>📚</span> StoryTrace V2
+    </h1>
+    
+    <div class="flex gap-4 items-center">
+      <!-- Novel Selector -->
+      <select 
+        :value="store.currentNovel?.name || ''" 
+        @change="selectNovel" 
+        class="border rounded px-2 py-1 text-sm bg-white hover:border-indigo-400 transition-colors"
+      >
+        <option value="" disabled>选择小说</option>
+        <option v-for="n in novels" :key="n.name" :value="n.name">{{ n.name }}</option>
+      </select>
+      
+      <!-- Run Selector -->
+      <select 
+        :value="store.currentRun?.timestamp || ''" 
+        @change="selectRun" 
+        class="border rounded px-2 py-1 text-sm bg-white hover:border-indigo-400 transition-colors"
+        :disabled="!store.currentNovel"
+      >
+        <option value="" disabled>选择版本</option>
+        <option v-for="r in runs" :key="r.timestamp" :value="r.timestamp">{{ formatTime(r.timestamp) }}</option>
+      </select>
+
+      <!-- Chapter Selector -->
+      <select 
+        v-if="store.currentRun"
+        :value="store.selectedChapterId || ''" 
+        @change="(e) => store.selectedChapterId = (e.target as HTMLSelectElement).value" 
+        class="border rounded px-2 py-1 text-sm bg-white hover:border-indigo-400 transition-colors max-w-[200px]"
+      >
+        <option value="" disabled>跳转章节</option>
+        <option v-for="c in store.chapters" :key="c.id" :value="c.id">{{ c.title }}</option>
+      </select>
+
+      <!-- View Toggles -->
+      <div class="flex bg-gray-100 rounded-lg p-1" v-if="store.currentRun">
+        <button 
+          @click="store.viewMode = 'overview'" 
+          class="px-3 py-1 text-sm rounded-md transition-all font-medium"
+          :class="store.viewMode === 'overview' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+        >
+          📚 概览
+        </button>
+        <button 
+          @click="store.viewMode = 'graph'" 
+          class="px-3 py-1 text-sm rounded-md transition-all font-medium"
+          :class="store.viewMode === 'graph' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+        >
+          🕸️ 图谱
+        </button>
+      </div>
+    </div>
+  </header>
+</template>
+
+
+==================== FILE: frontend\src\components\EntityChronicleDrawer.vue ====================
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import type { TimelineEvent } from '@/types';
+
+const props = defineProps<{
+  isOpen: boolean;
+  entityName: string;
+  events: TimelineEvent[];
+  isLoading: boolean;
+}>();
+
+const emit = defineEmits<{
+  (e: 'close'): void;
+  (e: 'jump-to-chapter', chapterId: string): void;
+}>();
+
+const timeline = computed(() => props.events);
+</script>
+
+<template>
+  <!-- Drawer Container -->
+  <div 
+    class="fixed inset-y-0 right-0 w-96 bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-50 flex flex-col border-l border-gray-200"
+    :class="isOpen ? 'translate-x-0' : 'translate-x-full'"
+  >
+    <!-- Header -->
+    <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-white z-10">
+        <div>
+            <h2 class="text-lg font-bold text-gray-900 truncate max-w-[200px]" :title="entityName">{{ entityName }}</h2>
+            <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-1">Entity Chronicle</p>
+        </div>
+        <button 
+          @click="emit('close')"
+          class="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+    </div>
+
+    <!-- Timeline Body -->
+    <div class="flex-1 overflow-y-auto custom-scrollbar bg-gray-50 p-6 relative">
+         <!-- Loading State -->
+        <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+
+        <div v-if="timeline.length > 0" class="space-y-8 relative">
+            <!-- Timeline Line -->
+            <div class="absolute left-3 top-2 bottom-2 w-0.5 bg-gray-200"></div>
+
+            <div v-for="event in timeline" :key="event.chapter_id" class="relative pl-8">
+                 <!-- Dot -->
+                 <div class="absolute left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-white border-2 border-indigo-500 z-10"></div>
+                 
+                 <!-- Gap Indicator -->
+                 <div v-if="event.gap_before > 0" class="mb-4 text-xs text-gray-400 font-mono pl-1 border-l-2 border-dashed border-gray-300 ml-[-20px] py-2 bg-gray-50/80">
+                    ... Skip {{ event.gap_before }} chapters ...
+                 </div>
+
+                 <!-- Content -->
+                 <div class="group">
+                     <div class="flex items-baseline justify-between mb-1">
+                        <button 
+                            @click="emit('jump-to-chapter', event.chapter_id)"
+                            class="text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors ml-auto bg-indigo-50 px-2 py-0.5 rounded-full flex items-center gap-1"
+                        >
+                            <span>Jump</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </button>
+                     </div>
+                     <h3 class="text-sm font-semibold text-gray-800 mb-2 leading-tight">{{ event.chapter_title }}</h3>
+                     
+                     <ul class="space-y-2">
+                        <li 
+                            v-for="(sent, idx) in event.content" 
+                            :key="idx"
+                            class="text-xs text-gray-600 leading-relaxed bg-white p-3 rounded shadow-sm border border-gray-100"
+                        >
+                            {{ sent }}
+                        </li>
+                     </ul>
+                 </div>
+            </div>
+            
+            <div class="text-center pt-8 pb-4">
+                <span class="text-xs text-gray-400 font-medium bg-gray-100 px-3 py-1 rounded-full">End of Records</span>
+            </div>
+        </div>
+        
+        <div v-else-if="!isLoading" class="flex flex-col items-center justify-center h-64 text-gray-400">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+             </svg>
+             <p>No timeline data found.</p>
+        </div>
+    </div>
+  </div>
+
+  <!-- Overlay -->
+  <div 
+    v-if="isOpen"
+    class="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity"
+    @click="emit('close')"
+  ></div>
+</template>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+</style>
+
+
+==================== FILE: frontend\src\components\GraphView.vue ====================
+
+<script setup lang="ts">
+import { onMounted, ref, watch, onUnmounted, computed, shallowRef } from 'vue';
+import { Network, DataSet } from "vis-network/standalone";
+import type { Entity, TimelineEvent, RelationshipTimelineEvent } from '@/types';
+import { API } from '@/api/client';
+import EntityChronicleDrawer from './EntityChronicleDrawer.vue';
+import RelationshipArcDrawer from './RelationshipArcDrawer.vue';
+import { useNovelStore } from '@/stores/novel';
+import { useJobStore } from '@/stores/jobStore';
+
+const store = useNovelStore();
+const jobStore = useJobStore();
+
+const container = ref<HTMLElement | null>(null);
+const network = shallowRef<Network | null>(null);
+
+// State for filtering
+const minWeight = ref(1);
+const selectedTypes = ref<string[]>(['Person', 'Location', 'Organization', 'Event', 'Object', 'Concept']);
+const availableTypes = ['Person', 'Location', 'Organization', 'Event', 'Object', 'Concept'];
+
+// State for Timeline
+const timelineIndex = ref(0);
+const maxTimelineIndex = computed(() => (store.chapters.length > 0 ? store.chapters.length - 1 : 0));
+const graphMode = ref<'cumulative' | 'focus'>('cumulative');
+
+// Chronicle State
+const isChronicleOpen = ref(false);
+const chronicleEvents = ref<TimelineEvent[]>([]);
+const isChronicleLoading = ref(false);
+const selectedEntity = ref<Entity | null>(null);
+
+// Relationship Arc State
+const selectedNodes = ref<Entity[]>([]);
+const isRelationshipDrawerOpen = ref(false);
+const relationshipEvents = ref<RelationshipTimelineEvent[]>([]);
+const isRelationshipLoading = ref(false);
+
+// Stats
+const stats = computed(() => {
+    if (!store.graphData) return { nodes: 0, edges: 0 };
+    return {
+        nodes: nodesDataSet.length,
+        edges: edgesDataSet.length
+    };
+});
+
+// Vis.js DataSets
+const nodesDataSet = new DataSet<any>();
+const edgesDataSet = new DataSet<any>();
+
+const debugMapSize = ref(0);
+const lastError = ref<string>("");
+
+const typeColors: Record<string, string> = {
+  'Person': '#fbbf24', // amber-400
+  'Location': '#60a5fa', // blue-400
+  'Organization': '#a78bfa', // purple-400
+  'Event': '#f87171', // red-400
+  'Object': '#34d399', // emerald-400
+  'Concept': '#f472b6', // pink-400
+  'Other': '#9ca3af'   // gray-400
+};
+
+const typeShapes: Record<string, string> = {
+  'Person': 'dot',
+  'Location': 'triangle',
+  'Organization': 'square',
+  'Event': 'star',
+  'Object': 'diamond',
+  'Concept': 'hexagon',
+  'Other': 'dot'
+};
+
+const typeLabels: Record<string, string> = {
+  'Person': '人物',
+  'Location': '地点',
+  'Organization': '组织',
+  'Event': '事件',
+  'Object': '物品',
+  'Concept': '概念',
+  'Other': '其他'
+};
+
+// --- Async Analysis Logic ---
+
+const handleAnalyzeRelationship = async () => {
+    if (selectedNodes.value.length !== 2 || !store.currentNovel || !store.currentRun) return;
+    
+    // 1. Check Threshold (Warning)
+    // We need to check if they have enough interactions.
+    // We can use the graph data for this.
+    // Find the edge between them
+    const n1 = selectedNodes.value[0].name;
+    const n2 = selectedNodes.value[1].name;
+    
+    // This logic is a bit naive because we don't have the edge object readily available in `selectedNodes`
+    // But we can find it in store.graphData.edges
+    // Or we can just let the backend handle it?
+    // The design spec said "Frontend checks edge.weight".
+    // Let's find the edge.
+    const edge = store.graphData?.edges.find(e => 
+        (e.source === n1 && e.target === n2) || (e.source === n2 && e.target === n1)
+    );
+    
+    const weight = edge ? edge.weight : 0;
+    const coOccurrence = edge?.timeline?.length || 0; // Approximate co-occurrence by timeline events
+    
+    if (weight < 3 && coOccurrence < 3) {
+        if (!confirm(`这两位角色的互动较少 (权重 ${weight}, 事件 ${coOccurrence})。\n深度分析可能产生幻觉或内容稀疏。\n是否继续？`)) {
+            return;
+        }
+    }
+    
+    // 2. Submit Job
+    try {
+        const hash = store.currentNovel.hashes[0];
+        // If force is true, we might want to delete cache first?
+        // Actually, the backend job runner doesn't auto-delete unless we tell it to, or we handle it here.
+        // But for "Analyze", we usually mean "Compute if missing".
+        // If the user wants to RE-analyze, they should probably clear cache.
+        
+        await jobStore.submitRelationshipJob({
+            novel_name: store.currentNovel.name,
+            file_hash: hash,
+            source: n1,
+            target: n2,
+            force: true
+        });
+        
+        // Deselect or just notify?
+        // The JobStatusWidget will appear.
+    } catch (e) {
+        alert("Failed to start analysis: " + e);
+    }
+};
+
+const handleClearCache = async () => {
+    if (selectedNodes.value.length !== 2 || !store.currentNovel) return;
+    
+    const n1 = selectedNodes.value[0].name;
+    const n2 = selectedNodes.value[1].name;
+    
+    if (!confirm(`确定要清除 "${n1} & ${n2}" 的分析缓存吗？\n清除后需要重新运行 AI 分析。`)) return;
+    
+    try {
+        const hash = store.currentNovel.hashes[0];
+        await API.deleteRelationshipAnalysis(
+            store.currentNovel.name, 
+            hash, 
+            n1, 
+            n2
+        );
+        alert("缓存已清除，请重新点击 Analyze 进行分析。");
+        // Close drawer if open
+        isRelationshipDrawerOpen.value = false;
+        relationshipEvents.value = [];
+    } catch (e) {
+        alert("清除缓存失败: " + e);
+    }
+};
+
+const openRelationshipDrawer = async () => {
+    if (selectedNodes.value.length !== 2 || !store.currentNovel || !store.currentRun) return;
+    
+    isRelationshipDrawerOpen.value = true;
+    isRelationshipLoading.value = true;
+    
+    try {
+        const hash = store.currentNovel.hashes[0];
+        relationshipEvents.value = await API.fetchRelationshipTimeline(
+            store.currentNovel.name,
+            hash,
+            store.currentRun.timestamp,
+            selectedNodes.value[0].name,
+            selectedNodes.value[1].name
+        );
+    } catch (e) {
+        console.error("Failed to fetch relationship timeline:", e);
+    } finally {
+        isRelationshipLoading.value = false;
+    }
+};
+
+// Listen for global event to open drawer after analysis
+onMounted(() => {
+    window.addEventListener('open-relationship-result', handleAnalysisResult as EventListener);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('open-relationship-result', handleAnalysisResult as EventListener);
+});
+
+const handleAnalysisResult = (e: CustomEvent) => {
+    const result = e.detail;
+    // result contains { pair_id: "A_B", ... }
+    // We need to parse pair_id to find source/target names?
+    // Or simpler: Just check if the currently selected nodes match the result?
+    // If user changed selection, we might not want to open drawer blindly.
+    // But for better UX, we should probably parse the pair_id and set selectedNodes.
+    
+    // For now, let's just trigger the drawer refresh if the selected nodes match.
+    // Or if the user clicks "View Result", we assume they want to see THAT result.
+    // So we should ideally open the drawer for the entities involved in the job.
+    // The job result has `pair_id`.
+    
+    // Let's assume we just open the drawer for the current selection for now
+    // as that's the most common flow (User waits).
+    if (selectedNodes.value.length === 2) {
+         openRelationshipDrawer();
+    }
+};
+
+const openChronicle = async () => {
+    if (!selectedEntity.value || !store.currentNovel || !store.currentRun) return;
+    
+    isChronicleOpen.value = true;
+    isChronicleLoading.value = true;
+    
+    try {
+        const hash = store.currentNovel.hashes[0];
+        chronicleEvents.value = await API.fetchEntityTimeline(
+            store.currentNovel.name,
+            hash,
+            store.currentRun.timestamp,
+            selectedEntity.value.name
+        );
+    } catch (e) {
+        console.error("Failed to fetch chronicle:", e);
+    } finally {
+        isChronicleLoading.value = false;
+    }
+};
+
+const handleChronicleJump = async (chapterId: string) => {
+    store.selectedChapterId = chapterId;
+    await store.loadChapterDetail(chapterId);
+    store.viewMode = 'reader'; // Switch to reader mode directly
+    isChronicleOpen.value = false;
+    isRelationshipDrawerOpen.value = false;
+};
+
+// --- Graph Logic ---
+
+const initGraph = () => {
+  if (!container.value) return;
+
+  const data = {
+    nodes: nodesDataSet,
+    edges: edgesDataSet
+  };
+
+  const options = {
+    nodes: {
+      shape: 'dot',
+      font: {
+        size: 14,
+        color: '#374151' // gray-700
+      },
+      borderWidth: 2,
+      shadow: true
+    },
+    edges: {
+      width: 1,
+      color: { color: '#d1d5db', highlight: '#6366f1' }, // gray-300, indigo-500
+      smooth: {
+        type: 'continuous'
+      },
+      arrows: {
+          to: { enabled: false } // undirected by default
+      }
+    },
+    physics: {
+      stabilization: {
+          enabled: true,
+          iterations: 100
+      },
+      barnesHut: {
+        gravitationalConstant: -30000,
+        springLength: 200,
+        springConstant: 0.04,
+        damping: 0.09
+      }
+    },
+    interaction: {
+      hover: true,
+      tooltipDelay: 200,
+      hideEdgesOnDrag: true,
+      multiselect: true
+    }
+  };
+
+  network.value = new Network(container.value, data, options);
+
+  // Event listeners
+  network.value.on("click", (params) => {
+    const selectedIds = params.nodes;
+    
+    if (selectedIds.length === 1) {
+      const nodeId = selectedIds[0];
+      const entity = store.graphData?.nodes.find(n => n.name === nodeId);
+      if (entity) {
+        selectedEntity.value = entity;
+      }
+      selectedNodes.value = [];
+    } else if (selectedIds.length === 2) {
+      selectedEntity.value = null;
+      const n1 = store.graphData?.nodes.find(n => n.name === selectedIds[0]);
+      const n2 = store.graphData?.nodes.find(n => n.name === selectedIds[1]);
+      if (n1 && n2) {
+          selectedNodes.value = [n1, n2];
+      }
+    } else {
+        selectedEntity.value = null;
+        selectedNodes.value = [];
+    }
+  });
+
+  // Initial update if data is already available
+  if (store.graphData) {
+      updateGraphData();
+  }
+};
+
+const updateGraphData = () => {
+    if (!store.graphData) return;
+
+    // 1. Filter Nodes
+    const activeNodes = store.graphData.nodes.filter(node => {
+        // Type filter
+        if (!selectedTypes.value.includes(node.type)) return false;
+        
+        // Timeline filter: Node must appear in chapters <= timelineIndex
+        if (store.chapters.length === 0) return true;
+
+        // Use strict ID matching
+        const hasAppeared = node.chapter_ids?.some(id => {
+            const chIdStr = String(id);
+            const chIndex = store.chapters.findIndex(c => String(c.id) === chIdStr);
+            return chIndex !== -1 && chIndex <= timelineIndex.value;
+        });
+
+        return hasAppeared ?? false;
+    });
+
+    // 2. Filter Edges
+    const currentChapter = store.chapters[timelineIndex.value];
+    if (!currentChapter) return;
+    
+    // Ensure strict string comparison
+    const currentChapterId = String(currentChapter.id); 
+    
+    const activeEdges: any[] = [];
+    const nodeWeights: Record<string, number> = {};
+
+    try {
+        // Optimization: Create map for O(1) chapter index lookup
+        const chapterIndexMap = new Map<string, number>();
+        store.chapters.forEach((c, idx) => {
+            chapterIndexMap.set(String(c.id), idx);
+        });
+        debugMapSize.value = chapterIndexMap.size;
+        
+        store.graphData.edges.forEach((edge) => {
+            if (!edge.timeline) return;
+
+            let weight = 0;
+            let label = '';
+            let isVisible = false;
+
+            if (graphMode.value === 'cumulative') {
+                // Sum weights of all events where chapter_index <= timelineIndex
+                for (const event of edge.timeline) {
+                    const evtChId = String(event.chapter_id);
+                    const chIndex = chapterIndexMap.get(evtChId);
+                    
+                    if (chIndex !== undefined && chIndex <= timelineIndex.value) {
+                        weight += (event.weight || 1);
+                    }
+                }
+                isVisible = weight >= minWeight.value;
+
+            } else { // Focus Mode
+                // Only events matching current chapter ID
+                for (const event of edge.timeline) {
+                    const evtChId = String(event.chapter_id);
+                    if (evtChId === currentChapterId) {
+                        weight += (event.weight || 1);
+                        label = event.relation || '';
+                    }
+                }
+                isVisible = weight >= 1; 
+            }
+
+            if (isVisible) {
+                activeEdges.push({
+                    from: edge.source,
+                    to: edge.target,
+                    value: weight,
+                    label: graphMode.value === 'focus' ? label : undefined,
+                    font: { align: 'middle', size: 10, strokeWidth: 2, strokeColor: '#ffffff' }
+                });
+                
+                // Accumulate node weights
+                nodeWeights[edge.source] = (nodeWeights[edge.source] || 0) + weight;
+                nodeWeights[edge.target] = (nodeWeights[edge.target] || 0) + weight;
+            }
+        });
+        
+    } catch (err: any) {
+        console.error("Error processing graph edges:", err);
+        lastError.value = err.toString();
+    }
+
+    // 3. Filter Nodes based on Edges (Hide isolated nodes if configured, or just update sizing)
+    // Filter out nodes with 0 degree if strict filtering is needed
+    // For now, let's keep all type-filtered nodes but update their size
+    const processedNodeIds = new Set<string>();
+    
+    const visNodes = activeNodes.map(node => {
+        // Defensive check: Skip if ID already processed
+        if (processedNodeIds.has(node.name)) {
+            console.warn(`[GraphView] Duplicate node ID skipped: ${node.name}`);
+            return null;
+        }
+        
+        const degree = nodeWeights[node.name] || 0;
+        
+        // In Focus mode, hide nodes with no interaction in this chapter
+        if (graphMode.value === 'focus' && degree === 0) return null;
+        
+        // In Cumulative mode, always hide isolated nodes to prevent layout explosion
+        if (graphMode.value === 'cumulative' && degree === 0) return null;
+
+        processedNodeIds.add(node.name);
+
+        return {
+            id: node.name,
+            label: node.name,
+            value: Math.log(degree + 1) * 10 + 5, // Log scale size
+            color: typeColors[node.type] || typeColors['Other'],
+            shape: typeShapes[node.type] || typeShapes['Other'],
+            title: node.description // Tooltip
+        };
+    }).filter(n => n !== null);
+
+    // Update DataSets
+    nodesDataSet.clear();
+    nodesDataSet.add(visNodes);
+    
+    edgesDataSet.clear();
+    edgesDataSet.add(activeEdges);
+
+    // Update Physics based on Mode
+    if (network.value) {
+        if (graphMode.value === 'focus') {
+             network.value.setOptions({
+                physics: {
+                    barnesHut: {
+                        gravitationalConstant: -20000, // Stronger repulsion
+                        springLength: 200 // Longer springs
+                    }
+                }
+            });
+        } else {
+             network.value.setOptions({
+                physics: {
+                    barnesHut: {
+                        gravitationalConstant: -10000,
+                        springLength: 120
+                    }
+                }
+            });
+        }
+    }
+};
+
+// --- Interactions ---
+
+const toggleType = (type: string) => {
+    if (selectedTypes.value.includes(type)) {
+        selectedTypes.value = selectedTypes.value.filter(t => t !== type);
+    } else {
+        selectedTypes.value = [...selectedTypes.value, type]; // Immutable update
+    }
+};
+
+const prevChapter = () => {
+    if (timelineIndex.value > 0) timelineIndex.value--;
+};
+
+const nextChapter = () => {
+    if (timelineIndex.value < maxTimelineIndex.value) timelineIndex.value++;
+};
+
+// Watchers
+watch([() => store.graphData, selectedTypes, minWeight, timelineIndex, graphMode], () => {
+    updateGraphData();
+}, { deep: true });
+
+// Lifecycle
+onMounted(async () => {
+    await store.loadGraphData();
+    initGraph();
+    
+    // Keyboard shortcuts
+    window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown);
+});
+
+const handleKeydown = (e: KeyboardEvent) => {
+    if (store.viewMode !== 'graph') return;
+    
+    if (e.key === 'ArrowLeft') prevChapter();
+    if (e.key === 'ArrowRight') nextChapter();
+};
+
+// Computed Display Description
+const displayDescription = computed(() => {
+    if (!selectedEntity.value) return '';
+    
+    // Find history entry for current chapter or latest before it
+    if (!selectedEntity.value.history) return selectedEntity.value.description;
+
+    const currentChapterId = store.chapters[timelineIndex.value]?.id;
+    if (!currentChapterId) return selectedEntity.value.description;
+
+    if (graphMode.value === 'focus') {
+        // Exact match
+        const entry = selectedEntity.value.history.find(h => h.chapter_id === currentChapterId);
+        return entry ? entry.content : "未在本章出现";
+    } else {
+        // Latest up to current
+        // Assuming history is sorted? Or we need to sort.
+        // Let's assume history is chronological.
+        // We find the last entry where chapter index <= timelineIndex
+        // This requires chapter index mapping.
+        // Simplified: Just show the main description which is usually the aggregated one.
+        return selectedEntity.value.description;
+    }
+});
+
+</script>
+
+<template>
+  <div class="h-full flex relative overflow-hidden">
+    <!-- Main Canvas -->
+    <div ref="container" class="flex-1 bg-gray-50 outline-none"></div>
+
+    <!-- Controls Overlay -->
+    <div class="absolute top-4 left-4 bg-white/90 backdrop-blur p-4 rounded-xl shadow-lg border border-gray-200 w-64 z-10 flex flex-col gap-4">
+        <!-- Mode Switch -->
+        <div class="flex bg-gray-100 p-1 rounded-lg">
+            <button 
+                @click="graphMode = 'cumulative'"
+                class="flex-1 py-1 text-xs font-bold rounded-md transition-all"
+                :class="graphMode === 'cumulative' ? 'bg-white shadow text-indigo-600' : 'text-gray-500'"
+            >
+                全局累积
+            </button>
+            <button 
+                @click="graphMode = 'focus'"
+                class="flex-1 py-1 text-xs font-bold rounded-md transition-all"
+                :class="graphMode === 'focus' ? 'bg-white shadow text-indigo-600' : 'text-gray-500'"
+            >
+                单章专注
+            </button>
+        </div>
+
+        <!-- Timeline Control -->
+        <div class="space-y-2">
+            <div class="flex justify-between text-xs font-bold text-gray-500 uppercase">
+                <span>Timeline</span>
+                <!-- Hide ID, just show chapter index/progress -->
+                <span>{{ timelineIndex + 1 }} / {{ maxTimelineIndex + 1 }}</span>
+            </div>
+            
+            <!-- Slider -->
+
+            <input 
+                type="range" 
+                min="0" 
+                :max="maxTimelineIndex" 
+                v-model.number="timelineIndex"
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+            >
+
+            <!-- Navigation Buttons -->
+            <div class="flex gap-2">
+                <button @click="prevChapter" :disabled="timelineIndex <= 0" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded px-2 py-1 text-xs disabled:opacity-50">
+                    &larr; Prev
+                </button>
+                <button @click="nextChapter" :disabled="timelineIndex >= maxTimelineIndex" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded px-2 py-1 text-xs disabled:opacity-50">
+                    Next &rarr;
+                </button>
+            </div>
+            
+            <!-- Chapter Jump -->
+            <select v-model.number="timelineIndex" class="w-full text-xs border-gray-200 rounded bg-gray-50">
+                <option v-for="(chap, idx) in store.chapters" :key="chap.id" :value="idx">
+                    {{ idx + 1 }}: {{ chap.title }}
+                </option>
+            </select>
+        </div>
+
+        <hr class="border-gray-100">
+
+        <!-- Type Filters -->
+        <div class="space-y-2">
+            <span class="text-xs font-bold text-gray-500 uppercase">Filters & Legend</span>
+            <div class="flex flex-col gap-1.5">
+                <button 
+                    v-for="type in availableTypes" 
+                    :key="type"
+                    @click="toggleType(type)"
+                    class="px-2 py-1.5 rounded-lg text-xs font-medium transition-all border flex items-center justify-between group"
+                    :class="selectedTypes.includes(type) 
+                        ? 'bg-white border-gray-200 shadow-sm hover:border-indigo-300' 
+                        : 'bg-gray-50 text-gray-400 border-transparent hover:bg-gray-100'"
+                >
+                    <div class="flex items-center gap-2">
+                         <!-- Legend Icon -->
+                        <div 
+                            class="w-3 h-3 flex items-center justify-center"
+                            :style="{ color: typeColors[type] }"
+                        >
+                            <!-- Dot -->
+                            <div v-if="typeShapes[type] === 'dot'" class="w-2.5 h-2.5 rounded-full bg-current"></div>
+                            <!-- Square -->
+                            <div v-else-if="typeShapes[type] === 'square'" class="w-2.5 h-2.5 bg-current rounded-[1px]"></div>
+                            <!-- Triangle (CSS) -->
+                            <div v-else-if="typeShapes[type] === 'triangle'" class="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[9px] border-l-transparent border-r-transparent border-b-current mb-0.5"></div>
+                             <!-- Diamond (CSS) -->
+                            <div v-else-if="typeShapes[type] === 'diamond'" class="w-2 h-2 bg-current rotate-45"></div>
+                            <!-- Star (SVG) -->
+                            <svg v-else-if="typeShapes[type] === 'star'" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                             <!-- Hexagon (SVG) -->
+                            <svg v-else-if="typeShapes[type] === 'hexagon'" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3">
+                                <path d="M12 2l8.66 5v10L12 22l-8.66-5V7L12 2z"/>
+                            </svg>
+                        </div>
+                        <span :class="selectedTypes.includes(type) ? 'text-gray-700' : 'text-gray-400'">
+                            {{ typeLabels[type] || type }}
+                        </span>
+                    </div>
+                    
+                    <!-- Checkmark -->
+                    <div class="w-4 h-4 rounded-full border flex items-center justify-center transition-colors"
+                        :class="selectedTypes.includes(type) ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-gray-300'"
+                    >
+                        <svg v-if="selectedTypes.includes(type)" xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Weight Slider -->
+        <div class="space-y-1" v-if="graphMode === 'cumulative'">
+            <div class="flex justify-between text-xs text-gray-400">
+                <span>Min Interactions</span>
+                <span>{{ minWeight }}</span>
+            </div>
+            <input 
+                type="range" 
+                min="1" 
+                max="10" 
+                v-model.number="minWeight"
+                class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-400"
+            >
+        </div>
+        
+        <!-- Stats -->
+        <div class="text-[10px] text-gray-400 font-mono text-center pt-2">
+            {{ stats.nodes }} Nodes · {{ stats.edges }} Edges
+        </div>
+
+        <!-- Debug Info (Temporary) -->
+        <div class="text-[10px] text-red-500 font-mono bg-red-50 p-2 rounded border border-red-200 opacity-70 hover:opacity-100">
+            <div>Idx: {{ timelineIndex }} / {{ maxTimelineIndex }}</div>
+            <div>ChID: {{ store.chapters[timelineIndex]?.id }}</div>
+            <div>Mode: {{ graphMode }}</div>
+            <div>MapSize: {{ debugMapSize }}</div>
+            <div v-if="timelineIndex >= 11">Debug: Ch 12+ Active</div>
+        </div>
+    </div>
+
+    <!-- Entity Details Panel -->
+    <div v-if="selectedEntity" class="absolute top-4 right-4 w-80 bg-white/95 backdrop-blur shadow-xl rounded-xl border border-gray-100 p-6 z-20 transition-all animate-in slide-in-from-right-4">
+        <div class="flex items-start justify-between mb-4">
+             <div 
+                class="w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold shadow-sm"
+                :style="{ backgroundColor: typeColors[selectedEntity.type] + '20', color: typeColors[selectedEntity.type] }"
+            >
+                {{ selectedEntity.name[0] }}
+            </div>
+            <button @click="selectedEntity = null" class="text-gray-400 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
+        
+        <h2 class="text-xl font-bold text-gray-900 mb-1">{{ selectedEntity.name }}</h2>
+        <span class="inline-block px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider mb-4" :style="{ backgroundColor: typeColors[selectedEntity.type] + '20', color: typeColors[selectedEntity.type] }">
+            {{ selectedEntity.type }}
+        </span>
+
+        <p class="text-sm text-gray-600 leading-relaxed mb-6 max-h-60 overflow-y-auto custom-scrollbar">
+            {{ displayDescription }}
+        </p>
+        
+        <div class="space-y-2">
+             <button 
+                @click="openChronicle"
+                class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                查看编年史
+            </button>
+        </div>
+    </div>
+
+    <!-- Relationship Selection Panel -->
+    <div v-if="selectedNodes.length === 2" class="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur shadow-xl rounded-xl p-4 border border-gray-200 z-30 flex items-center gap-4 transition-all animate-in fade-in slide-in-from-bottom-4">
+        <div class="flex items-center gap-2">
+            <div class="flex -space-x-2">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center text-xs font-bold text-indigo-800">
+                    {{ selectedNodes[0].name[0] }}
+                </div>
+                <div class="w-8 h-8 rounded-full bg-pink-100 border-2 border-white flex items-center justify-center text-xs font-bold text-pink-800">
+                    {{ selectedNodes[1].name[0] }}
+                </div>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-xs font-medium text-gray-500">Compare</span>
+                <span class="text-sm font-bold text-gray-900 leading-none">
+                    {{ selectedNodes[0].name }} & {{ selectedNodes[1].name }}
+                </span>
+            </div>
+        </div>
+        
+        <div class="h-8 w-px bg-gray-200 mx-2"></div>
+        
+        <button 
+            @click="openRelationshipDrawer"
+            class="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors flex items-center gap-2"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            View Arc
+        </button>
+        
+        <button 
+            @click="handleAnalyzeRelationship"
+            class="py-2 px-4 bg-white hover:bg-gray-50 text-indigo-600 border border-indigo-200 hover:border-indigo-300 text-sm font-medium rounded-lg shadow-sm transition-colors flex items-center gap-2"
+            title="AI Analyze"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+            Analyze
+        </button>
+
+        <!-- Clear Cache Button -->
+        <button 
+            @click="handleClearCache"
+            class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200"
+            title="Clear Analysis Cache"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        </button>
+        
+        <button 
+            @click="selectedNodes = []; network?.unselectAll()"
+            class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Relationship Drawer -->
+    <RelationshipArcDrawer 
+        v-if="selectedNodes.length === 2"
+        :is-open="isRelationshipDrawerOpen"
+        :source-entity="selectedNodes[0]"
+        :target-entity="selectedNodes[1]"
+        :events="relationshipEvents"
+        :is-loading="isRelationshipLoading"
+        @close="isRelationshipDrawerOpen = false"
+        @jump-to-chapter="handleChronicleJump"
+    />
+
+    <!-- Chronicle Drawer -->
+    <EntityChronicleDrawer 
+        :is-open="isChronicleOpen"
+        :entity-name="selectedEntity?.name || ''"
+        :events="chronicleEvents"
+        :is-loading="isChronicleLoading"
+        @close="isChronicleOpen = false"
+        @jump-to-chapter="handleChronicleJump"
+    />
+  </div>
+</template>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+</style>
+
+
+==================== FILE: frontend\src\components\JobStatusWidget.vue ====================
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useJobStore } from '@/stores/jobStore';
+
+const jobStore = useJobStore();
+const job = computed(() => jobStore.activeJob);
+
+// Don't show if no job
+const isVisible = computed(() => !!job.value);
+
+const statusColor = computed(() => {
+    if (!job.value) return 'bg-gray-500';
+    switch (job.value.status) {
+        case 'pending': return 'bg-yellow-400';
+        case 'processing': return 'bg-indigo-500';
+        case 'completed': return 'bg-emerald-500';
+        case 'failed': return 'bg-rose-500';
+        default: return 'bg-gray-500';
+    }
+});
+
+const progressWidth = computed(() => {
+    return `${job.value?.progress || 0}%`;
+});
+
+function closeWidget() {
+    jobStore.clearActiveJob();
+}
+</script>
+
+<template>
+    <div 
+        v-if="isVisible"
+        class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2"
+    >
+        <!-- The Bubble Card -->
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-80 transition-all duration-300 transform hover:scale-[1.02]">
+            
+            <!-- Header -->
+            <div class="px-4 py-3 bg-gray-50/50 flex items-center justify-between border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <span class="relative flex h-3 w-3">
+                        <span 
+                            v-if="job?.status === 'processing'"
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                            :class="statusColor"
+                        ></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3" :class="statusColor"></span>
+                    </span>
+                    <span class="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        {{ job?.status === 'processing' ? '正在分析 (ANALYZING)' : 
+                           job?.status === 'completed' ? '分析完成 (READY)' :
+                           job?.status === 'failed' ? '分析失败 (FAILED)' : '排队中 (PENDING)' }}
+                    </span>
+                </div>
+                
+                <button @click="closeWidget" class="text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Body -->
+            <div class="p-4">
+                <p class="text-sm text-gray-600 font-medium mb-1 truncate">{{ job?.message }}</p>
+                
+                <!-- Progress Bar -->
+                <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div 
+                        class="h-full transition-all duration-500 ease-out"
+                        :class="statusColor"
+                        :style="{ width: progressWidth }"
+                    ></div>
+                </div>
+                
+                <div class="flex justify-between mt-2 text-[10px] text-gray-400 font-mono">
+                    <span>{{ job?.progress }}%</span>
+                    <span>{{ job?.type }}</span>
+                </div>
+
+                <!-- Result Action -->
+                <div v-if="job?.status === 'completed'" class="mt-4">
+                    <button 
+                        class="w-full py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg text-xs font-bold transition-colors border border-emerald-100 flex items-center justify-center gap-2"
+                        @click="$emit('view-result', job.result)"
+                    >
+                        <span>查看结果 (VIEW RESULT)</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Error Action -->
+                <div v-if="job?.status === 'failed'" class="mt-4">
+                     <p class="text-xs text-rose-500 bg-rose-50 p-2 rounded mb-2">{{ job.error }}</p>
+                     <button 
+                        class="w-full py-2 bg-gray-50 text-gray-600 hover:bg-gray-100 rounded-lg text-xs font-bold transition-colors border border-gray-200"
+                        @click="closeWidget"
+                    >
+                        关闭 (CLOSE)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+
+==================== FILE: frontend\src\components\OverviewGrid.vue ====================
+
+<script setup lang="ts">
+import { useNovelStore } from '@/stores/novel';
+import { computed, watch, nextTick } from 'vue';
+
+const store = useNovelStore();
+
+const chapters = computed(() => store.chapters);
+
+// Auto-Scroll Logic
+watch(() => store.selectedChapterId, (newId) => {
+  if (!newId || store.viewMode !== 'overview') return;
+
+  nextTick(() => {
+    const el = document.getElementById(`card-${newId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Highlight effect
+      el.classList.add('ring-4', 'ring-indigo-300');
+      setTimeout(() => el.classList.remove('ring-4', 'ring-indigo-300'), 1500);
+    } else {
+        console.warn('Card not found', newId);
+    }
+  });
+});
+
+const enterIntensiveReading = async (chapterId: string) => {
+  store.selectedChapterId = chapterId;
+  await store.loadChapterDetail(chapterId);
+  store.viewMode = 'focus';
+};
+</script>
+
+<template>
+  <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-24">
+    <div 
+      v-for="chap in chapters" 
+      :key="chap.id"
+      :id="`card-${chap.id}`"
+      @click="enterIntensiveReading(chap.id)"
+      class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:border-indigo-400 hover:shadow-lg cursor-pointer transition-all duration-300 group flex flex-col h-full"
+      :class="{'ring-2 ring-indigo-500 bg-indigo-50/30': store.selectedChapterId === chap.id}"
+    >
+      <div class="flex justify-between items-start mb-3">
+        <h3 class="font-bold text-gray-800 text-lg group-hover:text-indigo-600 transition-colors line-clamp-1" :title="chap.title">
+          {{ chap.title }}
+        </h3>
+        <!-- ID display hidden for cleaner UI -->
+        <!-- <span class="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded-full whitespace-nowrap">
+          {{ chap.id }}
+        </span> -->
+      </div>
+      
+      <div class="flex-1 mb-4">
+        <p class="text-sm text-gray-600 leading-relaxed line-clamp-4" v-if="chap.headline">
+          {{ chap.headline }}
+        </p>
+        <p class="text-sm text-gray-400 italic" v-else>
+          (暂无核心总结)
+        </p>
+      </div>
+
+      <div class="mt-auto pt-4 border-t border-gray-50 flex justify-end">
+        <button 
+          @click.stop="enterIntensiveReading(chap.id)"
+          class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 px-4 py-2 rounded-full transition-colors font-semibold flex items-center gap-1 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 duration-300"
+        >
+          开始精读 &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+
+==================== FILE: frontend\src\components\ReaderView.vue ====================
+
+<script setup lang="ts">
+import { useNovelStore } from '@/stores/novel';
+import { computed, ref, nextTick, watch } from 'vue';
+
+const store = useNovelStore();
+const chapter = computed(() => store.currentChapter);
+const activeSentenceIndex = ref<number | null>(null);
+const contentContainer = ref<HTMLElement | null>(null);
+
+const backToOverview = () => {
+  store.viewMode = 'overview';
+};
+
+// Compute text segments for highlighting
+const textSegments = computed(() => {
+    if (!chapter.value?.content) return [];
+    
+    const content = chapter.value.content;
+    const segments: { text: string; isHighlight: boolean; id?: string }[] = [];
+    
+    // If no active sentence or no spans, return full content as one segment
+    if (activeSentenceIndex.value === null) {
+        return [{ text: content, isHighlight: false }];
+    }
+
+    const sentence = chapter.value.summary_sentences[activeSentenceIndex.value];
+    if (!sentence || !sentence.source_spans || sentence.source_spans.length === 0) {
+        return [{ text: content, isHighlight: false }];
+    }
+
+    // Sort spans by start_index
+    const spans = [...sentence.source_spans].sort((a, b) => a.start_index - b.start_index);
+    
+    let lastIndex = 0;
+    
+    spans.forEach((span, idx) => {
+        // Add text before highlight
+        if (span.start_index > lastIndex) {
+            segments.push({
+                text: content.slice(lastIndex, span.start_index),
+                isHighlight: false
+            });
+        }
+        
+        // Add highlighted text
+        // Ensure we don't go out of bounds
+        const end = Math.min(span.end_index, content.length);
+        if (end > span.start_index) {
+            segments.push({
+                text: content.slice(span.start_index, end),
+                isHighlight: true,
+                id: idx === 0 ? 'highlight-target' : undefined // Mark first highlight for scrolling
+            });
+        }
+        
+        lastIndex = end;
+    });
+    
+    // Add remaining text
+    if (lastIndex < content.length) {
+        segments.push({
+            text: content.slice(lastIndex),
+            isHighlight: false
+        });
+    }
+    
+    return segments;
+});
+
+const handleSelect = (idx: number) => {
+    // Toggle if clicking same item
+    if (activeSentenceIndex.value === idx) {
+        activeSentenceIndex.value = null;
+    } else {
+        activeSentenceIndex.value = idx;
+    }
+};
+
+// Auto-scroll when active sentence changes
+watch(activeSentenceIndex, async (newVal) => {
+    if (newVal !== null) {
+        await nextTick();
+        const target = contentContainer.value?.querySelector('#highlight-target');
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+});
+</script>
+
+<template>
+  <div class="h-full w-full flex flex-col bg-white overflow-hidden" v-if="chapter">
+    <!-- Header -->
+    <div class="flex-none border-b border-gray-200 px-6 py-4 flex justify-between items-center bg-white z-10">
+        <div class="flex items-center gap-4">
+            <button 
+              @click="backToOverview"
+              class="text-sm text-gray-500 hover:text-indigo-600 flex items-center gap-1 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              返回概览
+            </button>
+            <h1 class="text-xl font-bold text-gray-900 truncate max-w-md" :title="chapter.title">{{ chapter.title }}</h1>
+        </div>
+        <!-- <div class="text-xs font-mono text-gray-400">ID: {{ chapter.id }}</div> -->
+    </div>
+
+
+    <!-- Split View -->
+    <div class="flex-1 flex overflow-hidden">
+        <!-- Left: Summary List -->
+        <div class="w-1/3 min-w-[320px] max-w-md border-r border-gray-200 bg-gray-50 overflow-y-auto custom-scrollbar">
+            <div class="p-6 space-y-4">
+                <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 px-2">智能总结</h2>
+                
+                <div 
+                  v-for="(sent, idx) in chapter.summary_sentences" 
+                  :key="idx"
+                  @click="handleSelect(idx)"
+                  class="p-4 rounded-xl cursor-pointer transition-all duration-200 border border-transparent"
+                  :class="activeSentenceIndex === idx 
+                    ? 'bg-white border-indigo-200 shadow-md ring-1 ring-indigo-500/20' 
+                    : 'bg-white/50 hover:bg-white hover:border-gray-200 hover:shadow-sm'"
+                >
+                  <div class="flex gap-3">
+                      <span 
+                        class="flex-none w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                        :class="activeSentenceIndex === idx ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-200 text-gray-500'"
+                      >
+                        {{ idx + 1 }}
+                      </span>
+                      <p class="text-sm text-gray-700 leading-relaxed">{{ sent.summary_text }}</p>
+                  </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Content -->
+        <div ref="contentContainer" class="flex-1 overflow-y-auto bg-white p-8 md:p-12 custom-scrollbar scroll-smooth">
+            <div class="max-w-3xl mx-auto prose prose-lg text-gray-800 leading-loose">
+                <!-- Use span segments for rendering to support highlighting -->
+                <template v-for="(seg, i) in textSegments" :key="i">
+                    <span 
+                        v-if="seg.isHighlight"
+                        :id="seg.id"
+                        class="bg-yellow-200 text-gray-900 px-0.5 rounded transition-colors duration-500"
+                    >{{ seg.text }}</span>
+                    <span v-else class="whitespace-pre-wrap">{{ seg.text }}</span>
+                </template>
+                
+                <div v-if="!chapter.content" class="text-gray-400 italic text-center py-20">
+                    (原文内容未加载)
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+</style>
+
+
+==================== FILE: frontend\src\components\RelationshipArcDrawer.vue ====================
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import type { RelationshipTimelineEvent, Entity, NarrativeState } from '@/types';
+
+const props = defineProps<{
+  isOpen: boolean;
+  sourceEntity: Entity | null;
+  targetEntity: Entity | null;
+  events: RelationshipTimelineEvent[];
+  isLoading: boolean;
+}>();
+
+const emit = defineEmits<{
+  (e: 'close'): void;
+  (e: 'jump-to-chapter', chapterId: string): void;
+}>();
+
+// --- 1. State Processing & Localization ---
+
+const sortedEvents = computed(() => {
+    // Filter out events with no interactions unless they have narrative state
+    // Sort by chapter index
+    return [...props.events]
+        .filter(e => (e.interactions && e.interactions.length > 0) || e.narrative_state)
+        .sort((a, b) => a.chapter_index - b.chapter_index);
+});
+
+const currentState = computed<NarrativeState | undefined>(() => {
+    // Find the latest narrative state from sorted events
+    const events = sortedEvents.value;
+    for (let i = events.length - 1; i >= 0; i--) {
+        if (events[i].narrative_state) {
+            return events[i].narrative_state;
+        }
+    }
+    return undefined;
+});
+
+// --- 2. Timeline Compression Logic ---
+
+interface TimelineBlock {
+    type: 'event' | 'gap';
+    data?: RelationshipTimelineEvent;
+    gapStart?: number;
+    gapEnd?: number;
+}
+
+const compressedTimeline = computed<TimelineBlock[]>(() => {
+    if (!sortedEvents.value.length) return [];
+    
+    const blocks: TimelineBlock[] = [];
+    let lastChapterIdx = -1;
+    
+    for (const event of sortedEvents.value) {
+        const currentIdx = event.chapter_index;
+        
+        // Check for gap
+        if (lastChapterIdx !== -1 && currentIdx > lastChapterIdx + 1) {
+            blocks.push({
+                type: 'gap',
+                gapStart: lastChapterIdx + 1,
+                gapEnd: currentIdx - 1
+            });
+        }
+        
+        blocks.push({
+            type: 'event',
+            data: event
+        });
+        
+        lastChapterIdx = currentIdx;
+    }
+    
+    return blocks;
+});
+
+// --- 3. UI Helpers ---
+
+const typeStyles: Record<string, { bg: string, text: string, border: string }> = {
+  'Person': { bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-200' },
+  'Location': { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-200' },
+  'Organization': { bg: 'bg-purple-50', text: 'text-purple-800', border: 'border-purple-200' },
+  'Event': { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-200' },
+  'Object': { bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200' },
+  'Concept': { bg: 'bg-pink-50', text: 'text-pink-800', border: 'border-pink-200' },
+  'Other': { bg: 'bg-gray-50', text: 'text-gray-800', border: 'border-gray-200' }
+};
+
+const getStyle = (type: string) => typeStyles[type] || typeStyles['Other'];
+
+</script>
+
+<template>
+  <!-- Drawer Container -->
+  <div 
+    class="fixed inset-y-0 right-0 w-[640px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 flex flex-col border-l border-gray-200"
+    :class="isOpen ? 'translate-x-0' : 'translate-x-full'"
+  >
+    <!-- Header with 2 Entities -->
+    <div class="p-6 border-b border-gray-100 flex-none bg-white/80 backdrop-blur z-10 relative">
+        <!-- Close Button -->
+        <button 
+          @click="emit('close')"
+          class="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors z-20"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div class="text-xs font-mono text-gray-400 mb-6 uppercase tracking-wider">关系演化 (RELATIONSHIP ARC)</div>
+
+        <div class="flex items-center justify-between gap-4">
+            <!-- Source Entity (Left) -->
+            <div v-if="sourceEntity" class="flex flex-col items-center flex-1 group cursor-default">
+                 <div 
+                    class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-sm mb-3 transition-transform group-hover:scale-105"
+                    :class="getStyle(sourceEntity.type).bg + ' ' + getStyle(sourceEntity.type).text"
+                >
+                    {{ sourceEntity.name[0] }}
+                </div>
+                <span class="font-bold text-base text-center leading-tight text-gray-900">{{ sourceEntity.name }}</span>
+                <span class="text-[10px] text-gray-400 mt-1 uppercase">{{ sourceEntity.type }}</span>
+            </div>
+
+            <!-- VS / Connection Icon -->
+            <div class="flex flex-col items-center justify-center w-12 text-gray-300">
+                <div class="w-full h-px bg-gray-200 mb-1"></div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                <div class="w-full h-px bg-gray-200 mt-1"></div>
+            </div>
+
+            <!-- Target Entity (Right) -->
+            <div v-if="targetEntity" class="flex flex-col items-center flex-1 group cursor-default">
+                 <div 
+                    class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-sm mb-3 transition-transform group-hover:scale-105"
+                    :class="getStyle(targetEntity.type).bg + ' ' + getStyle(targetEntity.type).text"
+                >
+                    {{ targetEntity.name[0] }}
+                </div>
+                <span class="font-bold text-base text-center leading-tight text-gray-900">{{ targetEntity.name }}</span>
+                <span class="text-[10px] text-gray-400 mt-1 uppercase">{{ targetEntity.type }}</span>
+            </div>
+        </div>
+        
+        <!-- Narrative State Insights (New) -->
+        <div v-if="currentState" class="mt-6 pt-4 border-t border-gray-100">
+             <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">最新关系状态 (LATEST STATE)</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-50 text-indigo-600 border border-indigo-100">
+                    {{ currentState.dominant_archetype }}
+                </span>
+             </div>
+             
+             <!-- Metrics -->
+             <div class="grid grid-cols-3 gap-2 mb-3">
+                <div class="bg-gray-50 rounded-lg p-2 text-center">
+                    <div class="text-[10px] text-gray-400 uppercase">信任 (Trust)</div>
+                    <div class="text-sm font-bold text-gray-700">{{ currentState.trust_level }}%</div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-2 text-center">
+                    <div class="text-[10px] text-gray-400 uppercase">浪漫 (Romance)</div>
+                    <div class="text-sm font-bold text-gray-700">{{ currentState.romance_level }}%</div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-2 text-center">
+                    <div class="text-[10px] text-gray-400 uppercase">冲突 (Conflict)</div>
+                    <div class="text-sm font-bold text-gray-700">{{ currentState.conflict_level }}%</div>
+                </div>
+             </div>
+             
+             <p class="text-xs text-gray-500 italic leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+                "{{ currentState.summary_so_far }}"
+             </p>
+        </div>
+    </div>
+
+    <!-- Timeline Body -->
+    <div class="flex-1 overflow-y-auto custom-scrollbar bg-gray-50/50 p-6 relative">
+         <!-- Loading State -->
+        <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+
+        <div v-if="events.length > 0" class="space-y-0">
+            <template v-for="(block, index) in compressedTimeline" :key="index">
+                
+                <!-- GAP BLOCK -->
+                <div v-if="block.type === 'gap'" class="flex justify-center py-6 relative">
+                     <!-- Dotted Line -->
+                     <div class="absolute left-1/2 top-0 bottom-0 w-px border-l-2 border-dotted border-gray-300 -ml-px"></div>
+                     
+                     <div class="relative z-10 bg-gray-100 text-gray-400 text-[10px] font-medium px-3 py-1 rounded-full border border-gray-200 shadow-sm">
+                        第 {{ block.gapStart }} 章 - 第 {{ block.gapEnd }} 章 无互动
+                     </div>
+                </div>
+
+                <!-- EVENT BLOCK -->
+                <div v-else-if="block.type === 'event' && block.data" class="relative mb-8 pt-4">
+                     <!-- Chapter Header (Sticky) -->
+                     <div class="sticky top-0 z-20 flex justify-center mb-6">
+                        <div 
+                            class="bg-gray-50/95 backdrop-blur px-4 py-1.5 rounded-full border border-gray-200 shadow-sm flex items-center gap-2 cursor-pointer hover:bg-white hover:border-indigo-300 hover:shadow-md transition-all group"
+                            @click="emit('jump-to-chapter', block.data.chapter_id)"
+                        >
+                            <span class="w-2 h-2 rounded-full bg-indigo-500 group-hover:scale-110 transition-transform"></span>
+                            <span class="text-xs font-bold text-gray-600 group-hover:text-indigo-600">{{ block.data.chapter_title }}</span>
+                        </div>
+                     </div>
+
+                     <!-- Timeline Grid -->
+                     <div class="grid grid-cols-[1fr_2rem_1fr] gap-x-0 relative">
+                        <!-- Central Line -->
+                        <div class="absolute left-1/2 top-0 bottom-0 w-px bg-gray-200 -ml-px"></div>
+
+                        <template v-for="(interaction, idx) in block.data.interactions" :key="idx">
+                            <!-- Left Side (Forward: A -> B) -->
+                            <div class="py-2 pr-4 flex justify-end">
+                                <div v-if="interaction.direction === 'forward'" class="relative group max-w-[90%] w-full flex justify-end">
+                                    <!-- Card Content -->
+                                    <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm hover:shadow-md transition-all text-right relative w-full">
+                                        <!-- Connector Dot -->
+                                        <div class="absolute top-1/2 -right-[1.35rem] w-2.5 h-2.5 rounded-full bg-indigo-500 border-2 border-white z-10 shadow-sm"></div>
+                                        <!-- Connector Line -->
+                                        <div class="absolute top-1/2 -right-4 w-4 h-px bg-indigo-200"></div>
+
+                                        <div class="flex items-center justify-end gap-2 mb-1">
+                                             <div class="text-[10px] font-medium text-indigo-400 bg-indigo-50 px-1.5 py-0.5 rounded truncate max-w-[120px]">
+                                                {{ sourceEntity?.name }} → {{ targetEntity?.name }}
+                                            </div>
+                                            <div class="text-xs font-bold text-indigo-600 uppercase tracking-wider whitespace-nowrap">{{ interaction.relation }}</div>
+                                        </div>
+                                        <p class="text-xs text-gray-700 leading-relaxed text-justify" style="text-align-last: right;">{{ interaction.description }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Center Axis (Empty for spacing) -->
+                            <div></div>
+
+                            <!-- Right Side (Backward: B -> A) -->
+                            <div class="py-2 pl-4 flex justify-start">
+                                <div v-if="interaction.direction === 'backward'" class="relative group max-w-[90%] w-full flex justify-start">
+                                    <!-- Card Content -->
+                                    <div class="bg-white p-3 rounded-xl border border-rose-100 shadow-sm hover:shadow-md transition-all text-left relative w-full">
+                                         <!-- Connector Dot -->
+                                        <div class="absolute top-1/2 -left-[1.35rem] w-2.5 h-2.5 rounded-full bg-rose-500 border-2 border-white z-10 shadow-sm"></div>
+                                        <!-- Connector Line -->
+                                        <div class="absolute top-1/2 -left-4 w-4 h-px bg-rose-200"></div>
+
+                                        <div class="flex items-center justify-start gap-2 mb-1">
+                                            <div class="text-xs font-bold text-rose-600 uppercase tracking-wider whitespace-nowrap">{{ interaction.relation }}</div>
+                                            <div class="text-[10px] font-medium text-rose-400 bg-rose-50 px-1.5 py-0.5 rounded truncate max-w-[120px]">
+                                                {{ targetEntity?.name }} → {{ sourceEntity?.name }}
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-gray-700 leading-relaxed text-justify">{{ interaction.description }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                     </div>
+                </div>
+
+            </template>
+            
+            <div class="text-center pt-8 pb-4">
+                <span class="text-xs text-gray-400 font-medium bg-gray-100 px-3 py-1 rounded-full">时间轴结束 (End of Timeline)</span>
+            </div>
+        </div>
+        
+        <div v-else-if="!isLoading" class="flex flex-col items-center justify-center h-64 text-gray-400">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+             </svg>
+             <p>未发现互动记录 (No interactions found)</p>
+        </div>
+    </div>
+  </div>
+
+  <!-- Overlay -->
+  <div 
+    v-if="isOpen"
+    class="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity"
+    @click="emit('close')"
+  ></div>
+</template>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+</style>
+
+
+==================== FILE: frontend\src\router\index.ts ====================
+
+import { createRouter, createWebHistory } from 'vue-router'
+import Dashboard from '@/views/Dashboard.vue'
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [
+    {
+      path: '/',
+      name: 'home',
+      component: Dashboard
+    },
+  ]
+})
+
+export default router
+
+
+==================== FILE: frontend\src\stores\jobStore.ts ====================
+
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
+import axios from 'axios';
+
+// --- Interfaces ---
+export interface JobStatus {
+  job_id: string;
+  type: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  progress: number;
+  message: string;
+  result?: any;
+  error?: string;
+  created_at: number;
+  updated_at: number;
+}
+
+export interface RelationshipJobRequest {
+  novel_name: string;
+  file_hash: string;
+  source: string;
+  target: string;
+  force?: boolean;
+}
+
+export const useJobStore = defineStore('jobs', () => {
+  // State
+  const activeJobId = ref<string | null>(null);
+  const jobs = ref<Record<string, JobStatus>>({});
+  const isPolling = ref(false);
+  const pollingInterval = ref<number | null>(null);
+
+  // Getters
+  const activeJob = computed(() => activeJobId.value ? jobs.value[activeJobId.value] : null);
+  const allJobs = computed(() => Object.values(jobs.value).sort((a, b) => b.created_at - a.created_at));
+
+  // Actions
+  async function submitRelationshipJob(request: RelationshipJobRequest) {
+    if (activeJobId.value && jobs.value[activeJobId.value].status === 'processing') {
+      console.warn("Already running a job.");
+      // Optionally allow queueing, but for now just warn
+    }
+
+    try {
+      const response = await axios.post('http://localhost:8000/api/jobs/relationship', request);
+      const jobId = response.data.job_id;
+      
+      // Initialize job placeholder
+      jobs.value[jobId] = {
+        job_id: jobId,
+        type: 'relationship_analysis',
+        status: 'pending',
+        progress: 0,
+        message: 'Job submitted',
+        created_at: Date.now() / 1000,
+        updated_at: Date.now() / 1000
+      };
+      
+      activeJobId.value = jobId;
+      startPolling();
+      return jobId;
+    } catch (error) {
+      console.error("Failed to submit job:", error);
+      throw error;
+    }
+  }
+
+  async function fetchJobStatus(jobId: string) {
+    try {
+      const response = await axios.get<JobStatus>(`http://localhost:8000/api/jobs/${jobId}`);
+      const job = response.data;
+      jobs.value[jobId] = job;
+      
+      // Update active job status logic
+      if (job.status === 'completed' || job.status === 'failed') {
+          // Keep it active so user can see result, but stop polling if no other jobs?
+          // Actually we only poll the active one for now.
+          stopPolling();
+      }
+      return job;
+    } catch (error) {
+      console.error(`Failed to fetch job ${jobId}:`, error);
+    }
+  }
+
+  function startPolling() {
+    // If already polling, don't start another interval
+    if (pollingInterval.value !== null) return;
+    
+    isPolling.value = true;
+    pollingInterval.value = window.setInterval(async () => {
+      if (activeJobId.value) {
+        // Only fetch if status is not final
+        const job = jobs.value[activeJobId.value];
+        if (job && (job.status === 'completed' || job.status === 'failed')) {
+            stopPolling();
+            return;
+        }
+        await fetchJobStatus(activeJobId.value);
+      } else {
+        stopPolling();
+      }
+    }, 2000); // Poll every 2 seconds
+  }
+
+  function stopPolling() {
+    if (pollingInterval.value) {
+      clearInterval(pollingInterval.value);
+      pollingInterval.value = null;
+    }
+    isPolling.value = false;
+  }
+  
+  function clearActiveJob() {
+      activeJobId.value = null;
+      stopPolling();
+  }
+
+  return {
+    activeJobId,
+    jobs,
+    activeJob,
+    allJobs,
+    submitRelationshipJob,
+    fetchJobStatus,
+    clearActiveJob
+  };
+});
+
+
+==================== FILE: frontend\src\stores\novel.ts ====================
+
+import { defineStore } from 'pinia';
+import { API } from '@/api/client';
+import type { Novel, Run, Chapter, Entity, GraphData } from '@/types';
+
+export const useNovelStore = defineStore('novel', {
+  state: () => ({
+    novels: [] as Novel[],
+    runs: [] as Run[],
+    chapters: [] as Chapter[],
+    currentNovel: null as Novel | null,
+    currentRun: null as Run | null,
+    currentChapter: null as Chapter | null,
+    selectedChapterId: null as string | null,
+    
+    // Graph Data
+    graphData: null as GraphData | null,
+    globalEntities: [] as Entity[],
+
+    // UI State
+    loading: false,
+    viewMode: 'overview' as 'overview' | 'focus' | 'encyclopedia' | 'graph',
+    error: null as string | null,
+  }),
+
+  actions: {
+    async loadNovels() {
+      this.loading = true;
+      try {
+        this.novels = await API.fetchNovels();
+      } catch (e: any) {
+        this.error = e.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async selectNovel(novel: Novel) {
+      this.currentNovel = novel;
+      this.currentRun = null;
+      this.chapters = [];
+      this.graphData = null;
+      
+      // Load runs
+      if (novel.hashes.length > 0) {
+        const hash = novel.hashes[0];
+        if (!hash) return;
+        
+        const runs = await API.fetchRuns(novel.name, hash);
+        this.runs = runs;
+        const latestRun = runs[0];
+        if (latestRun) {
+          await this.selectRun(latestRun);
+        }
+      }
+    },
+
+    async selectRun(run: Run) {
+      if (!this.currentNovel) return;
+      const hash = this.currentNovel.hashes[0];
+      if (!hash) return;
+
+      this.currentRun = run;
+      this.loading = true;
+      try {
+        this.chapters = await API.fetchChapters(this.currentNovel.name, hash, run.timestamp);
+        // Reset view to overview on new run
+        this.viewMode = 'overview';
+      } catch (e: any) {
+        this.error = e.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async loadChapterDetail(chapterId: string) {
+      if (!this.currentNovel || !this.currentRun) return;
+      const hash = this.currentNovel.hashes[0];
+      if (!hash) return;
+
+      this.loading = true;
+      try {
+        const chapter = await API.fetchChapterDetail(this.currentNovel.name, hash, this.currentRun.timestamp, chapterId);
+        this.currentChapter = chapter;
+      } catch (e: any) {
+        this.error = e.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async loadGraphData() {
+        if (!this.currentNovel || !this.currentRun) return;
+        const hash = this.currentNovel.hashes[0];
+        if (!hash) return;
+
+        // If already loaded, skip
+        if (this.graphData) return;
+
+        this.loading = true;
+        try {
+            this.graphData = await API.fetchGraphData(this.currentNovel.name, hash, this.currentRun.timestamp);
+        } catch (e: any) {
+            this.error = e.message;
+        } finally {
+            this.loading = false;
+        }
+    }
+  },
+});
+
+
+==================== FILE: frontend\src\types\index.ts ====================
+
+export interface Novel {
+  name: string;
+  hashes: string[];
+}
+
+export interface Run {
+  timestamp: string;
+  file_hash: string;
+}
+
+export interface Chapter {
+  id: string;
+  title: string;
+  headline: string | null;
+  summary_sentences: SummarySentence[];
+  content?: string;
+  entities?: Entity[];
+}
+
+export interface SummarySentence {
+  summary_text: string;
+  source_spans: SourceSpan[];
+}
+
+export interface SourceSpan {
+  start_index: number;
+  end_index: number;
+  text: string;
+}
+
+export interface Entity {
+  name: string;
+  type: string;
+  description: string;
+  history?: { chapter_id: string; content: string }[];
+  count?: number;
+  chapter_ids?: string[];
+}
+
+export interface TimelineEvent {
+  chapter_id: string;
+  chapter_index: number;
+  chapter_title: string;
+  content: string[];
+  gap_before: number;
+}
+
+export interface GraphData {
+  nodes: Entity[];
+  edges: Relationship[];
+}
+
+export interface Relationship {
+  source: string;
+  target: string;
+  weight: number;
+  timeline?: EdgeEvent[];
+}
+
+export interface GraphNode {
+  // Deprecated, use Entity
+  id: string;
+  label: string;
+  group: string;
+  value: number;
+}
+
+export interface GraphEdge {
+  // Deprecated, use Relationship
+  from: string;
+  to: string;
+  value: number;
+}
+
+export interface EdgeEvent {
+  chapter_id: string;
+  weight?: number;
+  relation?: string;
+  description?: string;
+  order?: number;
+}
+
+export interface RelationshipInteraction {
+  direction: 'forward' | 'backward';
+  relation: string;
+  description: string;
+  confidence: number;
+}
+
+export interface NarrativeState {
+  trust_level: number;
+  romance_level: number;
+  conflict_level: number;
+  dominant_archetype: string;
+  current_stage: string;
+  summary_so_far: string;
+  unresolved_threads: string[];
+}
+
+export interface RelationshipTimelineEvent {
+  chapter_id: string;
+  chapter_index: number;
+  chapter_title: string;
+  interactions: RelationshipInteraction[];
+  narrative_state?: NarrativeState;
+}
+
+
+==================== FILE: frontend\src\views\Dashboard.vue ====================
+
+<script setup lang="ts">
+import { useNovelStore } from '@/stores/novel';
+import { onMounted } from 'vue';
+import AppNavbar from '../components/AppNavbar.vue';
+import OverviewGrid from '../components/OverviewGrid.vue';
+import GraphView from '../components/GraphView.vue';
+import ReaderView from '../components/ReaderView.vue';
+
+const store = useNovelStore();
+
+onMounted(async () => {
+  await store.loadNovels();
+});
+</script>
+
+<template>
+  <div class="h-screen flex flex-col bg-gray-50 text-gray-900 font-sans">
+    <AppNavbar />
+    
+    <main class="flex-1 overflow-hidden relative">
+      <div v-if="store.loading && !store.graphData && store.viewMode !== 'focus'" class="absolute inset-0 flex items-center justify-center bg-white/80 z-50">
+        <div class="flex flex-col items-center gap-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            <p class="text-indigo-600 font-medium animate-pulse">Loading story data...</p>
+        </div>
+      </div>
+
+      <div v-if="store.error" class="p-8 text-center text-red-600">
+        <p class="font-bold text-lg mb-2">Error</p>
+        <p>{{ store.error }}</p>
+      </div>
+
+      <Transition name="fade" mode="out-in">
+        <OverviewGrid v-if="store.viewMode === 'overview'" />
+        <GraphView v-else-if="store.viewMode === 'graph'" />
+        <ReaderView v-else-if="store.viewMode === 'focus' || store.viewMode === 'reader'" />
+      </Transition>
+    </main>
+  </div>
+</template>
+
+<style>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

@@ -5,6 +5,7 @@ import type { Entity, TimelineEvent, RelationshipTimelineEvent } from '@/types';
 import { API } from '@/api/client';
 import EntityChronicleDrawer from './EntityChronicleDrawer.vue';
 import RelationshipArcDrawer from './RelationshipArcDrawer.vue';
+import BatchAnalysisDialog from './BatchAnalysisDialog.vue';
 import { useNovelStore } from '@/stores/novel';
 import { useJobStore } from '@/stores/jobStore';
 
@@ -13,6 +14,30 @@ const jobStore = useJobStore();
 
 const container = ref<HTMLElement | null>(null);
 const network = shallowRef<Network | null>(null);
+
+// Batch Analysis State
+const isBatchDialogOpen = ref(false);
+const visibleEdgesForBatch = ref<any[]>([]);
+
+const openBatchDialog = () => {
+  if (!store.currentNovel || !store.graphData) return;
+  
+  // Create a map of node types for quick lookup
+  const nodeTypeMap = new Map<string, string>();
+  store.graphData.nodes.forEach(node => {
+      nodeTypeMap.set(node.name, node.type);
+  });
+
+  // Get all currently visible edges from the DataSet and inject types
+  const edges = edgesDataSet.get();
+  visibleEdgesForBatch.value = edges.map(edge => ({
+      ...edge,
+      sourceType: nodeTypeMap.get(edge.from) || 'Unknown',
+      targetType: nodeTypeMap.get(edge.to) || 'Unknown'
+  }));
+
+  isBatchDialogOpen.value = true;
+};
 
 // State for filtering
 const minWeight = ref(1);
@@ -115,6 +140,11 @@ const handleAnalyzeRelationship = async () => {
     // 2. Submit Job
     try {
         const hash = store.currentNovel.hashes[0];
+        // If force is true, we might want to delete cache first?
+        // Actually, the backend job runner doesn't auto-delete unless we tell it to, or we handle it here.
+        // But for "Analyze", we usually mean "Compute if missing".
+        // If the user wants to RE-analyze, they should probably clear cache.
+        
         await jobStore.submitRelationshipJob({
             novel_name: store.currentNovel.name,
             file_hash: hash,
@@ -127,6 +157,31 @@ const handleAnalyzeRelationship = async () => {
         // The JobStatusWidget will appear.
     } catch (e) {
         alert("Failed to start analysis: " + e);
+    }
+};
+
+const handleClearCache = async () => {
+    if (selectedNodes.value.length !== 2 || !store.currentNovel) return;
+    
+    const n1 = selectedNodes.value[0].name;
+    const n2 = selectedNodes.value[1].name;
+    
+    if (!confirm(`确定要清除 "${n1} & ${n2}" 的分析缓存吗？\n清除后需要重新运行 AI 分析。`)) return;
+    
+    try {
+        const hash = store.currentNovel.hashes[0];
+        await API.deleteRelationshipAnalysis(
+            store.currentNovel.name, 
+            hash, 
+            n1, 
+            n2
+        );
+        alert("缓存已清除，请重新点击 Analyze 进行分析。");
+        // Close drawer if open
+        isRelationshipDrawerOpen.value = false;
+        relationshipEvents.value = [];
+    } catch (e) {
+        alert("清除缓存失败: " + e);
     }
 };
 
@@ -234,7 +289,9 @@ const initGraph = () => {
       width: 1,
       color: { color: '#d1d5db', highlight: '#6366f1' }, // gray-300, indigo-500
       smooth: {
-        type: 'continuous'
+        type: 'continuous',
+        enabled: true,
+        roundness: 0.5
       },
       arrows: {
           to: { enabled: false } // undirected by default
@@ -323,6 +380,9 @@ const updateGraphData = () => {
     const activeEdges: any[] = [];
     const nodeWeights: Record<string, number> = {};
 
+    // Create a set of active node IDs for O(1) lookup
+    const activeNodeIds = new Set(activeNodes.map(n => n.name));
+
     try {
         // Optimization: Create map for O(1) chapter index lookup
         const chapterIndexMap = new Map<string, number>();
@@ -333,6 +393,11 @@ const updateGraphData = () => {
         
         store.graphData.edges.forEach((edge) => {
             if (!edge.timeline) return;
+
+            // Strict consistency check: Both source and target must be visible nodes
+            if (!activeNodeIds.has(edge.source) || !activeNodeIds.has(edge.target)) {
+                return;
+            }
 
             let weight = 0;
             let label = '';
@@ -645,6 +710,20 @@ const displayDescription = computed(() => {
                 class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-400"
             >
         </div>
+
+        <hr class="border-gray-100" v-if="graphMode === 'cumulative'">
+
+        <!-- Batch Analysis Button -->
+        <button 
+            v-if="graphMode === 'cumulative'"
+            @click="openBatchDialog"
+            class="w-full py-2 px-3 bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+            Batch Analyze ({{ stats.edges }})
+        </button>
         
         <!-- Stats -->
         <div class="text-[10px] text-gray-400 font-mono text-center pt-2">
@@ -740,6 +819,17 @@ const displayDescription = computed(() => {
             </svg>
             Analyze
         </button>
+
+        <!-- Clear Cache Button -->
+        <button 
+            @click="handleClearCache"
+            class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200"
+            title="Clear Analysis Cache"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        </button>
         
         <button 
             @click="selectedNodes = []; network?.unselectAll()"
@@ -771,6 +861,13 @@ const displayDescription = computed(() => {
         :is-loading="isChronicleLoading"
         @close="isChronicleOpen = false"
         @jump-to-chapter="handleChronicleJump"
+    />
+
+    <!-- Batch Analysis Dialog -->
+    <BatchAnalysisDialog
+        :is-open="isBatchDialogOpen"
+        :visible-edges="visibleEdgesForBatch"
+        @close="isBatchDialogOpen = false"
     />
   </div>
 </template>

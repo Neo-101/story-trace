@@ -2,15 +2,19 @@
   "entity_id": "孙杰克_宋6PUS",
   "chapter_index": 12,
   "version": "1.0",
-  "updated_at": "now",
-  "summary_so_far": "Initial state. No interactions yet.",
+  "updated_at": "2026-02-23T11:02:53.142335",
+  "summary_so_far": "从陌生到被宋6PUS强行拉入其疯狂的生活方式，孙杰克与宋6PUS的关系迅速升温。宋6PUS展现出的自由、放纵与危险吸引力，以及对孙杰克明显的接纳（如勾肩搭背、高声欢迎），构成了关系的基调。孙杰克一方面被动跟随，另一方面也展现出对其行为的制止（拽回驾驶座）和对环境（跳楼事件）的警惕与不适。两人目前处于一种由宋6PUS主导的“冒险伙伴”关系，共同经历着高速、混乱的都市冒险，但孙杰克内心的道德准则与宋6PUS的漠然已埋下分歧的种子。",
   "key_tags": [],
-  "unresolved_threads": [],
+  "unresolved_threads": [
+    "孙杰克对宋6PUS漠视生命（碾过尸体）的行为作何感想？",
+    "宋6PUS将孙杰克带入声色场所的后续影响是什么？",
+    "两人对‘自由’的定义是否存在根本冲突？"
+  ],
   "source": "孙杰克",
   "target": "宋6PUS",
-  "trust_level": 50,
+  "trust_level": 55,
   "romance_level": 0,
-  "conflict_level": 0,
-  "dominant_archetype": "Stranger",
-  "current_stage": "Introduction"
+  "conflict_level": 25,
+  "dominant_archetype": "冒险伙伴",
+  "current_stage": "合作与分歧"
 }

@@ -7,6 +7,7 @@ class NovelInfo(BaseModel):
 
 class RunInfo(BaseModel):
     timestamp: str
+    file_hash: str
     metadata: Optional[Dict[str, Any]] = None
 
 class ChapterPreview(BaseModel):
@@ -53,12 +54,15 @@ class RelationshipInteraction(BaseModel):
 
 class RelationshipTimelineEvent(BaseModel):
     chapter_id: str
-    chapter_index: int  # Added for sorting
+    chapter_index: int
     chapter_title: str
-    interactions: List[RelationshipInteraction]
+    interactions: List[RelationshipInteraction] = []
     
     # Narrative State (Added in v4.2)
-    narrative_state: Optional[Dict[str, Any]] = None # Serialized RelationshipState
+    narrative_state: Optional[Dict[str, Any]] = None
+    
+    class Config:
+        arbitrary_types_allowed = True
 
 class GraphNode(BaseModel):
     name: str

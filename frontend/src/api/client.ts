@@ -49,5 +49,20 @@ export const API = {
       params: { source, target, _t: Date.now() }
     });
     return response.data;
+  },
+
+  async deleteRelationshipAnalysis(novelName: string, hash: string, timestamp: string, source: string, target: string): Promise<void> {
+    await apiClient.delete(`/novels/${novelName}/${hash}/${timestamp}/relationship`, {
+      params: { source, target }
+    });
+  },
+
+  async submitBatchRelationshipAnalysis(novelName: string, fileHash: string, pairs: {source: string, target: string}[]): Promise<{ job_id: string }> {
+    const response = await apiClient.post<{ job_id: string }>('/jobs/batch-relationship', {
+      novel_name: novelName,
+      file_hash: fileHash,
+      pairs: pairs
+    });
+    return response.data;
   }
 };

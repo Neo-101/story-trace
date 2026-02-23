@@ -1,6 +1,6 @@
-from typing import List, Dict, Type, Any
+from typing import List, Dict, Type, Any, Union, Callable
 from backend.narrative_engine.core.store import StateStore
-from backend.narrative_engine.core.models import BaseNarrativeState
+from backend.narrative_engine.core.models import BaseNarrativeState, AnalysisEvent
 from backend.narrative_engine.plugins.base import NarrativePlugin
 
 class NarrativeEvolutionEngine:
@@ -21,7 +21,7 @@ class NarrativeEvolutionEngine:
         plugin_type: str,
         entity_id: str,
         target_chapter_index: int,
-        new_events: List[Dict[str, Any]],
+        new_events: List[AnalysisEvent],
         llm_client: Any = None,
         progress_callback: Callable[[int, str], None] = None
     ) -> BaseNarrativeState:
@@ -117,6 +117,15 @@ class NarrativeEvolutionEngine:
             if prev_state:
                 new_state = prev_state.model_copy()
                 new_state.updated_at = "now"
+                new_state.chapter_index = target_chapter_index # Update index
+                
+                # OPTIMIZATION: Do NOT save cloned states to DB to avoid "timeline bloating".
+                # We only return it so the memory chain is preserved in this process.
+                # The next time we run, get_latest_state will find the last ACTUAL analysis (prev_state),
+                # which is fine because the LLM prompt handles "time skip" naturally.
+                if progress_callback:
+                    progress_callback(100, "Skipped (Low Density), state cloned in memory.")
+                return new_state
             else:
                 # First chapter, no trigger? Then no state.
                 # Actually, if it's the first chapter and no interaction, we don't need a state.

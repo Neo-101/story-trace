@@ -14,6 +14,7 @@ class JobStatus(BaseModel):
     error: Optional[str] = None
     created_at: float
     updated_at: float
+    metadata: Optional[Dict[str, Any]] = None  # New field for metadata
 
 class JobManager:
     _instance = None
@@ -58,7 +59,8 @@ class JobManager:
                 progress=0,
                 message="Job submitted",
                 created_at=now,
-                updated_at=now
+                updated_at=now,
+                metadata=metadata
             )
             self.jobs[job_id] = job
             

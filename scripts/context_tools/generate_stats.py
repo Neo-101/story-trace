@@ -4,11 +4,14 @@ from pathlib import Path
 from typing import Dict, List, Any
 
 # --- Configuration ---
-PROJECT_ROOT = Path(".").resolve()
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+OUTPUT_DIR = PROJECT_ROOT / "docs" / "project_stats"
+
 IGNORE_DIRS = {
     ".git", ".idea", ".vscode", "__pycache__", "node_modules", 
     "venv", "env", "output", "dist", "build", "legacy_archive",
-    ".pytest_cache", "coverage", "htmlcov", ".mypy_cache"
+    ".pytest_cache", "coverage", "htmlcov", ".mypy_cache",
+    "cache" # Ignore cache directory
 }
 IGNORE_FILES = {
     "package-lock.json", "yarn.lock", "pnpm-lock.yaml", 
@@ -117,6 +120,9 @@ def main():
     print("Scanning project...")
     project_stats = scan_directory(PROJECT_ROOT)
     
+    # Ensure output directory exists
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    
     # 1. Human Report
     human_report = f"# Project Statistics: {PROJECT_ROOT.name}\n"
     human_report += f"Total Files: {project_stats['file_count']}\n"
@@ -124,7 +130,8 @@ def main():
     human_report += "=" * 40 + "\n\n"
     human_report += generate_human_report(project_stats)
     
-    with open("project_stats_human.txt", "w", encoding="utf-8") as f:
+    human_report_path = OUTPUT_DIR / "project_stats_human.txt"
+    with open(human_report_path, "w", encoding="utf-8") as f:
         f.write(human_report)
     
     # 2. LLM Report (JSON)
@@ -138,12 +145,13 @@ def main():
         "structure": generate_llm_json(project_stats)
     }
     
-    with open("project_stats_llm.json", "w", encoding="utf-8") as f:
+    llm_report_path = OUTPUT_DIR / "project_stats_llm.json"
+    with open(llm_report_path, "w", encoding="utf-8") as f:
         json.dump(llm_report, f, indent=2)
 
     print(f"Done.")
-    print(f"Human Report: project_stats_human.txt ({project_stats['total_lines']} lines)")
-    print(f"LLM Report:   project_stats_llm.json")
+    print(f"Human Report: {human_report_path} ({project_stats['total_lines']} lines)")
+    print(f"LLM Report:   {llm_report_path}")
 
 if __name__ == "__main__":
     main()

@@ -15,7 +15,8 @@ IGNORE_DIRS = {
     ".git", ".idea", ".vscode", "__pycache__", "node_modules", 
     "venv", "env", "output", "dist", "build", "legacy_archive",
     ".pytest_cache", "coverage", "htmlcov", ".mypy_cache",
-    "docs" # Ignore docs to prevent loop
+    "docs", # Ignore docs to prevent loop
+    "cache" # Ignore cache directory
 }
 IGNORE_FILES = {
     "package-lock.json", "yarn.lock", "pnpm-lock.yaml", 

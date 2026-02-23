@@ -18,7 +18,7 @@ export const useNovelStore = defineStore('novel', {
 
     // UI State
     loading: false,
-    viewMode: 'overview' as 'overview' | 'focus' | 'encyclopedia' | 'graph',
+    viewMode: 'overview' as 'overview' | 'focus' | 'encyclopedia' | 'graph' | 'reader',
     error: null as string | null,
   }),
 

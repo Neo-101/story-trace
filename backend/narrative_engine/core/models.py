@@ -53,3 +53,14 @@ class NarrativeBlock(BaseModel):
     range_end: int
     state: Union[RelationshipState, BaseNarrativeState]
     events_digest: List[Dict[str, Any]] = Field(default_factory=list, description="Summary of key events in this block")
+
+class AnalysisEvent(BaseModel):
+    """
+    Standardized event object passed from Job System to Narrative Engine/Plugins.
+    Replaces the loose dictionary structure {"chapter_index": int, "content": [str]}.
+    """
+    chapter_index: int = Field(..., description="The chapter where this event occurred")
+    content: List[str] = Field(..., description="List of relevant sentences or interaction descriptions")
+    source: Optional[str] = Field(None, description="Source entity name if applicable")
+    target: Optional[str] = Field(None, description="Target entity name if applicable")
+    relation_type: Optional[str] = Field(None, description="Type of interaction (e.g., 'dialogue', 'action')")

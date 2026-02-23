@@ -27,6 +27,7 @@ def test_relationship_api():
     print(f"Novel: {novel.name}, Hash: {file_hash}")
     
     # 2. Call API
+    # The API URL has timestamp in path
     url = f"http://localhost:8000/api/novels/{novel.name}/{file_hash}/{timestamp}/relationship"
     params = {
         "source": "孙杰克",

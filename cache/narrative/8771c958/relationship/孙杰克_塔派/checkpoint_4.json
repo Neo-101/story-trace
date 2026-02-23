@@ -1,0 +1,16 @@
+{
+  "entity_id": "孙杰克_塔派",
+  "chapter_index": 4,
+  "version": "1.0",
+  "updated_at": "2026-02-23T01:13:59.313701",
+  "summary_so_far": "Initial state. No interactions yet.\n两人通过合作建立了初步信任。\n两人通过合作建立了初步信任。",
+  "key_tags": [],
+  "unresolved_threads": [],
+  "source": "孙杰克",
+  "target": "塔派",
+  "trust_level": 60,
+  "romance_level": 10,
+  "conflict_level": 5,
+  "dominant_archetype": "盟友",
+  "current_stage": "初步合作"
+}

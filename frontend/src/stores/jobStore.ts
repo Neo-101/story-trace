@@ -111,6 +111,22 @@ export const useJobStore = defineStore('jobs', () => {
     isPolling.value = false;
   }
   
+  function trackJob(jobId: string) {
+    // Initialize job placeholder
+    jobs.value[jobId] = {
+      job_id: jobId,
+      type: 'batch_relationship_analysis', // Assume batch for now, or fetch to correct
+      status: 'pending',
+      progress: 0,
+      message: 'Job tracked',
+      created_at: Date.now() / 1000,
+      updated_at: Date.now() / 1000
+    };
+    
+    activeJobId.value = jobId;
+    startPolling();
+  }
+
   function clearActiveJob() {
       activeJobId.value = null;
       stopPolling();
@@ -123,6 +139,7 @@ export const useJobStore = defineStore('jobs', () => {
     allJobs,
     submitRelationshipJob,
     fetchJobStatus,
+    trackJob,
     clearActiveJob
   };
 });
