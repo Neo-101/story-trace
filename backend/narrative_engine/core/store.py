@@ -125,12 +125,23 @@ class StateStore:
             return []
             
         states = []
-        for file in sorted(entity_dir.glob("checkpoint_*.json"), key=lambda f: int(f.stem.split("_")[1])):
+        # Fix: Ensure glob pattern matches and sorting handles potential non-integer parts gracefully
+        files = list(entity_dir.glob("checkpoint_*.json"))
+        
+        def get_chapter_index(file_path):
+            try:
+                return int(file_path.stem.split("_")[1])
+            except (IndexError, ValueError):
+                return -1
+
+        for file in sorted(files, key=get_chapter_index):
             try:
                 with open(file, "r", encoding="utf-8") as f:
                     data = json.load(f)
+                    # Pydantic validation might fail if schema changed
                     states.append(model_class(**data))
-            except Exception:
+            except Exception as e:
+                print(f"[StateStore] Warning: Failed to load {file}: {e}")
                 continue
         return states
 

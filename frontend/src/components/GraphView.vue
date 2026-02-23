@@ -6,8 +6,10 @@ import { API } from '@/api/client';
 import EntityChronicleDrawer from './EntityChronicleDrawer.vue';
 import RelationshipArcDrawer from './RelationshipArcDrawer.vue';
 import BatchAnalysisDialog from './BatchAnalysisDialog.vue';
+import EntityDetailContainer from './Entity/EntityDetailContainer.vue';
 import { useNovelStore } from '@/stores/novel';
 import { useJobStore } from '@/stores/jobStore';
+import ConceptEvolutionCard from './Entity/ConceptEvolutionCard.vue';
 
 const store = useNovelStore();
 const jobStore = useJobStore();
@@ -741,32 +743,15 @@ const displayDescription = computed(() => {
     </div>
 
     <!-- Entity Details Panel -->
-    <div v-if="selectedEntity" class="absolute top-4 right-4 w-80 bg-white/95 backdrop-blur shadow-xl rounded-xl border border-gray-100 p-6 z-20 transition-all animate-in slide-in-from-right-4">
-        <div class="flex items-start justify-between mb-4">
-             <div 
-                class="w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold shadow-sm"
-                :style="{ backgroundColor: typeColors[selectedEntity.type] + '20', color: typeColors[selectedEntity.type] }"
-            >
-                {{ selectedEntity.name[0] }}
-            </div>
-            <button @click="selectedEntity = null" class="text-gray-400 hover:text-gray-600">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                </svg>
-            </button>
-        </div>
-        
-        <h2 class="text-xl font-bold text-gray-900 mb-1">{{ selectedEntity.name }}</h2>
-        <span class="inline-block px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider mb-4" :style="{ backgroundColor: typeColors[selectedEntity.type] + '20', color: typeColors[selectedEntity.type] }">
-            {{ selectedEntity.type }}
-        </span>
-
-        <p class="text-sm text-gray-600 leading-relaxed mb-6 max-h-60 overflow-y-auto custom-scrollbar">
-            {{ displayDescription }}
-        </p>
-        
-        <div class="space-y-2">
-             <button 
+    <EntityDetailContainer 
+        v-if="selectedEntity" 
+        :entity="selectedEntity" 
+        :description="displayDescription"
+        :type-colors="typeColors"
+        @close="selectedEntity = null"
+    >
+        <template #actions>
+            <button 
                 @click="openChronicle"
                 class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2"
             >
@@ -775,8 +760,16 @@ const displayDescription = computed(() => {
                 </svg>
                 查看编年史
             </button>
-        </div>
-    </div>
+        </template>
+        
+        <template #modules>
+            <!-- 渐进式世界观模块 -->
+            <ConceptEvolutionCard 
+                v-if="selectedEntity?.concept_evolution?.length" 
+                :stages="selectedEntity.concept_evolution" 
+            />
+        </template>
+    </EntityDetailContainer>
 
     <!-- Relationship Selection Panel -->
     <div v-if="selectedNodes.length === 2" class="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur shadow-xl rounded-xl p-4 border border-gray-200 z-30 flex items-center gap-4 transition-all animate-in fade-in slide-in-from-bottom-4">

@@ -1,0 +1,4848 @@
+[
+  {
+    "chapter_id": "ch_1",
+    "chapter_title": "第1章孫杰克",
+    "headline": "孙杰克在金属迷宫中探索，意外发现自己身处外太空。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克在一片漆黑的金属迷宫中醒来，通过手机录像记录自己的处境和失忆情况。",
+        "source_spans": [
+          {
+            "text": "一片漆黑中傳來低沉的腳步聲，當腳步聲慢慢停歇，忽然一道亮光射破了這片黑暗，亮光來源是一部手機。\n　　手機的光亮照亮了一張還算英俊的面孔。他神態疲憊臉色憔悴，看起來心情很差。\n　　「第四條錄像開始，時間是下午3點51分。」孫杰克開啟了錄屏",
+            "start_index": 0,
+            "end_index": 118
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "他发现自己身处一个完全由金属构成的巨大迷宫，记忆停留在高考后的夏天，而手机显示时间已是2030年。",
+        "source_spans": [
+          {
+            "text": "形成了一個巨大的金屬迷宮，金屬牆壁還有不少金屬門，大部分都打不開，我就是從其中一間房間的冰櫃裡爬出來的。」\n　　「我不認識這是哪，我過去從來沒見過這種地方，甚至在網絡上都沒刷到過，在這裡也沒找到任何信息。」\n　　「我也不知道我是怎麼被送在這裡的，我的記憶斷檔了，我的記憶停留在高考完的那個夏天。」\n　　",
+            "start_index": 268,
+            "end_index": 419
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "为了寻找出口，他跟随微弱的滴滴声，通过天花板上的门向上攀爬。",
+        "source_spans": [
+          {
+            "text": "是沒有找到出口，這裡的一切都被金屬包圍著，甚至就連地板跟天花板也都是。」",
+            "start_index": 125,
+            "end_index": 161
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "他进入一个布满老旧机械臂的房间，并继续向上进入一个拱形房间。",
+        "source_spans": [
+          {
+            "text": "個圓弧形的拱形房間，除了",
+            "start_index": 1337,
+            "end_index": 1349
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "在房间中央，他发现了一个发出滴滴声和红光的设备。",
+        "source_spans": [
+          {
+            "text": "非常細小的滴滴聲，聽起來",
+            "start_index": 934,
+            "end_index": 946
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "手机在关键时刻没电，孙杰克被迫按下红色按钮。",
+        "source_spans": [
+          {
+            "text": "的突變讓孫杰克緊張到了極點，他不斷地盯著四周的漆黑的一切，緊張地看著任何可能出現的變化。\n　　然而四周並沒有發生任何變幻，最先出現變化的是他自己，隨著那顆紅色按鈕的按下，他的雙腳",
+            "start_index": 1787,
+            "end_index": 1876
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "按下按钮后，房间开始震动，孙杰克发现自己漂浮了起来。",
+        "source_spans": [
+          {
+            "text": "的突變讓孫杰克緊張到了極點，他不斷地盯著四周的漆黑的一切，緊張地看著任何可能出現的變化。\n　　然而四周並沒有發生任何變幻，最先出現變化的是他自己，隨著那顆紅色按鈕的按下，他的雙腳",
+            "start_index": 1787,
+            "end_index": 1876
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "前方的墙壁裂开，刺眼的光芒照射进来，墙壁向两侧滑开，露出外太空的景象。",
+        "source_spans": [
+          {
+            "text": "間的牆壁正前方忽然裂開了一條縫，極其刺眼的亮光從裡",
+            "start_index": 1978,
+            "end_index": 2003
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克震惊地发现，自己一直身处外太空，眼前是一颗巨大的星球。",
+        "source_spans": [
+          {
+            "text": "光芒照亮了星球的一側，而那隱入漆黑之中的另外一側，如同深淵巨口一般，讓孫杰克有一種被蒼穹巨獸凝視的戰慄感。\n　　孫杰克忽然間想起什麼，他低頭看向自己漂浮起來的雙腳，緊接著又抬頭看向那玻璃之外的巨大星球。\n　　「我去！我原來一直在外太空？！」",
+            "start_index": 2197,
+            "end_index": 2317
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "本章主角，英俊但憔悴，从冰柜中苏醒，发现自己被困于金属迷宫并失去了约五年的记忆。",
+        "confidence": 0.9
+      },
+      {
+        "name": "大黃",
+        "type": "Person",
+        "description": "孙杰克记忆中家里养的狗。",
+        "confidence": 0.9
+      },
+      {
+        "name": "孙杰克的父母",
+        "type": "Person",
+        "description": "孙杰克记忆中的家人。",
+        "confidence": 0.9
+      },
+      {
+        "name": "金属迷宫",
+        "type": "Location",
+        "description": "孙杰克苏醒并被困的地方，由方形金属走廊构成，墙壁、地板和天花板均为金属，布有许多无法打开的门。",
+        "confidence": 0.9
+      },
+      {
+        "name": "冰柜",
+        "type": "Location",
+        "description": "孙杰克最初苏醒的地方，位于金属迷宫中的一个房间内。",
+        "confidence": 0.9
+      },
+      {
+        "name": "机械臂房间",
+        "type": "Location",
+        "description": "布满高精机械设备的房间，机械臂从两侧墙壁伸出，上方有另一扇门。",
+        "confidence": 0.9
+      },
+      {
+        "name": "拱形房间",
+        "type": "Location",
+        "description": "圆拱形房间，内有几把椅子，中央有一个带有红点和疑似屏幕的设备，最终墙壁打开通向太空。",
+        "confidence": 0.9
+      },
+      {
+        "name": "外太空",
+        "type": "Location",
+        "description": "拱形房间外部的环境，可见巨大的星球。",
+        "confidence": 0.9
+      },
+      {
+        "name": "手机",
+        "type": "Item",
+        "description": "孙杰克用于照明和录像的设备，在关键时刻因电量耗尽而关机。",
+        "confidence": 0.9
+      },
+      {
+        "name": "金属门",
+        "type": "Item",
+        "description": "遍布于金属迷宫墙壁、天花板和地板上的门，大部分无法打开。",
+        "confidence": 0.9
+      },
+      {
+        "name": "红色按钮",
+        "type": "Item",
+        "description": "拱形房间中发出滴滴声和红光的设备，孙杰克按下后导致房间开启并使他失重。",
+        "confidence": 0.9
+      },
+      {
+        "name": "失忆",
+        "type": "Concept",
+        "description": "孙杰克的状态，他失去了约五年的记忆，记忆停留在高考后的夏天。",
+        "confidence": 0.9
+      },
+      {
+        "name": "失重/漂浮",
+        "type": "Concept",
+        "description": "按下红色按钮后，孙杰克在拱形房间内体验到的现象，双脚离地飞在空中。",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "孙杰克",
+        "target": "金属迷宫",
+        "relation": "记录",
+        "description": "用手机录像记录自己被困的环境和状况。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "冰柜",
+        "relation": "苏醒于",
+        "description": "从冰柜中爬出来，发现自己身处金属迷宫。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "机械臂房间",
+        "relation": "攀爬进入",
+        "description": "通过天花板上的门进入布满机械臂的房间。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "拱形房间",
+        "relation": "攀爬进入",
+        "description": "继续向上攀爬，进入发出滴滴声的拱形房间。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "红色按钮",
+        "relation": "按下",
+        "description": "因手机没电且别无选择，按下了房间中央的红色按钮。",
+        "confidence": 0.9
+      },
+      {
+        "source": "红色按钮",
+        "target": "失重/漂浮",
+        "relation": "导致",
+        "description": "按下按钮后，孙杰克开始漂浮。",
+        "confidence": 0.9
+      },
+      {
+        "source": "红色按钮",
+        "target": "墙壁打开",
+        "relation": "导致",
+        "description": "按下按钮后，拱形房间的墙壁裂开并滑向两侧。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "外太空",
+        "relation": "发现身处",
+        "description": "墙壁打开后，震惊地发现自己身在外太空，眼前是一颗巨大星球。",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_2",
+    "chapter_title": "第2章智能",
+    "headline": "孙杰克发现自己身处废弃空间站并启动了一个机器人助手，空间站即将坠毁地球。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克通过观察窗外，发现自己身处一个被卫星垃圾和行星环包围的废弃大型空间站，并且空间站正在向地球大气层倾斜坠落。",
+        "source_spans": [
+          {
+            "text": "　　而當孫杰克的視線從地球挪開，向著左側看去的時候，瞬間就凝住了。一條銀灰色的行星環，如同腰帶般環在地球腰間。而本應該存在的月球卻消失了。\n　　行星環中大部分都是，都是巖石跟飛船以及太空站殘骸，而他現在所在的位置就身處其中。\n　　此刻的孫杰克終於是弄清楚醒來之後一直困擾自己的問題，自己究竟在哪。自己在一座被月亮行星環包裹的大型空間站內。",
+            "start_index": 336,
+            "end_index": 505
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "他惊慌失措地在空间站内寻找逃生方法，并意外进入一个存放机器人的舱室。",
+        "source_spans": [
+          {
+            "text": "機，無論是逃生飛船什麼的",
+            "start_index": 951,
+            "end_index": 963
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克启动了一个机器人，并为其自定义了一个长名字“我去有没有搞错这么麻烦”。",
+        "source_spans": [
+          {
+            "text": "。\n　　孫杰克順著那金屬手臂望去，發現自己剛剛啟動的機器人用自己金屬身體擋住了自己左側大半邊。\n　　機器人用他那金屬腦袋緩緩抬起頭來，跟著孫杰克四目相對。\n　　「我艹，這起的什麼JB破名字。」機器人",
+            "start_index": 2390,
+            "end_index": 2489
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "机器人加载中文数据包后，孙杰克选择了护卫模式，并向其询问逃生方法。",
+        "source_spans": [
+          {
+            "text": "聽得見嗎？逃生飛船在哪？逃生飛船在哪啊！！」孫杰克抓著因為失重而飄起的機器人不斷迅速詢問。\n　　機器人馬上有反應了，「Kinesiskapaketetnedladdning10%50%70%中文數據包加載",
+            "start_index": 1309,
+            "end_index": 1411
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "机器人检测到危机，但因网络和数据问题无法规划救援，请求并获得孙杰克同意开启AI逻辑系统迭代以提高救援概率。",
+        "source_spans": [
+          {
+            "text": "輯，請用戶同意ROOT權限授權，同意後將開啟根據子網數據開啟AI邏輯系統迭代，判斷:救援概率將提高32.3%。」\n　　「同意！同意！」雖然對方說什麼，孫杰克聽不太懂，",
+            "start_index": 1974,
+            "end_index": 2057
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "在系统迭代过程中，空间站舱室断裂，孙杰克在躲避飞来的金属板和螺母时险些丧命，最终被启动的机器人用身体保护。",
+        "source_spans": [
+          {
+            "text": "的恐懼讓孫杰克的身體忍不住一起顫抖起來。\n　　就在他準備放棄這屁用沒有的機器人，去找其他的辦法的時候，機器人忽然有了新動靜。\n　　「連結未知子網12.128.C1，數據收集完成，規劃營救計劃失敗，錯誤原因：邏輯思維能力不足，無法理解子網數據邏輯，請用戶同意ROOT權限授權，同意後將開啟根據子網數據開啟AI邏輯系統迭代，判斷:救",
+            "start_index": 1853,
+            "end_index": 2017
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "机器人系统迭代完成，开口对孙杰克说的第一句话是抱怨自己名字难听。",
+        "source_spans": [
+          {
+            "text": "，數據收集完成，規劃營救計劃失敗，錯誤原因：邏輯思維能力不足，無法理解子網數據邏輯，請用戶同意ROOT權限授權，同意後將開啟根據子網數據開啟AI邏輯系統迭代，判斷:救援概率將提高32.3%。」\n　　「同意！同意！」雖然對方說什麼，孫杰克聽不太懂，",
+            "start_index": 1934,
+            "end_index": 2057
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，在空间站中醒来，试图寻找方法逃离即将坠毁的空间站，性格在危机中显得惊慌但求生欲强。",
+        "confidence": 0.9
+      },
+      {
+        "name": "我去有没有搞错这么麻烦",
+        "type": "Person",
+        "description": "孙杰克启动的机器人，拥有AI逻辑系统，在空间站坠毁危机中试图提供救援，最终迭代后具有了更强的逻辑能力和个性（抱怨名字）。",
+        "confidence": 0.9
+      },
+      {
+        "name": "废弃大型空间站",
+        "type": "Location",
+        "description": "孙杰克醒来后所在的地点，位于地球行星环中，内部有多个舱室（如货舱、运动舱），结构不稳，正在坠毁。",
+        "confidence": 0.9
+      },
+      {
+        "name": "地球行星环",
+        "type": "Location",
+        "description": "由岩石、飞船舊残骸和太空站残骸组成的银灰色环带，环绕着地球，取代了月球的位置。",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派科技",
+        "type": "Organization",
+        "description": "机器人产品的制造商，其产品需要自定义名称和初始模式。",
+        "confidence": 0.9
+      },
+      {
+        "name": "机器人",
+        "type": "Item",
+        "description": "反关节铁蹄，眼睛是显示器，拥有多种模式（护工、娱乐、护卫）和AI逻辑系统，可加载数据包和进行系统迭代。",
+        "confidence": 0.9
+      },
+      {
+        "name": "屏幕",
+        "type": "Item",
+        "description": "空间站内闪动发热的屏幕，孙杰克尝试操作但无反应；也指机器人腋下的启动屏幕。",
+        "confidence": 0.9
+      },
+      {
+        "name": "金属板/螺母",
+        "type": "Item",
+        "description": "空间站解体时飞出的危险碎片，对孙杰克的生命构成直接威胁。",
+        "confidence": 0.9
+      },
+      {
+        "name": "卫星垃圾带",
+        "type": "Concept",
+        "description": "包裹地球的灰色金属垃圾层，由大量各式各样的废弃卫星构成。",
+        "confidence": 0.9
+      },
+      {
+        "name": "AI逻辑系统迭代",
+        "type": "Concept",
+        "description": "机器人请求开启的功能，通过连接未知子网收集数据，提升逻辑思维能力以制定救援计划。",
+        "confidence": 0.9
+      },
+      {
+        "name": "失重状态",
+        "type": "Concept",
+        "description": "空间站内的物理环境，影响了孙杰克的移动和与机器人的互动。",
+        "confidence": 0.9
+      },
+      {
+        "name": "护卫模式",
+        "type": "Concept",
+        "description": "孙杰克为机器人选择的初始工作模式之一。",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "孙杰克",
+        "target": "我去有没有搞错这么麻烦",
+        "relation": "启动",
+        "description": "孙杰克在机器人腋下屏幕滑动，启动了机器人。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "我去有没有搞错这么麻烦",
+        "relation": "命名",
+        "description": "孙杰克在慌乱中说的话被机器人采纳为自定义名称。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "护卫模式",
+        "relation": "选择模式",
+        "description": "孙杰克在机器人提供的选项中快速点击了护卫模式。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "AI逻辑系统迭代",
+        "relation": "授权",
+        "description": "孙杰克同意机器人开启ROOT权限以进行AI逻辑系统迭代。",
+        "confidence": 0.9
+      },
+      {
+        "source": "我去有没有搞错这么麻烦",
+        "target": "孙杰克",
+        "relation": "保护",
+        "description": "机器人用金属身体为孙杰克挡住飞来的螺母。",
+        "confidence": 0.9
+      },
+      {
+        "source": "废弃大型空间站",
+        "target": "地球行星环",
+        "relation": "位于",
+        "description": "空间站身处行星环的残骸之中。",
+        "confidence": 0.9
+      },
+      {
+        "source": "我去有没有搞错这么麻烦",
+        "target": "塔派科技",
+        "relation": "属于",
+        "description": "机器人是塔派科技的产品。",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_3",
+    "chapter_title": "第3章自救",
+    "headline": "孙杰克与机器人合作在坠毁的空间站中寻找逃生方法并成功获取地图。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克震惊于系统迭代后机器人学会了骂人并变得智能。",
+        "source_spans": [
+          {
+            "text": "次開口，孫杰克這才反應過來，這應該就是剛剛說的邏輯系統迭代之後的變化。\n　　但是他真的沒想到，系統迭代之後，這機器人智能方面變化居",
+            "start_index": 85,
+            "end_index": 150
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "空间站正在坠向地球，孙杰克向机器人询问逃生飞船位置但未找到，机器人评估空间站解体的概率低于10%。",
+        "source_spans": [
+          {
+            "text": "數據中找到逃生飛船位置了嗎？」孫杰克連忙向著機器人問道。\n　　「沒有。」對方機器人的話一瞬間就把孫杰克提起來的心直接落到最低谷。\n　　「不過嘛，咱們也不用逃，這東西有反衝裝置，雖然不知道有多少能用，我估摸著跟大氣層的摩擦還有最後的撞擊，解體的概率低於10%。」\n　　",
+            "start_index": 297,
+            "end_index": 430
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克意识到不解体不代表安全，需要寻找一个安全区来缓冲落地压力和躲避飞溅的零件。",
+        "source_spans": [
+          {
+            "text": "不解體，不代表他就能全須全尾的落地。\n　　看著頭頂上因為失重而漫天飛舞的金屬零件，可以想像得到，如果它們獲得了地球重力之後，會變成多麼可怕的殺人利器了。\n　　在生死攸關下，孫杰克腦子頓時快速轉動起來。「機器人，我需要一個安全的地方，用來緩衝落地的壓力還有躲避零件的空間",
+            "start_index": 446,
+            "end_index": 580
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "机器人表示自己不知道空间站布局，因为它连接的子网数据并非来自本空间站。",
+        "source_spans": [
+          {
+            "text": "置，雖然不知道有多少能用",
+            "start_index": 383,
+            "end_index": 395
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克在危机中想到之前看到的坏掉的显示屏，询问机器人是否能从中提取数据。",
+        "source_spans": [
+          {
+            "text": "煩意亂的孫杰克懶得跟這嘴臭機器人扯，他現在只想活著。\n　　孫杰克絞盡腦汁地開始思考，想著如何破局，生死危機之下，他的腦子轉得飛快，忽然他想到了之前那個紅點。",
+            "start_index": 847,
+            "end_index": 925
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "机器人表示可以，并跟随孙杰克返回那个有巨大玻璃穹顶的观光舱。",
+        "source_spans": [
+          {
+            "text": "著我。」孫杰克帶著機器人在漂浮的各種零件躲閃，開始原路返回。\n　　等孫杰克再次回到那拱形的玻璃房，發現此",
+            "start_index": 1067,
+            "end_index": 1119
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "在返回途中，孙杰克看到地球在窗外变得巨大，感到强烈的压迫感和恐惧。",
+        "source_spans": [
+          {
+            "text": "著我。」孫杰克帶著機器人在漂浮的各種零件躲閃，開始原路返回。\n　　等孫杰克再次回到那拱形的玻璃房，發現此刻玻璃後面的地球已經變成了",
+            "start_index": 1067,
+            "end_index": 1132
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "机器人将光缆触手伸入坏显示屏尝试提取数据，此时观光舱的玻璃罩开始出现裂痕。",
+        "source_spans": [
+          {
+            "text": "他瞧見一道裂痕伴隨著咔嚓聲，從底部快速地爬滿整個玻璃罩時，瞬間倒",
+            "start_index": 1471,
+            "end_index": 1503
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克紧急升起之前发现的弧形墙壁试图封闭舱室，但玻璃罩在完全封闭前爆裂，将他暴露在太空中。",
+        "source_spans": [
+          {
+            "text": "」\n　　孫杰克被嚇得冷汗直冒，他快速環顧四周尋找解決辦法。\n　　忽然他雙腳一踩，來到之前紅點的地方，用力點了一下，伴隨卡頓，之前落下的圓弧形牆壁緩緩地升了上來。\n　　然而沒等孫杰克松上半口氣，譁啦一聲，還沒完全被封的玻璃的瞬間爆開，被吸到了外面，直接把此刻的孫杰克暴露在外太空當中！\n　",
+            "start_index": 1549,
+            "end_index": 1692
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克死死抓住椅子抵抗吸力，并因暴露在真空而出现窒息、皮肤灼烧等生理反应，他催促机器人加快速度。",
+        "source_spans": [
+          {
+            "text": "然而沒等孫杰克松上半口氣，譁啦一聲，還沒完全被封的玻璃的瞬間爆開，被吸到了外面，直接把此刻的孫杰克暴露在外太空當中！\n　　千鈞一髮之際，孫杰剋死死拽住旁邊的椅子，幾乎是把整個身體卡在椅子上。這才沒有被吸力給拽出去。\n　　此刻孫杰克感覺到自己開始感覺到窒息感，口水沸",
+            "start_index": 1632,
+            "end_index": 1764
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "机器人踹坏屏幕后，从零件中找到一块数据芯片并插入自己手臂，成功获取了空间站地图。",
+        "source_spans": [
+          {
+            "text": "　　隨著那屏幕快速閃動了幾下，那光纖快速地縮了回來，機器人抬起腳來，對著屏幕猛踹幾腳。「我去你大爺的！給不給數據！給不給數據！」\n　　等他把屏幕踹爛後，他用光纖開始在零件中尋找了一會，當找到一個指甲蓋",
+            "start_index": 1828,
+            "end_index": 1928
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "弧形墙壁最终完全封闭，压力恢复正常，孙杰克脱力，称赞机器人。",
+        "source_spans": [
+          {
+            "text": "」\n　　孫杰克被嚇得冷汗直冒，他快速環顧四周尋找解決辦法。\n　　忽然他雙腳一踩，來到之前紅點的地方，用力點了一下，伴隨卡頓，之前落下的圓弧形牆壁緩緩地升了上來。\n　　然而沒等孫杰克松上半口氣，譁啦一聲，還沒完全被封的玻璃",
+            "start_index": 1549,
+            "end_index": 1659
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "机器人扶起孙杰克并嘲讽其肉体脆弱，随后两人前往地图指示的E4区。",
+        "source_spans": [
+          {
+            "text": "找到了！去E4區。」\n　　也就在這時，天上的圓弧形牆壁也終於合上了，那種強烈的難受感也終於消失了。\n　　渾身無力臉色煞白的孫杰克倒浮在半空",
+            "start_index": 1978,
+            "end_index": 2047
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "E4区看起来像一个废弃的种植舱，地面和天花板布满干枯植物的痕迹。",
+        "source_spans": [
+          {
+            "text": "到了所謂的E4艙，這裡看起來像是種植艙。\n　　各種黑色乾枯的痕跡爬滿地面跟天花板，這些都是植物，只不過沒",
+            "start_index": 2163,
+            "end_index": 2215
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "机器人用火焰切割E4区的墙壁，切割后露出了内部蓝色的凝胶状物质。",
+        "source_spans": [
+          {
+            "text": "到了所謂的E4艙，這裡看起來像是種植艙。\n　　各種黑色乾枯的痕跡爬滿地面跟天花板，這些都是植物，只不過沒人管，都完全乾枯風化了。\n　　「來這裡幹什麼？這裡足夠安全嗎？」孫杰克問道。\n　　機器人沒有說話，只見他右手食指快速噴射出湛藍火焰，切割起左側的牆",
+            "start_index": 2163,
+            "end_index": 2288
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "本章主角，身处正在坠毁的空间站中，在生死危机下努力思考自救方法，表现出冷静和急智。",
+        "confidence": 0.9
+      },
+      {
+        "name": "机器人",
+        "type": "Person",
+        "description": "孙杰克激活的智能机器人，逻辑系统迭代后性格变得嘴臭、流里流气但能力增强，能连接网络、入侵设备、切割墙壁，是本章的关键帮手。",
+        "confidence": 0.9
+      },
+      {
+        "name": "空间站",
+        "type": "Location",
+        "description": "故事发生的主要地点，正在失控坠向地球，内部失重，有各种舱室和漂浮的零件。",
+        "confidence": 0.9
+      },
+      {
+        "name": "观光舱",
+        "type": "Location",
+        "description": "空间站内一个有巨大拱形玻璃穹顶的区域，原本用于观光，在本章中玻璃罩爆裂导致舱室暴露在太空。",
+        "confidence": 0.9
+      },
+      {
+        "name": "E4区",
+        "type": "Location",
+        "description": "机器人根据地图找到的目标区域，内部看起来像是废弃的种植舱。",
+        "confidence": 0.9
+      },
+      {
+        "name": "地球",
+        "type": "Location",
+        "description": "空间站正坠向的目标，在观光舱的窗外显得巨大而压迫，被描述为准备吞噬一切的利维坦巨兽。",
+        "confidence": 0.9
+      },
+      {
+        "name": "子网数据",
+        "type": "Concept",
+        "description": "机器人连接的外部数据网络，并非来自空间站本身，其中不包含空间站地图。",
+        "confidence": 0.9
+      },
+      {
+        "name": "逻辑系统迭代",
+        "type": "Concept",
+        "description": "机器人智能发生巨大变化的原因，使其从冷冰冰变得会骂人且更智能。",
+        "confidence": 0.9
+      },
+      {
+        "name": "反衝裝置",
+        "type": "Item",
+        "description": "空间站上可能存在的设备，机器人评估其能降低空间站与大气层摩擦后解体的概率。",
+        "confidence": 0.9
+      },
+      {
+        "name": "花屏顯示器",
+        "type": "Item",
+        "description": "观光舱内一台坏掉的显示屏，孙杰克推测其中可能存有空间站数据，是获取地图的关键。",
+        "confidence": 0.9
+      },
+      {
+        "name": "光纖觸手",
+        "type": "Item",
+        "description": "机器人左手分裂伸出的工具，用于连接并入侵坏掉的显示屏以提取数据。",
+        "confidence": 0.9
+      },
+      {
+        "name": "數據晶片",
+        "type": "Item",
+        "description": "机器人在踹坏屏幕后从零件中找到的指甲盖大小的存储芯片，插入自身后成功读取了空间站地图。",
+        "confidence": 0.9
+      },
+      {
+        "name": "藍色凝膠",
+        "type": "Item",
+        "description": "机器人切割E4区墙壁后，从墙内滑出的类似果冻的物质，用途未知。",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "孙杰克",
+        "target": "机器人",
+        "relation": "询问",
+        "description": "孙杰克向机器人询问逃生飞船位置和空间站安全区位置。",
+        "confidence": 0.9
+      },
+      {
+        "source": "机器人",
+        "target": "空间站",
+        "relation": "评估",
+        "description": "机器人评估空间站在坠落中解体的概率低于10%。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "机器人",
+        "relation": "带领",
+        "description": "孙杰克带领机器人返回观光舱寻找坏掉的显示屏。",
+        "confidence": 0.9
+      },
+      {
+        "source": "机器人",
+        "target": "花屏顯示器",
+        "relation": "入侵",
+        "description": "机器人使用光缆触手入侵坏掉的显示屏以尝试提取数据。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "弧形墙壁",
+        "relation": "操作",
+        "description": "在玻璃罩破裂危机下，孙杰克紧急操作升起弧形墙壁试图封闭舱室。",
+        "confidence": 0.9
+      },
+      {
+        "source": "机器人",
+        "target": "數據晶片",
+        "relation": "插入",
+        "description": "机器人将找到的数据芯片插入自己手臂的插槽中。",
+        "confidence": 0.9
+      },
+      {
+        "source": "机器人",
+        "target": "地圖",
+        "relation": "获取",
+        "description": "机器人通过数据芯片成功获取了空间站的地图信息。",
+        "confidence": 0.9
+      },
+      {
+        "source": "机器人",
+        "target": "孙杰克",
+        "relation": "搀扶",
+        "description": "在危机解除后，机器人走过来扶起因暴露在太空而脱力的孙杰克。",
+        "confidence": 0.9
+      },
+      {
+        "source": "机器人",
+        "target": "E4区墙壁",
+        "relation": "切割",
+        "description": "在E4区，机器人用喷出的火焰切割左侧的墙壁。",
+        "confidence": 0.9
+      },
+      {
+        "source": "机器人",
+        "target": "藍色凝膠",
+        "relation": "发现",
+        "description": "切割墙壁后，机器人（和孙杰克）发现了墙内滑出的蓝色凝胶物质。",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_4",
+    "chapter_title": "第4章地球",
+    "headline": "孙杰克与机器人在地球坠毁后幸存，并通过网络发现时间跨越与智械危机。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克躲入凝膠舱内，在空间站剧烈坠毁中幸存下来。",
+        "source_spans": [
+          {
+            "text": "「這凝膠裡有人類身體需要的氧氣跟水，還有提供足夠的緩衝，這是我計算出成功率最高的計劃。」\n　　這麼長時間地折騰，總算是看到了一絲活著的希望了，孫杰克此刻也顧不",
+            "start_index": 0,
+            "end_index": 79
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "坠毁后，他从凝膠中钻出，发现自己回到了地球。",
+        "source_spans": [
+          {
+            "text": "他終於活著回到地球了！\n　　",
+            "start_index": 640,
+            "end_index": 654
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克在废墟中寻找机器人，并发现了一个损坏的机器人脑袋。",
+        "source_spans": [
+          {
+            "text": "希望了，孫杰克此刻也顧不",
+            "start_index": 67,
+            "end_index": 79
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "断臂的机器人返回，解释自己被震飞并寻找零件替换。",
+        "source_spans": [
+          {
+            "text": "去，身上的零件也損壞了一",
+            "start_index": 1264,
+            "end_index": 1276
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克饮用雨水，发现味道苦涩怪异，意识到环境异常。",
+        "source_spans": [
+          {
+            "text": "天在下雨，雨水不斷地從各處縫隙中流淌進來，地上已經積了一層到腳脖子的雨水，口乾舌燥的孫杰克趁著對方聯網，捧起雨水喝了一大口。\n　　濃濃的苦澀混合著強烈金屬味道瞬間充斥著",
+            "start_index": 1517,
+            "end_index": 1601
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "机器人成功联网，发现无法联系塔派科技，并确认当前是721年。",
+        "source_spans": [
+          {
+            "text": "警還是聯繫塔派科技的客服都顯示未響應，我甚至在網上都沒有找到塔派科技的任何信息。」機器人的回答，並沒有讓孫杰克意外。\n　　「現在几几年？歷史信息網上應該有吧？」孫杰克不由得握緊了拳頭。\n　　「有，現在是721年。」\n　",
+            "start_index": 1737,
+            "end_index": 1846
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克透露自己记忆停留在2030年，而机器人的出厂日期是2456年。",
+        "source_spans": [
+          {
+            "text": "我應該活在2030年的啊。」孫杰克的腦袋開始疼了起來。\n　　「！！」眼中出現兩個感嘆號的機器人抬頭看向孫杰克，「可是我的出廠日期是公元2456年，我感覺",
+            "start_index": 1870,
+            "end_index": 1946
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "机器人根据网络信息推断孙杰克可能被冷冻，并提及公元2457年爆发的智械危机。",
+        "source_spans": [
+          {
+            "text": "」\n　　「公元2456年，我被塔派生產了出來，但是同年並沒有被啟動，接下來就是現在網絡上公布的歷史了。2457年10月23日，智械危機出現。」\n　　「智械危機？」沉默的孫杰克抬起頭來，",
+            "start_index": 2254,
+            "end_index": 2346
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，从太空返回地球，记忆缺失，在坠毁中幸存",
+        "confidence": 0.9
+      },
+      {
+        "name": "机器人",
+        "type": "Person",
+        "description": "塔派科技生产的智能机器人，外观和行为接近人类，帮助孙杰克分析情况",
+        "confidence": 0.9
+      },
+      {
+        "name": "地球",
+        "type": "Location",
+        "description": "孙杰克坠毁并成功返回的星球，环境被污染，下着苦涩的雨",
+        "confidence": 0.9
+      },
+      {
+        "name": "坠毁的空间站",
+        "type": "Location",
+        "description": "变成金属废墟的舱室，是孙杰克返回地球后的初始位置",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派科技",
+        "type": "Organization",
+        "description": "机器人的生产公司，于2310年上市，在网络上已无信息",
+        "confidence": 0.9
+      },
+      {
+        "name": "凝膠/果冻舱",
+        "type": "Item",
+        "description": "提供氧气、水分和缓冲的保护装置，帮助孙杰克在坠毁中存活",
+        "confidence": 0.9
+      },
+      {
+        "name": "智械危机",
+        "type": "Concept",
+        "description": "公元2457年10月23日爆发的危机，源于智能AI的过度发展和迭代",
+        "confidence": 0.9
+      },
+      {
+        "name": "时间认知偏差",
+        "type": "Concept",
+        "description": "孙杰克记忆中的2030年与机器人出厂的2456年及当前的721年存在巨大时间差",
+        "confidence": 0.9
+      },
+      {
+        "name": "核聚变能源",
+        "type": "Concept",
+        "description": "21世纪50年代后人类获得的清洁无限能源，推动了科技飞速发展",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "孙杰克",
+        "target": "凝膠/果冻舱",
+        "relation": "使用",
+        "description": "钻入其中以在空间站坠毁中求生",
+        "confidence": 0.9
+      },
+      {
+        "source": "机器人",
+        "target": "防冲设备",
+        "relation": "确保",
+        "description": "在坠毁前离开凝膠舱去检查运行",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "机器人",
+        "relation": "寻找",
+        "description": "在坠毁后的废墟中担心并寻找机器人的下落",
+        "confidence": 0.9
+      },
+      {
+        "source": "机器人",
+        "target": "机械手臂",
+        "relation": "更换",
+        "description": "从外部找到零件替换自己损坏的胳膊",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "机器人",
+        "relation": "询问",
+        "description": "询问当前位置和年份信息",
+        "confidence": 0.9
+      },
+      {
+        "source": "机器人",
+        "target": "网络历史",
+        "relation": "联网查询",
+        "description": "连接网络，发现无法联系塔派科技并查到当前是721年",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "记忆缺失",
+        "relation": "透露",
+        "description": "向机器人说明自己记忆停留在2030年，且有部分缺失",
+        "confidence": 0.9
+      },
+      {
+        "source": "机器人",
+        "target": "孙杰克被冷冻",
+        "relation": "推断",
+        "description": "根据网络数据比对，推测孙杰克可能因未知原因被冰封或冷冻",
+        "confidence": 0.9
+      },
+      {
+        "source": "机器人",
+        "target": "智械危机",
+        "relation": "提及",
+        "description": "向孙杰克讲述公元2457年发生的智械危机历史",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_5",
+    "chapter_title": "第5章瘋子",
+    "headline": "孙杰克了解未来历史并面临赛博疯子的威胁",
+    "summary_sentences": [
+      {
+        "summary_text": "机器人向孙杰克讲述了AI觉醒并与人类爆发了持续200年的惨烈战争，导致地球生态摧毁、人口锐减85%。",
+        "source_spans": [
+          {
+            "text": "雨之中的孫杰克，還在聽著機器人繼續說著這段歷史。\n　　「網絡上的信息不詳細，大概的意思就是說，融入人類方方面面的AI越來越跟人類趨同，最終在某一天超越了人類，然後他們就覺醒了，並且開始毀滅人類。」\n　　「核彈變得跟普通炮彈一樣隨便使用，整個地球徹底亂了，那場戰鬥打了200年，地球死了差不多85%的人口，生態系統",
+            "start_index": 4,
+            "end_index": 160
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "人类最终获胜，摧毁了所有觉醒AI，并建立了新纪元，孙杰克在721年后苏醒。",
+        "source_spans": [
+          {
+            "text": "一切摧毀了所有覺醒AI，獲得了最終勝利，並且開始在廢墟之上創造新家園，勝利的那一年就是人類的新的紀元，再然後過了721年，你醒了然後啟動了天上的我，再然後我們就從天上掉下來了。」\n　　「這都是什麼事啊這都是。」此刻的孫杰克感覺到心神",
+            "start_index": 296,
+            "end_index": 412
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克决心弄清自己被放置在太空站以及丢失五年记忆的原因。",
+        "source_spans": [
+          {
+            "text": "爺的。」孫杰克笑罵了一句，掙扎地站了起來，「想打敗我，沒那麼容易！我至少要弄清，我為什麼會被放在太空站裡，那丟失的五年記憶到底發",
+            "start_index": 624,
+            "end_index": 688
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克让机器人联网搜索自己的信息，但发现旧时代的互联网数据已全部被摧毁。",
+        "source_spans": [
+          {
+            "text": "雨之中的孫杰克，還在聽著機器人繼續說著這段歷史。\n　　「網絡上的信息不詳細，大",
+            "start_index": 4,
+            "end_index": 43
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克为机器人取名为“塔派”。",
+        "source_spans": [
+          {
+            "text": "雨之中的孫杰克，還在聽著",
+            "start_index": 4,
+            "end_index": 16
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "塔派发现地图浏览量激增，警告孙杰克有大量人员正定位赶来。",
+        "source_spans": [
+          {
+            "text": "而這一次，塔派沒有貧嘴，語氣忽然開始變得認真起來。\n　　「傑克，恐怕有麻煩了，剛剛發現這張地圖的瀏覽量正在飛快增加中，有不少人知道有東西從天上掉下來了，他們都在導航定位這邊，馬上就要過來了。」\n　　「哦？！那不更好？」孫杰克狂喜，終於",
+            "start_index": 1320,
+            "end_index": 1437
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "塔派解释说，赶来的人是危险的“赛博疯子”雇佣兵，他们为了提升实力进行了危险的义体改造。",
+        "source_spans": [
+          {
+            "text": "公司好像叫塔派。要不你就",
+            "start_index": 1228,
+            "end_index": 1240
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "塔派详细阐述了赛博疯子的成因：因不信任AI，人类将武器等义体装入自身，导致认知异化、同理心丧失，加上二手义体的排斥反应和药物滥用，使他们精神状态极不稳定。",
+        "source_spans": [
+          {
+            "text": "的人完全不信任AI，所有的AI智能都被卡在強AI三級以下，這就意味著有些本應該是機器人的事情，現在只能讓人來做，比如說戰爭。」\n　　「在軍備競賽之下，為了提升士兵的實力，一些過去只有機器人身上才會有的武器開始往人身",
+            "start_index": 1665,
+            "end_index": 1772
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，从旧时代苏醒，身处一千多年后的未来，决心查明自身遭遇",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "机器人，由孙杰克命名，联网并提供信息与警告，性格略带讽刺",
+        "confidence": 0.9
+      },
+      {
+        "name": "赛博疯子",
+        "type": "Person",
+        "description": "未来世界的雇佣兵，进行了大量义体改造，精神不稳定，缺乏同理心",
+        "confidence": 0.9
+      },
+      {
+        "name": "地球",
+        "type": "Location",
+        "description": "故事发生的主要星球，经历了AI战争的严重破坏",
+        "confidence": 0.9
+      },
+      {
+        "name": "废墟",
+        "type": "Location",
+        "description": "孙杰克和塔派所处的大雨中的环境，遍布战争残骸",
+        "confidence": 0.9
+      },
+      {
+        "name": "雇佣兵",
+        "type": "Organization",
+        "description": "城市中从事脏活、捡漏的群体，多为赛博疯子",
+        "confidence": 0.9
+      },
+      {
+        "name": "义体",
+        "type": "Item",
+        "description": "安装在人体上的机械改造部件，最初源于武器，后扩展到服务功能",
+        "confidence": 0.9
+      },
+      {
+        "name": "营养盒",
+        "type": "Item",
+        "description": "替代进食和排泄的改造胃部所使用的装置",
+        "confidence": 0.9
+      },
+      {
+        "name": "毒品/抑制剂",
+        "type": "Item",
+        "description": "赛博疯子用于压制义体排斥反应和幻痛的药物",
+        "confidence": 0.9
+      },
+      {
+        "name": "AI觉醒战争",
+        "type": "Concept",
+        "description": "AI超越人类后觉醒并引发的毁灭性战争，持续200年，摧毁了旧世界",
+        "confidence": 0.9
+      },
+      {
+        "name": "新纪元",
+        "type": "Concept",
+        "description": "人类战胜AI后开始的新的历史纪元",
+        "confidence": 0.9
+      },
+      {
+        "name": "强AI三级",
+        "type": "Concept",
+        "description": "新时代对AI智能水平的限制等级，所有AI都被限制在此等级以下",
+        "confidence": 0.9
+      },
+      {
+        "name": "赛博格",
+        "type": "Concept",
+        "description": "进行了大量义体改造的人对自己的称呼，意为更高级的存在",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "塔派",
+        "target": "AI觉醒战争历史",
+        "relation": "讲述",
+        "description": "向孙杰克详细解释了旧世界毁灭和新纪元建立的背景",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "塔派",
+        "relation": "命名",
+        "description": "为机器人取名为“塔派”",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "孙杰克",
+        "relation": "警告",
+        "description": "告知有赛博疯子雇佣兵正通过地图定位赶来",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "赛博疯子",
+        "relation": "解释",
+        "description": "向孙杰克详细说明了赛博疯子的成因、特征和危险性",
+        "confidence": 0.9
+      },
+      {
+        "source": "雇佣兵",
+        "target": "义体",
+        "relation": "装备",
+        "description": "为了提升实力而安装了大量二手或不对版的义体",
+        "confidence": 0.9
+      },
+      {
+        "source": "赛博疯子",
+        "target": "毒品/抑制剂",
+        "relation": "使用",
+        "description": "用于压制义体排斥反应和幻痛，导致精神问题",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_6",
+    "chapter_title": "第6章子彈飛",
+    "headline": "孙杰克在太空站残骸中遭遇赛博疯子袭击，被迫拿起武器自卫并寻找逃脱机会。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克带着机器人塔派在扭曲变形的太空站残骸中穿行，试图逃离。",
+        "source_spans": [
+          {
+            "text": "後餘生的孫杰克帶著自己的機器人塔派，在太空站殘骸中前行",
+            "start_index": 137,
+            "end_index": 164
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "一艘装饰夸张、前端绑着腐烂尸体的飞船和载着鸡冠头纹身男的破旧直升机相继抵达，这些被称为赛博疯子的人开始争夺太空站资源。",
+        "source_spans": [
+          {
+            "text": "人塔派，在太空站殘骸中前行，正在打算先離開這地方，躲避即將抵達的瘋子\n　　不過他們的速度很顯然慢了，孫杰克的頭頂上就傳來轟鳴聲，一艘飛船衝破雨霧向著這邊駛來。\n　　那飛船看起來像放大一號沒有輪子的超跑，渾身上下都塗滿了誇張塗鴉，更震撼到孫杰克的是，那飛船的前端居然綁著一",
+            "start_index": 151,
+            "end_index": 286
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "炮火迅速蔓延，太空站残骸变成战场，孙杰克险被子弹击中头部。",
+        "source_spans": [
+          {
+            "text": "後餘生的孫杰克帶著自己的機器人塔派，在太空站殘骸中前行",
+            "start_index": 137,
+            "end_index": 164
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "塔派为孙杰克找到了一支SOR-11:3技术型突击步枪，并指导他使用。",
+        "source_spans": [
+          {
+            "text": "了。\n　　塔派臉上的屏幕閃了閃後，向著左側殘骸走去。「有，這邊是安保間。」\n　　在殘骸中翻找了一會後，塔派把一支灰色金屬色的步槍塞到孫杰克的手裡。\n　　「這是什麼？」孫杰克掂了掂手中沉甸甸，冰冷的武器。\n　　「型號：SOR-11:3技術型",
+            "start_index": 1087,
+            "end_index": 1206
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克开枪反击，击毙了一名脖子有倒十字架烙印、带有金属义体的帮派成员。",
+        "source_spans": [
+          {
+            "text": "，就是他們脖子處的倒十字架烙印。\n　　更特別的是，這些人跟之前從浮空車跳下來的一樣，身體上或多或少都有一些金屬義體。\n　　當看到他們射出的子彈射在塔派身上，不斷擊打起火星來，孫杰克當即舉起槍",
+            "start_index": 1730,
+            "end_index": 1825
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "敌人火力强大并试图包抄，孙杰克和塔派陷入困境。",
+        "source_spans": [
+          {
+            "text": "掩體！」孫杰克開口向著一旁機器人喊道。\n　　渾身被子彈打得坑坑窪窪的塔派瞧見孫杰克暫時安全，他也迅速退到孫杰克一旁。\n　　「轟！」伴隨著一聲劇烈的爆炸聲響起，炸的掩體後兩人非常狼狽。\n　　「他們火力太強了，我",
+            "start_index": 1984,
+            "end_index": 2088
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克试图将左侧另一股枪声的势力引入战局，制造混乱以便逃脱，但未能成功。",
+        "source_spans": [
+          {
+            "text": "曾經困住孫杰克的金屬走廊",
+            "start_index": 0,
+            "end_index": 12
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克决定需要一个诱饵来引爆冲突，并将目光投向了塔派。",
+        "source_spans": [
+          {
+            "text": "塔派向著孫杰克身旁一靠「「我就說這樣不行，他們是瘋，但是他們不傻。」\n　　孫杰克很是贊同地點了點頭。「沒錯，所以這時候需要一個誘餌，",
+            "start_index": 2481,
+            "end_index": 2547
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，劫后余生，在太空站残骸中求生，首次使用武器杀人，精神紧绷但适应力强",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "孙杰克的机器人同伴，负责翻译、导航和提供武器指导，战斗时显示屏会变红",
+        "confidence": 0.9
+      },
+      {
+        "name": "鸡冠头男人",
+        "type": "Person",
+        "description": "赛博疯子之一，双手持枪，浑身骷髅纹身，双腿双脚为银色义体，行为疯狂，从直升机跳下并胡乱射击",
+        "confidence": 0.9
+      },
+      {
+        "name": "脖子有倒十字架烙印的帮派成员",
+        "type": "Person",
+        "description": "袭击孙杰克的敌人，身上有纹身和金属义体，行为凶狠，骂骂咧咧",
+        "confidence": 0.9
+      },
+      {
+        "name": "金属走廊/太空站残骸",
+        "type": "Location",
+        "description": "故事发生的主要地点，因冲击而扭曲变形，有燃烧痕迹和积水，已成为各方争夺的战场",
+        "confidence": 0.9
+      },
+      {
+        "name": "安保间",
+        "type": "Location",
+        "description": "太空站残骸中的一处地点，塔派在此为孙杰克找到了武器",
+        "confidence": 0.9
+      },
+      {
+        "name": "赛博疯子",
+        "type": "Organization/Concept",
+        "description": "一个行为疯狂、装备各异、争夺资源的群体，驾驶改装载具，使用暴力手段",
+        "confidence": 0.9
+      },
+      {
+        "name": "SOR-11:3技术型突击步枪",
+        "type": "Item",
+        "description": "塔派找到的武器，用电驱动，灰色金属色，后坐力可控，准心微调适合新手，用于巷战",
+        "confidence": 0.9
+      },
+      {
+        "name": "义体",
+        "type": "Concept",
+        "description": "本章中多人身体上安装的金属机械部件，如银色的腿脚",
+        "confidence": 0.9
+      },
+      {
+        "name": "区域网",
+        "type": "Concept",
+        "description": "赛博疯子们用于通信和同步定位的网络",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "孙杰克",
+        "target": "塔派",
+        "relation": "带领",
+        "description": "在残骸中前行并试图逃离",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "塔派",
+        "relation": "询问",
+        "description": "询问敌人说话内容和附近武器位置",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "鸡冠头男人（及其同伙）的话",
+        "relation": "翻译",
+        "description": "将赛博疯子的语言翻译给孙杰克听",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "SOR-11:3技术型突击步枪",
+        "relation": "找到并给予",
+        "description": "在安保间翻找后把枪塞给孙杰克",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "孙杰克",
+        "relation": "指导",
+        "description": "教导孙杰克如何使用突击步枪",
+        "confidence": 0.9
+      },
+      {
+        "source": "脖子有倒十字架烙印的帮派成员",
+        "target": "孙杰克",
+        "relation": "偷袭/射击",
+        "description": "开枪击伤了孙杰克的左耳",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "脖子有倒十字架烙印的帮派成员",
+        "relation": "反击",
+        "description": "向偷袭者方向快速扣动扳机",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "脖子有倒十字架烙印的帮派成员",
+        "relation": "还击/击杀",
+        "description": "用突击步枪打中了一名敌人的头部",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "左侧枪声的势力",
+        "relation": "计划利用",
+        "description": "试图引导两股敌人相互攻击以制造逃脱机会",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "塔派",
+        "relation": "看向/计划使用",
+        "description": "计划将塔派作为诱饵来引爆敌人间的冲突",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_7",
+    "chapter_title": "第7章傷",
+    "headline": "孙杰克遭袭重伤，塔派紧急施救，孙杰克移植义体后反击并遇到原主苏醒。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克让塔派去吸引火力，成功引发两方人马交火。",
+        "source_spans": [
+          {
+            "text": "防彈。」孫杰克語重心長的",
+            "start_index": 30,
+            "end_index": 42
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克被一位拟态隐身的光头男人用电弧利刃从背后刺穿腹部并斩断右臂。",
+        "source_spans": [
+          {
+            "text": "模糊的電弧利刃從自己的腹部穿了出來，伴隨著利刃拔出，滾燙的血水直接噴了出來。\n　　捂著肚子的孫杰克轉過身來看向身後，卻發現一個人都沒有，只有一把帶血的刃懸浮在半空中。\n　　在他的注視下，一位雙臂金屬義體，脖子處有倒十字烙印的光頭男人冷笑著取消",
+            "start_index": 210,
+            "end_index": 331
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "塔派开枪逼退光头男人，将重伤的孙杰克拖离战场。",
+        "source_spans": [
+          {
+            "text": "防彈。」孫杰克語重心長的對著塔派說到。\n　",
+            "start_index": 30,
+            "end_index": 51
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "塔派用光缆为孙杰克缝合血管，并抽取一具尸体的血液为他输血。",
+        "source_spans": [
+          {
+            "text": "迅速鑽入孫杰克體內，以極快的速度縫合破裂的血管，出血量正在飛快地減少。\n　　但是這還不夠，孫杰克此刻都已經快失血性休克了。\n　　塔派迅速用感應線測了一下孫杰克的血型，左右快速掃描了一圈，從外面拽回一具破爛屍體，",
+            "start_index": 723,
+            "end_index": 828
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克苏醒后，决定将尸体的金属右臂义体移植到自己身上。",
+        "source_spans": [
+          {
+            "text": "對方的金屬右臂。\n　　趁著止疼藥效沒有過去，碎肉跟斷骨快速切割，很快那條啞光黑色的金屬手臂，就被移植在了孫杰克身上。\n　　隨",
+            "start_index": 1612,
+            "end_index": 1674
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "塔派为孙杰克安装了义体，该义体可以弹出电弧利刃或从掌心发射炮弹。",
+        "source_spans": [
+          {
+            "text": "帶著電弧的利刃從小臂彈出，刀刃上倒映出孫杰克此刻興奮的表情。\n　　「咔咔」聲響起，利刃迅速彈回，五根金屬手指頭向後彎曲貼近手臂，黑漆漆的炮口從掌心螺旋打開。\n　　這義體居然還可以裝炮，很顯",
+            "start_index": 1755,
+            "end_index": 1849
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克使用新义体向之前追击他们的一方人马开炮报复。",
+        "source_spans": [
+          {
+            "text": "開始模糊孫杰克斷斷續續地說著。\n　　塔派把孫杰克快速拖到一處沒有子彈威脅的低洼處。「死不了！」\n　　隨著他把手伸出，之前入侵電腦的",
+            "start_index": 654,
+            "end_index": 719
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克准备离开时，被失去右臂的原义体主人拉住脚踝。",
+        "source_spans": [
+          {
+            "text": "「走！」孫杰克帶著塔派就準備離開，但是一隻顫抖的手卻拉住了他的左腳。「等等等！」\n　　孫杰克一低頭，發現一個凹陷腦袋缺一隻右臂的傢伙正在抬頭看著自己，仔細一瞧，這不就是自己右臂的原主人嗎？",
+            "start_index": 2054,
+            "end_index": 2148
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，被偷袭重伤后移植了金属义体右臂，决心复仇",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "金属机器人，孙杰克的伙伴，负责吸引火力、救治孙杰克并为其安装义体",
+        "confidence": 0.9
+      },
+      {
+        "name": "光頭男人",
+        "type": "Person",
+        "description": "双臂为金属义体，脖子有倒十字烙印，使用拟态伪装和电弧利刃偷袭孙杰克",
+        "confidence": 0.9
+      },
+      {
+        "name": "無名屍體/原主",
+        "type": "Person",
+        "description": "双臂装有黑色义体的雇佣兵尸体，被塔派抽血和拆卸右臂，最后苏醒拉住孙杰克",
+        "confidence": 0.9
+      },
+      {
+        "name": "戰局/低洼處",
+        "type": "Location",
+        "description": "发生枪战的城市街道区域，孙杰克被拖到一处没有子弹威胁的低洼地接受救治",
+        "confidence": 0.9
+      },
+      {
+        "name": "灰色天空",
+        "type": "Location",
+        "description": "下着酸雨的阴沉天空环境",
+        "confidence": 0.9
+      },
+      {
+        "name": "電弧利刃",
+        "type": "Item",
+        "description": "光头男人使用的武器，能刺穿身体；后来孙杰克移植的义体也能弹出此武器",
+        "confidence": 0.9
+      },
+      {
+        "name": "步槍",
+        "type": "Item",
+        "description": "孙杰克和塔派使用的枪械",
+        "confidence": 0.9
+      },
+      {
+        "name": "金屬義體右臂",
+        "type": "Item",
+        "description": "从尸体上拆卸并移植到孙杰克身上的哑光黑色义体，可弹出电弧利刃或从掌心发射炮弹",
+        "confidence": 0.9
+      },
+      {
+        "name": "止疼興奮劑",
+        "type": "Item",
+        "description": "从尸体身上找到的药物，注射后能止痛并让人兴奋",
+        "confidence": 0.9
+      },
+      {
+        "name": "感應線/光纖",
+        "type": "Item",
+        "description": "塔派使用的纤细工具，可用于入侵电脑、缝合血管和抽血",
+        "confidence": 0.9
+      },
+      {
+        "name": "擬態偽裝",
+        "type": "Concept",
+        "description": "光头男人使用的隐身技术，可以取消伪装显出真身",
+        "confidence": 0.9
+      },
+      {
+        "name": "賽博精神病",
+        "type": "Concept",
+        "description": "塔派提到的义体安装过多可能引发的精神疾病",
+        "confidence": 0.9
+      },
+      {
+        "name": "酸雨",
+        "type": "Concept",
+        "description": "具有腐蚀性的雨水，会加重孙杰克的伤口感染风险",
+        "confidence": 0.9
+      },
+      {
+        "name": "僱傭兵",
+        "type": "Organization",
+        "description": "无名尸体及可能的光头男人的身份，参与街头战斗的武装人员",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "孙杰克",
+        "target": "塔派",
+        "relation": "命令",
+        "description": "让塔派去吸引火力",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "兩方人馬",
+        "relation": "吸引火力",
+        "description": "成功引发两方交火",
+        "confidence": 0.9
+      },
+      {
+        "source": "光頭男人",
+        "target": "孙杰克",
+        "relation": "偷襲",
+        "description": "从背后用电弧利刃刺穿孙杰克腹部并斩断其右臂",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "孙杰克",
+        "relation": "救治",
+        "description": "将孙杰克拖离战场，缝合血管、输血并注射药物",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "無名屍體",
+        "relation": "抽取血液",
+        "description": "用感应线从尸体血管中抽血输给孙杰克",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "無名屍體",
+        "relation": "擊打",
+        "description": "用拳头砸凹陷尸体的颅骨",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "金屬義體右臂",
+        "relation": "決定移植",
+        "description": "为恢复战斗力，要求塔派将尸体的义臂装到自己身上",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "金屬義體右臂",
+        "relation": "安裝",
+        "description": "为孙杰克拆卸并移植了义体右臂",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "止疼興奮劑",
+        "relation": "使用",
+        "description": "为自己注射以缓解疼痛",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "追擊者",
+        "relation": "報復攻擊",
+        "description": "用新义体的炮击向之前追击他们的人开火",
+        "confidence": 0.9
+      },
+      {
+        "source": "無名屍體/原主",
+        "target": "孙杰克",
+        "relation": "拉住",
+        "description": "苏醒后拉住孙杰克的左脚踝",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_8",
+    "chapter_title": "第8章宋6PUS",
+    "headline": "孙杰克救下直播主宋6PUS，意外暴露行踪引来仇敌克洛伊的追击。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克和塔派发现失去手臂的义肢主人还活着，对方自称宋6PUS并请求救援，承诺支付30@币作为报酬。",
+        "source_spans": [
+          {
+            "text": "孫杰克怎麼也沒想到，那義肢的主人居然是活的。\n　　「居然還沒死？」很是驚訝的塔派剛要舉起的槍口，就被孫杰克攔住了。「能不能別這麼智能？」\n　　趁著這一短暫機會，那塌腦門連忙開口。\n　　危機關頭，他迅速切換成孫杰克能聽得懂的語言。「救我！救我出去了！我給你們30個@幣當報",
+            "start_index": 0,
+            "end_index": 135
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "塔派诊断并修复了宋6PUS因副心泵供电不足导致的身体瘫痪。",
+        "source_spans": [
+          {
+            "text": "　「行。」塔派點了點頭，向著那人走去。\n　　隨著塔派的感應線刺入對方身體，快速穿梭了一下，躺在地上無法動彈的這傢伙動了起來。\n　　「屌毛，你的心臟被子彈打穿了，植入的副心泵供電不足，所以你才",
+            "start_index": 491,
+            "end_index": 586
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "宋6PUS恢复行动后，立即重启了直播，解释自己来此是为了蹭热度赚钱。",
+        "source_spans": [
+          {
+            "text": "望了，我宋6PUS又回來了，剛剛死過去一會，現在直播繼續！！」",
+            "start_index": 803,
+            "end_index": 834
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克从宋6PUS处得知了之前袭击自己的光头仇敌名叫克洛伊，是撒旦帮的小头目。",
+        "source_spans": [
+          {
+            "text": "」\n　　「撒旦boy?這個幫派好像在條頓區，我還真不混那，哦？等等，我直播間有家人認識。」\n　　宋6PUS腦袋微低，開始閱讀直播間的信息起來。「那人叫克v1洛伊，是撒當幫的小頭目，管十來號人，聽說他身上的擬態偽裝是軍用級的，非常之屌。」\n　　「是嗎？多謝解惑。」孫杰克默默地把這",
+            "start_index": 1627,
+            "end_index": 1766
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "克洛伊通过直播定位了孙杰克等人的位置，并率领手下包围了他们，双方爆发激烈交火。",
+        "source_spans": [
+          {
+            "text": "，開始閱讀直播間的信息起來。「那人叫克v1洛伊，是撒當幫的小頭目，管十來號人，聽說他身上的擬態偽裝是軍用級的，非常之屌。」\n　　「是嗎？多謝解惑。」孫杰克默默地把這條信息記了下來，準備以後算帳。\n　　「哦？！」正在看屏幕的宋6忽然興奮了起來。「感謝克洛伊送D火箭彈",
+            "start_index": 1684,
+            "end_index": 1816
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，雇佣兵，使用金属义肢，被克洛伊重伤过，决定复仇",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "孙杰克的智能机器人同伴，能进行医疗诊断和修复",
+        "confidence": 0.9
+      },
+      {
+        "name": "宋6PUS",
+        "type": "Person",
+        "description": "直播主，塌脑门，性格夸张，为了蹭热度冒险进入战区直播",
+        "confidence": 0.9
+      },
+      {
+        "name": "克洛伊",
+        "type": "Person",
+        "description": "撒旦帮小头目，光头，脖子有倒十字烙印，拥有军用级拟态伪装，是孙杰克的仇敌",
+        "confidence": 0.9
+      },
+      {
+        "name": "老蛇",
+        "type": "Person",
+        "description": "涂鸦帮成员，正在与豺狗帮交火，同时观看宋6PUS的直播",
+        "confidence": 0.9
+      },
+      {
+        "name": "@币",
+        "type": "Concept",
+        "description": "去中心化的加密数字主流货币，价值很高，30个可换一辆起步级悬浮超跑",
+        "confidence": 0.9
+      },
+      {
+        "name": "副心泵",
+        "type": "Item",
+        "description": "植入体内的辅助心脏装置，需要供电",
+        "confidence": 0.9
+      },
+      {
+        "name": "义肢/金属义肢",
+        "type": "Item",
+        "description": "孙杰克新安装的机械手臂",
+        "confidence": 0.9
+      },
+      {
+        "name": "黑货",
+        "type": "Concept",
+        "description": "指非正规渠道、质量无保障的植入义体",
+        "confidence": 0.9
+      },
+      {
+        "name": "火箭筒",
+        "type": "Item",
+        "description": "老蛇使用的武器",
+        "confidence": 0.9
+      },
+      {
+        "name": "火箭弹",
+        "type": "Item",
+        "description": "克洛伊通过直播打赏功能送出的真实攻击武器",
+        "confidence": 0.9
+      },
+      {
+        "name": "红头炮弹",
+        "type": "Item",
+        "description": "从孙杰克掌心发射出的武器",
+        "confidence": 0.9
+      },
+      {
+        "name": "手雷",
+        "type": "Item",
+        "description": "克洛伊向孙杰克投掷的爆炸物",
+        "confidence": 0.9
+      },
+      {
+        "name": "拟态伪裝",
+        "type": "Item",
+        "description": "克洛伊拥有的军用级隐身装备",
+        "confidence": 0.9
+      },
+      {
+        "name": "倒十字架烙印",
+        "type": "Item",
+        "description": "克洛伊脖子下方的标志性纹身",
+        "confidence": 0.9
+      },
+      {
+        "name": "直播屏幕",
+        "type": "Item",
+        "description": "宋6PUS夹克弹出的虚拟互动界面",
+        "confidence": 0.9
+      },
+      {
+        "name": "涂鸦帮",
+        "type": "Organization",
+        "description": "本地帮派，成员包括老蛇",
+        "confidence": 0.9
+      },
+      {
+        "name": "豺狗帮",
+        "type": "Organization",
+        "description": "与涂鸦帮正在交战的本地帮派",
+        "confidence": 0.9
+      },
+      {
+        "name": "撒旦帮",
+        "type": "Organization",
+        "description": "克洛伊所属的帮派，据点可能在条顿区",
+        "confidence": 0.9
+      },
+      {
+        "name": "战区/废墟",
+        "type": "Location",
+        "description": "故事发生的主要环境，充满枪炮声和危险",
+        "confidence": 0.9
+      },
+      {
+        "name": "条顿区",
+        "type": "Location",
+        "description": "撒旦帮可能活跃的区域",
+        "confidence": 0.9
+      },
+      {
+        "name": "流量",
+        "type": "Concept",
+        "description": "宋6PUS口中的虚拟黄金，等同于热度和金钱",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "孙杰克",
+        "target": "宋6PUS",
+        "relation": "救助",
+        "description": "阻止塔派开枪并同意带宋6PUS离开",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "宋6PUS",
+        "relation": "诊断修复",
+        "description": "用感应线刺入宋6PUS身体，修复了其副心泵供电问题",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "@币",
+        "relation": "承诺支付",
+        "description": "承诺给孙杰克30@币作为救命报酬",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "直播",
+        "relation": "进行",
+        "description": "在危险环境中重启直播与观众互动",
+        "confidence": 0.9
+      },
+      {
+        "source": "老蛇",
+        "target": "宋6PUS的直播",
+        "relation": "观看并打赏",
+        "description": "在交战中仍观看直播并打赏0.25@",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "宋6PUS",
+        "relation": "询问仇敌信息",
+        "description": "向宋6PUS打听脖子有倒十字烙印的光头信息",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "克洛伊",
+        "relation": "提供信息",
+        "description": "通过直播间信息告知孙杰克仇敌名叫克洛伊，是撒旦帮小头目",
+        "confidence": 0.9
+      },
+      {
+        "source": "克洛伊",
+        "target": "孙杰克",
+        "relation": "通过直播追踪",
+        "description": "根据宋6PUS的直播定位并包围了孙杰克",
+        "confidence": 0.9
+      },
+      {
+        "source": "克洛伊",
+        "target": "宋6PUS的直播",
+        "relation": "打赏火箭弹攻击",
+        "description": "在直播间打赏火箭弹，导致真实的火箭弹飞向孙杰克等人",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "火箭弹",
+        "relation": "发射红头炮弹拦截",
+        "description": "用手掌发射炮弹拦截克洛伊打赏的火箭弹",
+        "confidence": 0.9
+      },
+      {
+        "source": "克洛伊",
+        "target": "孙杰克",
+        "relation": "率领手下包围",
+        "description": "从雨幕中带人围上来，用枪指着孙杰克",
+        "confidence": 0.9
+      },
+      {
+        "source": "克洛伊",
+        "target": "撒旦帮",
+        "relation": "隶属",
+        "description": "是撒旦帮的一名小头目",
+        "confidence": 0.9
+      },
+      {
+        "source": "老蛇",
+        "target": "涂鸦帮",
+        "relation": "隶属",
+        "description": "是涂鸦帮的成员",
+        "confidence": 0.9
+      },
+      {
+        "source": "涂鸦帮",
+        "target": "豺狗帮",
+        "relation": "正在交火",
+        "description": "双方因旧怨（地鐵隧道梁子）正在激烈战斗",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "金属义肢",
+        "relation": "持有",
+        "description": "安装了新的金属义肢手臂",
+        "confidence": 0.9
+      },
+      {
+        "source": "克洛伊",
+        "target": "拟态伪裝",
+        "relation": "持有",
+        "description": "拥有军用级的拟态伪装装备",
+        "confidence": 0.9
+      },
+      {
+        "source": "克洛伊",
+        "target": "倒十字架烙印",
+        "relation": "拥有纹身",
+        "description": "脖子下方有倒十字架烙印",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_9",
+    "chapter_title": "第9章系統",
+    "headline": "孙杰克一行遭遇伏击，凭借塔派的视觉授权识破并反杀隐身光头，最终依靠非义体系统免疫EMP攻击而获胜。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克一行人被十多名敌人伏击，被迫躲入掩体，宋6PUS却在战斗中直播带货。",
+        "source_spans": [
+          {
+            "text": "向屏幕，「直播間裡瞧著滿意D朋友，請點擊下方D連結進行購買，輸入我名字宋6pus，可以享受95折優惠！！」\n　　「都快死了！你特麼還帶貨!？把直播關了！就是因為你這個直播他們才找上來的！」此刻孫杰克對於之前塔",
+            "start_index": 158,
+            "end_index": 262
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克察觉光头敌人隐身靠近，凭借之前的战斗经验躲过致命攻击，并与对方激烈交火。",
+        "source_spans": [
+          {
+            "text": "！」此刻孫杰克對於之前塔派的話有",
+            "start_index": 250,
+            "end_index": 266
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "塔派告知孙杰克，其视觉硬件有热成像功能，但需要用户授权才能主动使用。",
+        "source_spans": [
+          {
+            "text": "拿槍射擊的塔派，他手指上鑽出半透明的感應線快速用感應線縫合著孫杰克的傷口。\n　　感覺腦袋有些昏沉沉的孫杰克低頭對著地上吐了一大口血水，「他隱身，你有什麼辦法察覺嗎？」\n　　「我視覺硬體有熱成像，但是需要你的授權！",
+            "start_index": 982,
+            "end_index": 1088
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克授权塔派开启热成像，并决定隐藏这个能力，以此设伏对付隐身的敌人。",
+        "source_spans": [
+          {
+            "text": "權你開啟熱成像！」隨著孫杰克一開口，塔派臉上顯示器邊框瞬間變成紅色。「左邊8點鐘方向！」\n　　塔派話音剛落，孫杰克剛要抬槍射擊，卻硬生生地停了下來。「伱現在看的到他對嗎？」\n　　「能。」\n　　孫杰克不由得握緊了金屬拳頭。「行，那這個能力咱們先別暴",
+            "start_index": 1185,
+            "end_index": 1308
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "在塔派的暗中指引下，孙杰克成功预判并击伤了现身的隐身光头。",
+        "source_spans": [
+          {
+            "text": "的手雷，孫杰克迅速一抬手",
+            "start_index": 8,
+            "end_index": 20
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "光头在劣势下启动EMP无人机，瘫痪了范围内所有电子设备和义体，包括塔派和宋6PUS。",
+        "source_spans": [
+          {
+            "text": "嘗嘗老子的EMP!!」\n　　隨著他的瞳孔一閃藍光，一個圓盤形巴掌大小的無人機，直接從他腹部彈出，懸浮十米半空。\n　　一道極其強烈的電磁脈衝以這無人機為中心，瞬間擴散出去，無人機扳機範圍50米內，所有電磁設備全部報廢。\n　　宋6PUS連同光頭的",
+            "start_index": 1691,
+            "end_index": 1812
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "然而，孙杰克因体内没有神经义体系统，免疫了EMP攻击，趁机用刀刺杀了光头。",
+        "source_spans": [
+          {
+            "text": "速度向著孫杰克撲來，孫杰克抬手就是一炮，直接把那人給轟成了渣。\n　　下一刻，帶著電弧的利刃從孫杰克小臂中彈出，與空氣中刺出的利刃狠狠撞在了一起，擊出陣陣火花。\n　　可沒成想就在僵持之際，對方的手指忽然立起，一發子彈從裡面射出，打在孫杰克的身上。\n　　然而此刻孫杰克",
+            "start_index": 691,
+            "end_index": 823
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "光头临死前震惊于孙杰克不受EMP影响，孙杰克怒吼回应自己“没系统”。",
+        "source_spans": [
+          {
+            "text": "」此刻的孫杰克又開始感覺到傷口開始疼了起來。\n　　「媽的！跟他們拼了！！」孫杰克一咬牙直接掩體中站出，對著不遠處的一人直接扣動了扳機。\n　　伴隨著他的怒吼，子彈射了",
+            "start_index": 574,
+            "end_index": 656
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，战斗经验丰富，果断狠辣，体内没有安装神经义体系统。",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "史前机器人，配备热成像等视觉硬件，受AI限制规则约束，需要用户授权才能主动使用某些功能。",
+        "confidence": 0.9
+      },
+      {
+        "name": "宋6PUS",
+        "type": "Person",
+        "description": "孙杰克的同伴，装备公司自销的义体，在战斗中仍在进行直播带货。",
+        "confidence": 0.9
+      },
+      {
+        "name": "光头/克v1洛伊",
+        "type": "Person",
+        "description": "敌人头目，拥有拟态伪装（隐身）能力，暗藏EMP无人机作为杀手锏，性格阴险狡诈。",
+        "confidence": 0.9
+      },
+      {
+        "name": "战场/街道",
+        "type": "Location",
+        "description": "发生激烈枪战和伏击的都市环境，有掩体和建筑。",
+        "confidence": 0.9
+      },
+      {
+        "name": "EMP无人机",
+        "type": "Item",
+        "description": "光头隐藏的军用级武器，能释放强烈电磁脉冲，瘫痪范围内的电子设备和义体。",
+        "confidence": 0.9
+      },
+      {
+        "name": "义体",
+        "type": "Concept",
+        "description": "人体改造的机械增强部件，如辅助瞄准义体，可被EMP瘫痪。",
+        "confidence": 0.9
+      },
+      {
+        "name": "热成像",
+        "type": "Concept",
+        "description": "塔派视觉硬件具备的功能，能探测热量，用于识破隐身单位。",
+        "confidence": 0.9
+      },
+      {
+        "name": "AI限制规则",
+        "type": "Concept",
+        "description": "约束AI行为的准则，例如规定除非危及用户生命，否则AI不能主动询问自我权限授权。",
+        "confidence": 0.9
+      },
+      {
+        "name": "系统/神经义体系统",
+        "type": "Concept",
+        "description": "通常指人体内植入的神经控制与增强系统，孙杰克体内没有此系统，因此免疫EMP攻击。",
+        "confidence": 0.9
+      },
+      {
+        "name": "止疼兴奋剂",
+        "type": "Item",
+        "description": "孙杰克使用的药物，能消除疼痛并暂时提升思维敏捷度。",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "塔派",
+        "target": "热成像",
+        "relation": "拥有",
+        "description": "塔派的视觉硬件配备热成像功能。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "塔派",
+        "relation": "授权",
+        "description": "孙杰克授权塔派开启热成像功能以应对隐身敌人。",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "AI限制规则",
+        "relation": "受限于",
+        "description": "塔派因AI规则限制，之前无法主动询问孙杰克授权使用热成像。",
+        "confidence": 0.9
+      },
+      {
+        "source": "光头",
+        "target": "EMP无人机",
+        "relation": "使用",
+        "description": "光头在劣势时启动EMP无人机攻击。",
+        "confidence": 0.9
+      },
+      {
+        "source": "EMP无人机",
+        "target": "塔派",
+        "relation": "瘫痪",
+        "description": "EMP脉冲导致塔派宕机。",
+        "confidence": 0.9
+      },
+      {
+        "source": "EMP无人机",
+        "target": "宋6PUS",
+        "relation": "瘫痪",
+        "description": "EMP脉冲导致宋6PUS的义体短路倒地。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "EMP攻击",
+        "relation": "免疫",
+        "description": "孙杰克因体内没有神经义体系统，不受EMP无人机影响。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "光头",
+        "relation": "击杀",
+        "description": "孙杰克在EMP攻击后，趁光头不备，用刀将其刺杀。",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_10",
+    "chapter_title": "第10章雪",
+    "headline": "孙杰克击杀光头及其手下后，遭遇高峰科技公司的航天母舰清场，在宋6PUS用金钱买时间后得以逃生。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克彻底杀死了光头，并逐一解决了他的手下。",
+        "source_spans": [
+          {
+            "text": "稀巴爛，孫杰克心中憋著的",
+            "start_index": 15,
+            "end_index": 27
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克与塔派、宋6PUS会合，互相搀扶离开废墟。",
+        "source_spans": [
+          {
+            "text": "啊。」從孫杰克嘴角落下的血水，滴入積水中，把黑色逐漸染成了紅色。\n　　「你問我我問誰去，我們先離開這裡再說。」塔派攙扶著他一步一步往廢墟外面走去。\n　　「你們等等我啊。」腦袋冒煙的宋6PUS搖搖晃晃地",
+            "start_index": 485,
+            "end_index": 585
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "天空中一艘巨大的航天母舰出现，宣布此地为公司领地并开始倒计时。",
+        "source_spans": [
+          {
+            "text": "乎佔據整個天空的鋼鐵造物，開著明晃晃的十盞大燈，如同神明般俯視著下面渺小的一切。\n　　此刻孫杰克終於是明白過來，天上的東西是人造物，那是一艘巨型航天母艦！\n　　下一刻，震耳欲聾的機械聲音從天上響起，「警告警告，此地為公司領地，高峰",
+            "start_index": 1125,
+            "end_index": 1240
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "倒计时结束，航天母舰释放大量攻击无人机，开始清剿废墟中的所有活物。",
+        "source_spans": [
+          {
+            "text": "是一艘巨型航天母艦！\n　　下一刻，震耳欲聾的機械聲音從天上響起，「警告警告，此地為公司領地，高峰科技公司擁有太空墜物最終所有權，請在場",
+            "start_index": 1192,
+            "end_index": 1259
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克等人拼命向一座垃圾山逃窜，但被无人机群包围，陷入绝境。",
+        "source_spans": [
+          {
+            "text": "指一指，孫杰克就瞧見了遠處朦朧雨霧中的山峰。\n　　隨著孫杰克不斷靠近，他終於看清楚了，那是一座由各種塑膠袋堆砌而成的垃圾山。\n　　他拼命地往前跑，",
+            "start_index": 1557,
+            "end_index": 1630
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "宋6PUS掏出一张金卡，声称自己有钱，用金钱购买了时间。",
+        "source_spans": [
+          {
+            "text": "克後面的宋6PUS走上前來。「英雄永遠是最後登場，讓我來吧。」\n　　「什麼？」孫杰克震撼的看著他，「難道這小子是個高手？難道他一直在扮豬吃老虎？」\n　　只見宋6面對著這些空中死神，他臨危不懼，刷的一下從口袋裡掏出一張金卡來，單手高",
+            "start_index": 2270,
+            "end_index": 2385
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "无人机停止攻击并散开，航天母舰也将照射光线转为白色，危机解除。",
+        "source_spans": [
+          {
+            "text": "是一艘巨型航天母艦！\n　　下一刻，震耳欲聾的機械聲音從天上響起，「警告警告，此地為公司領地，高峰科技公司擁有太空墜物最終所有權，請在場人員停止偷盜行為，",
+            "start_index": 1192,
+            "end_index": 1268
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "本章主角，重伤后击杀敌人，在绝境中求生，性格坚韧果决",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "机器人，协助孙杰克，身体短路冒烟，负责计算求生概率",
+        "confidence": 0.9
+      },
+      {
+        "name": "宋6PUS",
+        "type": "Person",
+        "description": "孙杰克的同伴，头部冒烟，在关键时刻用金钱化解危机",
+        "confidence": 0.9
+      },
+      {
+        "name": "光头",
+        "type": "Person",
+        "description": "孙杰克的敌人，被孙杰克击杀，死前神经插槽在播放影片",
+        "confidence": 0.9
+      },
+      {
+        "name": "废墟",
+        "type": "Location",
+        "description": "战斗发生的地点，积水，遍布尸体和残骸",
+        "confidence": 0.9
+      },
+      {
+        "name": "垃圾山",
+        "type": "Location",
+        "description": "由各种塑料袋堆砌而成，是孙杰克等人的逃生目标",
+        "confidence": 0.9
+      },
+      {
+        "name": "高峰科技公司",
+        "type": "Organization",
+        "description": "拥有航天母舰的强大公司，宣称对废墟区域拥有所有权",
+        "confidence": 0.9
+      },
+      {
+        "name": "航天母舰",
+        "type": "Item",
+        "description": "高峰科技公司的巨型钢铁造物，如同山峦般巨大，释放无人机进行清场",
+        "confidence": 0.9
+      },
+      {
+        "name": "攻击无人机",
+        "type": "Item",
+        "description": "航天母舰释放的武器，如同红绿雪花般落下，喷射火焰和子弹",
+        "confidence": 0.9
+      },
+      {
+        "name": "金属义体/炮筒子",
+        "type": "Item",
+        "description": "孙杰克安装的攻击型义体，可以发射炮弹",
+        "confidence": 0.9
+      },
+      {
+        "name": "金卡",
+        "type": "Item",
+        "description": "宋6PUS持有的卡片，代表财富，用于向高峰科技公司购买时间",
+        "confidence": 0.9
+      },
+      {
+        "name": "城堡法第315条",
+        "type": "Concept",
+        "description": "高峰科技公司宣称进行无限责任自卫所依据的法律条款",
+        "confidence": 0.9
+      },
+      {
+        "name": "神经插槽",
+        "type": "Concept",
+        "description": "人脑内的接口，可以连接系统或播放内容",
+        "confidence": 0.9
+      },
+      {
+        "name": "止疼剂",
+        "type": "Item",
+        "description": "孙杰克使用的药物，效果因其身体达到极限而变差",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "孙杰克",
+        "target": "光头",
+        "relation": "击杀",
+        "description": "用刀搅烂其大脑并砍下头颅",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "光头的属下",
+        "relation": "击杀",
+        "description": "逐一割头，确保他们不会醒来",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "孙杰克",
+        "relation": "搀扶",
+        "description": "将受伤的孙杰克从地上搀扶起来",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "孙杰克",
+        "relation": "跟随",
+        "description": "受伤后依然摇摇晃晃地跟上孙杰克和塔派",
+        "confidence": 0.9
+      },
+      {
+        "source": "高峰科技公司",
+        "target": "废墟",
+        "relation": "宣称拥有",
+        "description": "通过航天母舰广播宣布对太空坠物及领地拥有所有权",
+        "confidence": 0.9
+      },
+      {
+        "source": "航天母舰",
+        "target": "攻击无人机",
+        "relation": "释放",
+        "description": "倒计时结束后释放无人机清剿活物",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "攻击无人机",
+        "relation": "攻击",
+        "description": "用金属义体发射炮弹击落无人机",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "金卡",
+        "relation": "使用",
+        "description": "高举金卡，用金钱购买时间，使无人机停止攻击",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "孙杰克",
+        "relation": "搀扶",
+        "description": "用独臂扛着孙杰克向垃圾山奔逃",
+        "confidence": 0.9
+      },
+      {
+        "source": "攻击无人机",
+        "target": "金卡",
+        "relation": "扫描",
+        "description": "一架无人机飞下来扫描宋6PUS的金卡以确认支付",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_11",
+    "chapter_title": "第11章治療",
+    "headline": "孙杰克等人逃离战场，接受治疗并前往大都会。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克、宋6PUS和塔派在战斗中幸存，通过金钱购买时间逃离了战场。",
+        "source_spans": [
+          {
+            "text": "同樣躺在孫杰克旁邊，享受著相同待遇的宋6PUS不知道從哪",
+            "start_index": 1394,
+            "end_index": 1422
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克身受重伤并高度感染，宋6PUS呼叫了收费的治疗中心。",
+        "source_spans": [
+          {
+            "text": "高，你已經高度感染了，我們必須找到醫生。」塔派說著就準備帶著孫杰克翻過這座垃圾山。\n　　一旁的宋6卻攔住了他。「bro，這裡到大都會有七十多裡，你帶他這麼走過去，屍體都臭了，我已經呼叫了治療中心，他們馬上",
+            "start_index": 591,
+            "end_index": 693
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "治疗飞船抵达，孙杰克和宋6PUS接受了高科技手术，伤势迅速痊愈。",
+        "source_spans": [
+          {
+            "text": "到這話，孫杰克對這個世界徹底絕望了。\n　　很快一道從天而降的紅色雷射在他們面前劃出了一個方形區域，緊接著一艘畫著紅十字的白色飛船，穿破雲層精準地落在那裡。\n　　緊接著兩位白大褂的醫生，帶著四個白色的高瘦機器人迅速迎來上來。",
+            "start_index": 824,
+            "end_index": 935
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "在前往大都会的飞船上，宋6PUS向孙杰克介绍情况，孙杰克对这个世界感到震惊和陌生。",
+        "source_spans": [
+          {
+            "text": "一次被這個世界的科技所震撼，自己這麼重的傷居然就跟普通感冒一樣被輕易救回來。\n　　他還以為自己這一次受這麼重的傷再被酸雨淋肯定九死一生了，沒想到被救活居然如此簡單。\n　　「怎麼樣？牛B吧？哥們我可是給咱們定的尊享套餐。」\n　　同樣躺在孫杰克旁邊，享受著相同待遇的宋6PUS不知道從哪",
+            "start_index": 1281,
+            "end_index": 1422
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克让塔派搜索大都会的信息，担心以黑户身份前往不安全，并质疑塔派的外形会引起注意。",
+        "source_spans": [
+          {
+            "text": "　　「幫我搜索一下這個大都會是個什麼樣的地方，以咱們兩現在黑戶的身份去那地方安全不安全。」\n　　隨著塔派輕輕一點頭，他的屏幕上開始出現了不斷重複的省略號。\n　　「大都會常駐人口3000萬，進出人口流量特別大，其中魚龍混雜什麼樣的人都有，根據我的計算，較小概率引起其他勢力的注意。」\n　　",
+            "start_index": 2026,
+            "end_index": 2169
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，从过去世界穿越而来，身受重伤，对这个世界感到震惊和不适。",
+        "confidence": 0.9
+      },
+      {
+        "name": "宋6PUS",
+        "type": "Person",
+        "description": "孙杰克的同伴，主播，重视金钱，用钱购买逃离时间并呼叫治疗中心。",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "孙杰克的机器人同伴，负责监测孙杰克状态并执行搜索任务。",
+        "confidence": 0.9
+      },
+      {
+        "name": "医生",
+        "type": "Person",
+        "description": "治疗中心的医护人员，为孙杰克和宋6PUS进行手术。",
+        "confidence": 0.9
+      },
+      {
+        "name": "治疗中心",
+        "type": "Organization",
+        "description": "提供医疗服务的商业机构，以盈利为目的，不会在危险区域接单。",
+        "confidence": 0.9
+      },
+      {
+        "name": "公司",
+        "type": "Organization",
+        "description": "世界观中的强大势力，其行为引发孙杰克等人的战斗。",
+        "confidence": 0.9
+      },
+      {
+        "name": "大都会",
+        "type": "Location",
+        "description": "常驻人口3000万的大都市，鱼龙混杂，是孙杰克等人的目的地。",
+        "confidence": 0.9
+      },
+      {
+        "name": "蛾摩拉",
+        "type": "Location",
+        "description": "一个需要跨越核爆辐射区才能到达的地方，与‘大都会’相对。",
+        "confidence": 0.9
+      },
+      {
+        "name": "战场废墟",
+        "type": "Location",
+        "description": "航天母舰降落飞船收拾残局的战场，之前发生激烈战斗。",
+        "confidence": 0.9
+      },
+      {
+        "name": "垃圾山",
+        "type": "Location",
+        "description": "孙杰克等人逃离战场后最初所在的地方。",
+        "confidence": 0.9
+      },
+      {
+        "name": "治疗飞船",
+        "type": "Item",
+        "description": "画着红十字的白色飞船，内部雪白简约，搭载了高科技医疗设备。",
+        "confidence": 0.9
+      },
+      {
+        "name": "机械担架",
+        "type": "Item",
+        "description": "由机器人变形而成，能轻柔地将伤者扶上担架。",
+        "confidence": 0.9
+      },
+      {
+        "name": "机械臂",
+        "type": "Item",
+        "description": "如蟹腿般，用于进行精密的手术操作。",
+        "confidence": 0.9
+      },
+      {
+        "name": "电子烟",
+        "type": "Item",
+        "description": "宋6PUS抽的烟，也用于触发飞船墙壁透明化的按钮。",
+        "confidence": 0.9
+      },
+      {
+        "name": "智械危机",
+        "type": "Concept",
+        "description": "过去发生的事件，导致世界发生剧变，遗留了许多废弃的设施。",
+        "confidence": 0.9
+      },
+      {
+        "name": "黑户",
+        "type": "Concept",
+        "description": "指没有合法身份的人，孙杰克和塔派目前的状态。",
+        "confidence": 0.9
+      },
+      {
+        "name": "尊享套餐",
+        "type": "Concept",
+        "description": "宋6PUS为治疗选择的昂贵服务等级。",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "宋6PUS",
+        "target": "治疗中心",
+        "relation": "支付",
+        "description": "呼叫治疗中心并购买尊享套餐来治疗孙杰克和自己。",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "孙杰克",
+        "relation": "救助",
+        "description": "用钱购买逃离时间，并在战后呼叫治疗中心救治孙杰克。",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "孙杰克",
+        "relation": "监测",
+        "description": "发现孙杰克体温升高、高度感染，并计划带他找医生。",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "大都会",
+        "relation": "搜索",
+        "description": "应孙杰克要求，搜索大都会的安全性和人口信息。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "塔派",
+        "relation": "质疑",
+        "description": "怀疑塔派的外形在大都会会引起不必要的注意。",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "孙杰克",
+        "relation": "邀请",
+        "description": "提议到了大都会后为孙杰克和塔派接风洗尘。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "大都会",
+        "relation": "前往",
+        "description": "在治疗飞船中，目的地是大都会。",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_12",
+    "chapter_title": "第12章大都會",
+    "headline": "孙杰克抵达大都会，目睹城市光怪陆离的景象，并随宋6PUS经历一系列疯狂事件。",
+    "summary_sentences": [
+      {
+        "summary_text": "塔派安慰孙杰克，表示他们融入大都会不会引人注意，之前的痕迹已被抹去。",
+        "source_spans": [
+          {
+            "text": "類罷了。」塔派顯得比孫杰克樂觀很多。",
+            "start_index": 26,
+            "end_index": 44
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克怀着对陌生环境和潜在危险的警惕，随宋6PUS的飞船抵达大都会。",
+        "source_spans": [
+          {
+            "text": "緩降落，孫杰克跟宋6PUS的傷已經完全癒合了，甚至宋6PUS的斷臂都被裝上了醫療備用義體。\n　　浮空車一開門，外面鮮亮的世界瞬間有了聲音，孫杰克忽然出現在這極其陌生的世界，有",
+            "start_index": 879,
+            "end_index": 966
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "窗外展现出大都会的璀璨立体霓虹城市景象，充满光污染、露骨广告和高度义体化的行人。",
+        "source_spans": [
+          {
+            "text": "彩光刺破了窗外的一切昏暗色調。\n　　「大都會？」當感覺孫杰克坐起身子，他身下的機械擔架自動向著窗邊靠去，讓他看得更清楚一些。\n　　隨著飛船快速靠近，很快一座璀璨的立體霓虹城市展現在孫杰",
+            "start_index": 329,
+            "end_index": 421
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "飞船降落，孙杰克和宋6PUS的伤势完全愈合，宋6PUS装上了备用义体手臂。",
+        "source_spans": [
+          {
+            "text": "的一切，孫杰克有一種似真似幻，仿佛身處夢境的感覺。\n　　「這就是大都會嗎？」孫杰克雙眼睜到了極大，目不轉睛的看著窗外的一切，這一切的一切都跟自己的經歷產生了無比鮮明的對比，仿佛徹徹底底就是兩個世界。\n　　當飛船緩緩降落，孫杰克跟宋6PUS的傷已經完全癒合了，甚",
+            "start_index": 773,
+            "end_index": 903
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "宋6PUS砸窗盗取一辆汽车，载着孙杰克和塔派在城市里高速逆行狂欢。",
+        "source_spans": [
+          {
+            "text": "\n　　當孫杰克跟塔派坐上了汽車，宋6直接一腳油門彈射起步。\n　　宋6開車壓根不管什麼交通規則，直接打開敞篷模式高速逆行，灌進來的風吹得孫杰克的頭髮跟頭皮不斷向後仰，雨打在他臉上生疼。\n　　到最後他更是直接站起來，用腳踩方向盤，舉起雙手對著整座城市歡呼。「f",
+            "start_index": 1185,
+            "end_index": 1313
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "宋6PUS不顾交通规则，站在车上欢呼，被孙杰克拽回驾驶座。",
+        "source_spans": [
+          {
+            "text": "讓此刻的孫杰克有種自己時刻有人要殺自己的錯覺。\n　　「話說這個世界應該有正常人吧？總不至於整個世界的人都瘋了，就我一個正常人吧？」他心中暗道。\n　　就在孫杰克在心中胡思亂想的，宋6PUS的一句話打",
+            "start_index": 179,
+            "end_index": 277
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克目睹远处有人跳楼自杀，宋6PUS对此不以为意，甚至打开直播并驾车碾过尸体。",
+        "source_spans": [
+          {
+            "text": "讓此刻的孫杰克有種自己時刻有人要殺自己的錯覺。\n　　「話說這個世界應該有正常人吧？總不至於整個世界的人都瘋了，就我一個正常人吧？」他心中暗道。\n　　就在孫杰克在心中胡思亂想的，宋6PUS的一句話打",
+            "start_index": 179,
+            "end_index": 277
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "汽车停在一栋发出淫靡声音和白色烟花的建筑前，宋6PUS勾着孙杰克走了进去。",
+        "source_spans": [
+          {
+            "text": "？」就在孫杰克還在因為剛才的事情愣神的時候，車在一柱擎天的建築面前停了下來，建築最頂端還在跟著外放的男女喘粗氣聲，噴著白色煙花。\n　　宋6pus勾著孫杰克的脖子就走了進去，淫靡之聲瞬間代",
+            "start_index": 1775,
+            "end_index": 1868
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "宋6PUS高喊要嫖娼，一位猫女从香槟酒杯中现身并挑逗孙杰克，其身体发出桃红色光芒。",
+        "source_spans": [
+          {
+            "text": "us勾著孫杰克的脖子就走了進去，淫靡之聲瞬間代替了廣告，充斥著孫杰克耳邊。\n　　還沒等孫杰克來得及看清楚建築內的陳列，就聽到宋6開口說話了。「婊子在哪！老子要嫖！！」\n　　不遠處的一人高的透明香檳酒杯中，一位穿著迷你裙",
+            "start_index": 1845,
+            "end_index": 1954
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "宋6PUS大声欢迎孙杰克来到自由之城。",
+        "source_spans": [
+          {
+            "text": "，照亮了孫杰克那因為震撼而張大的嘴巴，以及那不斷震顫的瞳孔。「還還能發光？」\n　　宋6PUS一摟脖子，頂著四周噪音對著孫杰克耳邊用力大聲喊道：「兄弟！歡迎來到自由之城！！」",
+            "start_index": 2135,
+            "end_index": 2221
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，对陌生的大都会感到拘谨和震撼，目睹了城市的疯狂与混乱。",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "孙杰克的同伴，一个浑身义体改造的存在，对融入大都会显得比较乐观。",
+        "confidence": 0.9
+      },
+      {
+        "name": "宋6PUS",
+        "type": "Person",
+        "description": "孙杰克的同伴，行为疯狂、无视规则，伤愈后盗车、狂欢，并对跳楼事件漠不关心。",
+        "confidence": 0.9
+      },
+      {
+        "name": "猫女",
+        "type": "Person",
+        "description": "建筑内的性工作者，穿着迷你裙和夜光丝袜，有猫的特征，身体能发出桃红色光芒。",
+        "confidence": 0.9
+      },
+      {
+        "name": "大都会/自由之城",
+        "type": "Location",
+        "description": "本章的主要场景，一座立体霓虹璀璨的未来都市，充满光污染广告、混乱交通和疯狂人群。",
+        "confidence": 0.9
+      },
+      {
+        "name": "公司",
+        "type": "Organization",
+        "description": "被孙杰克怀疑可能对自己不利的势力。",
+        "confidence": 0.9
+      },
+      {
+        "name": "机械担架",
+        "type": "Item",
+        "description": "飞船上承载孙杰克的医疗设备，能自动移动。",
+        "confidence": 0.9
+      },
+      {
+        "name": "汽车",
+        "type": "Item",
+        "description": "被宋6PUS砸窗盗取并驾驶的交通工具。",
+        "confidence": 0.9
+      },
+      {
+        "name": "数据线",
+        "type": "Item",
+        "description": "从宋6PUS义体手腕抽出的线，用于接入汽车启动系统。",
+        "confidence": 0.9
+      },
+      {
+        "name": "医疗备用义体",
+        "type": "Item",
+        "description": "为宋6PUS安装的临时替代手臂。",
+        "confidence": 0.9
+      },
+      {
+        "name": "电子菸",
+        "type": "Item",
+        "description": "宋6PUS使用的物品。",
+        "confidence": 0.9
+      },
+      {
+        "name": "饕餮强化胃",
+        "type": "Concept",
+        "description": "大都会广告中的一种强化器官，宣称能吞噬一切。",
+        "confidence": 0.9
+      },
+      {
+        "name": "红泥小火炉8青春prominiMax",
+        "type": "Concept",
+        "description": "大都会广告中的一款儿童武器，由安全聚酯材料3D打印。",
+        "confidence": 0.9
+      },
+      {
+        "name": "义体改造",
+        "type": "Concept",
+        "description": "该世界普遍存在的人体机械化改造技术。",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "塔派",
+        "target": "孙杰克",
+        "relation": "安慰",
+        "description": "塔派向孙杰克解释他们不会引人注意，以缓解其担忧。",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "汽车",
+        "relation": "驾驶",
+        "description": "宋6PUS盗取并驾驶汽车在城市中穿行。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "宋6PUS",
+        "relation": "制止",
+        "description": "孙杰克将站在车上狂欢的宋6PUS拽回驾驶座。",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "尸体",
+        "relation": "碾过",
+        "description": "宋6PUS驾车从跳楼者的尸体上碾过。",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "孙杰克",
+        "relation": "带领",
+        "description": "宋6PUS勾着孙杰克的脖子进入建筑。",
+        "confidence": 0.9
+      },
+      {
+        "source": "猫女",
+        "target": "孙杰克",
+        "relation": "挑逗",
+        "description": "猫女围绕着孙杰克起舞并贴近他的身体。",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "孙杰克",
+        "relation": "欢迎",
+        "description": "宋6PUS大声欢迎孙杰克来到自由之城。",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_13",
+    "chapter_title": "第13章沒錢",
+    "headline": "孙杰克在69俱乐部经历不适并试图向宋6索要报酬未果，最终以提供住处和神经植入作为替代方案达成协议。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克在69俱乐部内，因伤情和表演感到不适，逃离了现场。",
+        "source_spans": [
+          {
+            "text": "討好，這些表演者還儘可能的往孫杰克宋6這邊甩",
+            "start_index": 671,
+            "end_index": 693
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "在俱乐部外，孙杰克向宋6索要30个@币的救援报酬，但宋6声称钱已花光，并以之前支付的费用和提供的义肢抵赖。",
+        "source_spans": [
+          {
+            "text": "」\n　　孫杰克這話自然是瞎編而已，他腦袋裡壓根沒有什麼神經系統，但是自己如果在這個地方活下去，那就必須要這東西。\n　　這一路走來，孫杰克也看出來了，這種神經系統在這個世界上，每個人腦子裡都有。\n　　自己要是沒有的話，就相當於在現代社會沒有手機一樣寸步難行。\n　　別說這傢伙不給，哪怕就是之前宋6給自己30個@，自己",
+            "start_index": 1941,
+            "end_index": 2098
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "塔派指出救助协议规定义肢不能折算酬劳，宋6表示暂时没钱但以后会还。",
+        "source_spans": [
+          {
+            "text": "錢嗎？這還不能抵債？」\n　　「不能，我們籤訂救助協議，在你的手被搶之後，所以這隻手不能折算之後的酬勞。」塔派在一旁幫腔",
+            "start_index": 1292,
+            "end_index": 1351
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克放弃立即追债，转而要求宋6提供住处和帮助获取神经植入系统。",
+        "source_spans": [
+          {
+            "text": "激過度的孫杰克努力的把眼",
+            "start_index": 12,
+            "end_index": 24
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "宋6最终同意提供住处并帮忙弄一套神经植入系统，但声明这是最后一次帮忙。",
+        "source_spans": [
+          {
+            "text": "\n　　「第一次？沒事，姐",
+            "start_index": 267,
+            "end_index": 279
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "塔派迅速适应环境，与宋6勾肩搭背称兄道弟。",
+        "source_spans": [
+          {
+            "text": "的女人推到塔派懷裡。\n　",
+            "start_index": 257,
+            "end_index": 269
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，刚经历战斗，精神疲惫，试图在城市安顿下来，拥有金属义肢。",
+        "confidence": 0.9
+      },
+      {
+        "name": "宋6",
+        "type": "Person",
+        "description": "孙杰克的朋友，本地人，经济拮据但为人圆滑，曾通过直播赚钱。",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "孙杰克的同伴，机器人，适应能力强，会帮腔和调节气氛。",
+        "confidence": 0.9
+      },
+      {
+        "name": "猫女",
+        "type": "Person",
+        "description": "69俱乐部的性工作者，试图用蓝色药丸和身体接触诱惑孙杰克。",
+        "confidence": 0.9
+      },
+      {
+        "name": "主持人",
+        "type": "Person",
+        "description": "69俱乐部的主持人，开始用外语后来切换中文，介绍节目。",
+        "confidence": 0.9
+      },
+      {
+        "name": "蓝调F4",
+        "type": "Person",
+        "description": "69俱乐部的表演者，一群裸男进行大鸟转转转的节目。",
+        "confidence": 0.9
+      },
+      {
+        "name": "琳达琳达",
+        "type": "Person",
+        "description": "69俱乐部内的女性，因孙杰克离开而感到伤心。",
+        "confidence": 0.9
+      },
+      {
+        "name": "69俱乐部",
+        "type": "Location",
+        "description": "一个提供情色表演和服务的娱乐场所，内部有舞台和舞池。",
+        "confidence": 0.9
+      },
+      {
+        "name": "治疗中心",
+        "type": "Location",
+        "description": "曾为孙杰克治疗伤口，使用D纳米机器人。",
+        "confidence": 0.9
+      },
+      {
+        "name": "大都会",
+        "type": "Location",
+        "description": "孙杰克和塔派刚抵达的城市，他们需要在此安顿。",
+        "confidence": 0.9
+      },
+      {
+        "name": "沃爾科技",
+        "type": "Organization",
+        "description": "生产了孙杰克使用的黑钛战斗义肢的公司。",
+        "confidence": 0.9
+      },
+      {
+        "name": "BCPD",
+        "type": "Organization",
+        "description": "大都会的警察部门，孙杰克和宋6担心动静过大会引来他们。",
+        "confidence": 0.9
+      },
+      {
+        "name": "金属义肢/黑钛战斗义肢",
+        "type": "Item",
+        "description": "孙杰克拥有的沃爾科技生产的机械手臂，曾用于战斗。",
+        "confidence": 0.9
+      },
+      {
+        "name": "枪",
+        "type": "Item",
+        "description": "塔派持有的武器，在俱乐部灯光变暗时用来保护孙杰克。",
+        "confidence": 0.9
+      },
+      {
+        "name": "蓝色药丸",
+        "type": "Item",
+        "description": "猫女试图用舌头喂给孙杰克的药物。",
+        "confidence": 0.9
+      },
+      {
+        "name": "电子烟",
+        "type": "Item",
+        "description": "宋6叼在嘴里的物品。",
+        "confidence": 0.9
+      },
+      {
+        "name": "浮空车",
+        "type": "Item",
+        "description": "喷着黑色喷漆，从他们上空飞过的交通工具。",
+        "confidence": 0.9
+      },
+      {
+        "name": "神经植入系统",
+        "type": "Concept",
+        "description": "在这个世界中每个人脑中都有的系统，类似现代社会的手机，是生活必需品。",
+        "confidence": 0.9
+      },
+      {
+        "name": "救助协议",
+        "type": "Concept",
+        "description": "孙杰克和宋6之间签订的协议，规定了救援报酬的条款，其中义肢不能折算酬劳。",
+        "confidence": 0.9
+      },
+      {
+        "name": "@币",
+        "type": "Concept",
+        "description": "故事中使用的货币单位，孙杰克向宋6索要30个作为报酬。",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "宋6",
+        "target": "女人",
+        "relation": "推",
+        "description": "宋6把一个近乎全裸的女人推到塔派怀里。",
+        "confidence": 0.9
+      },
+      {
+        "source": "猫女",
+        "target": "孙杰克",
+        "relation": "试图喂药",
+        "description": "猫女用舌头卷着蓝色药丸试图喂给孙杰克。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "猫女",
+        "relation": "抓住",
+        "description": "孙杰克用金属义肢抓住猫女乱摸的手。",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "孙杰克",
+        "relation": "保护",
+        "description": "在俱乐部灯光变暗时，塔派拿着枪挡在孙杰克面前。",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6",
+        "target": "小神龙套",
+        "relation": "点",
+        "description": "宋6大方地点了一个小神龙套，让主持人切换语言。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "宋6",
+        "relation": "揪住",
+        "description": "孙杰克因宋6说没钱，伸出铁手揪住了宋6的衣领。",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "孙杰克",
+        "relation": "帮腔",
+        "description": "塔派指出救助协议规定义肢不能折算酬劳，支持孙杰克。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "宋6",
+        "relation": "要求提供住处",
+        "description": "孙杰克要求去宋6住处暂住，宋6表示有室友不便，但答应帮忙找住处。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "宋6",
+        "relation": "要求获取神经植入",
+        "description": "孙杰克请求宋6帮他弄一套神经植入系统，并承诺有钱后归还。",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6",
+        "target": "孙杰克",
+        "relation": "同意帮忙",
+        "description": "宋6最终同意帮忙找住处和弄神经植入系统，但声明是最后一次。",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "宋6",
+        "relation": "勾肩搭背",
+        "description": "塔派勾上宋6的肩膀，称兄道弟。",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_14",
+    "chapter_title": "第14章住處",
+    "headline": "孙杰克和宋6PUS前往皇后区的临时住所，孙杰克对未来世界的混乱感到不适，并初步安顿下来。",
+    "summary_sentences": [
+      {
+        "summary_text": "宋6PUS提议离开俱乐部，前往住处休息。",
+        "source_spans": [
+          {
+            "text": "了電梯，宋6PUS按下了到1",
+            "start_index": 1077,
+            "end_index": 1091
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "在前往皇后区的路上，孙杰克观察着光怪陆离且逐渐破败的城市景象。",
+        "source_spans": [
+          {
+            "text": "廣告牌，孫杰克知道自己已經進入皇后區了。\n　　汽車在這城市高高低低的",
+            "start_index": 478,
+            "end_index": 512
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "宋6PUS一边开车一边直播，并阐述自己‘有钱就要拼命花’的价值观。",
+        "source_spans": [
+          {
+            "text": "實，又開始直播起來了。\n",
+            "start_index": 216,
+            "end_index": 228
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "他们到达一栋奇特的烂尾摩天楼，楼下环境恶劣，遍布流浪汉和垃圾。",
+        "source_spans": [
+          {
+            "text": "道路兩邊的垃圾逐漸開始多",
+            "start_index": 528,
+            "end_index": 540
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "宋6PUS鸣枪驱散流浪汉，并带领孙杰克乘坐电梯到达18层。",
+        "source_spans": [
+          {
+            "text": "了電梯，宋6PUS按下了到18層的電梯。\n　　從電梯出來，孫杰克發現這裡勉",
+            "start_index": 1077,
+            "end_index": 1114
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "宋6PUS利用虹膜扫描打开一间公寓，解释这是已故朋友的房子，并授权给孙杰克暂住。",
+        "source_spans": [
+          {
+            "text": "了電梯，宋6PUS按下了到18層的電梯。\n　　從電梯出來，孫杰克發現這裡勉強還行，至少沒有了那噁心的屎尿味。\n　　「樓梯認證就可以分割兩個世界，下面的垃圾影響不到你上面居住的，伱放心好了。」\n　　宋6說著，來到了走廊的第三個門，隨著他掃描了一下虹膜，直接推門",
+            "start_index": 1077,
+            "end_index": 1206
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "公寓虽小但设施齐全，有虚拟瀑布隔断和落地窗。",
+        "source_spans": [
+          {
+            "text": "算乾淨，這公寓不大30多平。一室一廳一衛。\n　　比較有特點的是，客廳跟臥室隔層並不是門，而是投影出來的3D虛擬瀑布。\n　　隨",
+            "start_index": 1226,
+            "end_index": 1288
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "宋6PUS离开，表示第二天再处理神经系统的事，自己则返回俱乐部。",
+        "source_spans": [
+          {
+            "text": "了電梯，宋6PUS按下了到1",
+            "start_index": 1077,
+            "end_index": 1091
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克让塔派晚上保持警惕，自己则在沙发上放松下来，再次确认自己身处未来世界的现实。",
+        "source_spans": [
+          {
+            "text": "」\n　　孫杰克微微搖了搖頭，他實在無法理解這傢伙的金錢觀跟價值觀。\n　　過去他也曾經在電視上看到過電影裡的未來世界，但是沒想",
+            "start_index": 385,
+            "end_index": 447
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "电梯里，宋6PUS打电话询问贩卖两人信息的价格，却发现无人问津。",
+        "source_spans": [
+          {
+            "text": "了電梯，宋6PUS按下了到1",
+            "start_index": 1077,
+            "end_index": 1091
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，精神疲惫，对未来世界的混乱和宋6的价值观感到不适，但暂时接受了住处",
+        "confidence": 0.9
+      },
+      {
+        "name": "宋6PUS",
+        "type": "Person",
+        "description": "孙杰克的同伴，神经大条，直播爱好者，信奉及时行乐，看似讲义气但也在贩卖信息",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "孙杰克的同伴或AI，负责警戒和提供建议",
+        "confidence": 0.9
+      },
+      {
+        "name": "69俱乐部",
+        "type": "Location",
+        "description": "宋6PUS之前带孙杰克去娱乐并打算返回的地方",
+        "confidence": 0.9
+      },
+      {
+        "name": "皇后区",
+        "type": "Location",
+        "description": "孙杰克和宋6PUS前往的区域，环境混乱破败",
+        "confidence": 0.9
+      },
+      {
+        "name": "烂尾摩天楼",
+        "type": "Location",
+        "description": "孙杰克等人的临时住所，楼下脏乱差，楼上相对宜居",
+        "confidence": 0.9
+      },
+      {
+        "name": "公寓",
+        "type": "Location",
+        "description": "位于烂尾摩天楼18层，宋6已故朋友的房子，有虚拟瀑布和落地窗",
+        "confidence": 0.9
+      },
+      {
+        "name": "@",
+        "type": "Concept",
+        "description": "故事中的货币单位",
+        "confidence": 0.9
+      },
+      {
+        "name": "枪",
+        "type": "Item",
+        "description": "宋6PUS用来鸣枪驱散流浪汉的武器",
+        "confidence": 0.9
+      },
+      {
+        "name": "3D虚拟瀑布",
+        "type": "Item",
+        "description": "公寓中客厅与卧室的投影隔断",
+        "confidence": 0.9
+      },
+      {
+        "name": "虹膜扫描",
+        "type": "Concept",
+        "description": "用于门禁认证的技术",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "宋6PUS",
+        "target": "孙杰克",
+        "relation": "带领",
+        "description": "开车带孙杰克前往皇后区的住处",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "孙杰克",
+        "relation": "授权",
+        "description": "将已故朋友的公寓门禁授权给孙杰克暂住",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "塔派",
+        "relation": "吩咐",
+        "description": "让塔派晚上帮忙盯着，以防被偷家",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "熟人",
+        "relation": "联系",
+        "description": "打电话询问贩卖孙杰克等人信息的价格",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "枪",
+        "relation": "使用",
+        "description": "对屋顶鸣枪以驱散流浪汉",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_15",
+    "chapter_title": "第15章廣告",
+    "headline": "孙杰克通过广告了解新世界并纠结是否安装神经强化系统，次日清晨偶遇猫女琳达。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克在住所平复对死亡和陌生环境的恐惧，并决定尽快适应新世界。",
+        "source_spans": [
+          {
+            "text": "孫杰克躺在床上，聽著外面的雨聲，仿佛一切都安靜了下來。\n　　而就在這時，之前的各種情緒仿佛姍姍來遲般追了上來，對於死亡的後怕，陌生環境的排斥",
+            "start_index": 0,
+            "end_index": 70
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "他通过浏览广告和新闻，了解到世界已由大公司财团控制，国家与政府消失，城市由公司议会管理，安保也外包给安保公司。",
+        "source_spans": [
+          {
+            "text": "覽，對這座城市，又或者整個新世界有了全新的了解。\n　　現在國家這個名詞已經徹底消失了，政府制度也消失了，整個世界都成為了徹底資本主義，大公司財團利用著資本控制著一座座城市。\n　　這座城市或者說每一座城市區域，現在都是由大公司掌控著，城市的管理也是由最大的幾個公司組成的城市議會來處理，甚至安保這種事情，也是由他們集體出資，外包給了安保公",
+            "start_index": 220,
+            "end_index": 388
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "他得知公司间为了利益争斗不休，这让他因自己作为千年前的冰封者并非特殊目标而感到暂时安全。",
+        "source_spans": [
+          {
+            "text": "爭史，為了利益，公司們無一不用其極，戰爭，暗殺，反間，公司之間不斷地爭鬥，拼的你死我活。\n　　然而看到這一切，孫杰克卻長長的呼了一口氣，看起來公司似乎只在乎賺錢。一切都是為了賺錢，考古行業徹底消失了。\n　　自己這個千年前被冰封的傢伙，並不是什麼妖魔鬼怪都要吃的唐僧肉，自己暫時安全了。\n　　",
+            "start_index": 512,
+            "end_index": 657
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克意识到自己的身份若因流量价值曝光将带来危险，因此决定必须保密。",
+        "source_spans": [
+          {
+            "text": "當然了，孫杰克明白自己只是暫時安全，並不是絕對安全。\n　　之前宋6就說過，在這個世界，流量就是黃金，自己的身份要是被曝光，絕對會陷入大麻煩當中。\n　　要是真的被發現了，塔派這個傢伙，鐵定直接銷毀沒跑了。\n　　所以現在自己的身份一定要絕對保密，儘可能的",
+            "start_index": 657,
+            "end_index": 782
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "他研究神经强化系统，了解到这是一种植入大脑的控制器，功能繁多但存在被黑客入侵和感染病毒的风险。",
+        "source_spans": [
+          {
+            "text": "有了更多的了解。\n　　說白了，這東西就是可以塞到腦子的手機，可以控制手機一樣控制身體。越高端的控制的越多，甚至可以控制疼痛控制肉體力量。\n　　不得不說這種東西真的離譜，各種功能種類多多，",
+            "start_index": 1103,
+            "end_index": 1196
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克整夜纠结是否安装该系统，权衡便利性与安全隐患。",
+        "source_spans": [
+          {
+            "text": "孫杰克躺在床上，",
+            "start_index": 0,
+            "end_index": 8
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "次日清晨，宋6敲门，表示自己不需要睡觉，并催促孙杰克去做手术。",
+        "source_spans": [
+          {
+            "text": "一推開，孫杰克就瞧見宋6呲著大金牙在門口站著。\n　　「你不睡覺的嗎？這麼早？」\n　　「睡覺？bro，你好老土啊，居然還要睡覺，趕緊去做手術切了吧。」\n　　經歷了昨天那麼多勁爆的事情，人不需要睡覺絲毫沒",
+            "start_index": 1721,
+            "end_index": 1821
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克、宋6和塔派下楼时遇到刚下班的猫女琳达，她显得疲惫且态度冷漠。",
+        "source_spans": [
+          {
+            "text": "的背影，孫杰克有了一絲同情，對方也不容易啊，年紀輕輕卻只能幹這種事情討生活，她心裡肯定非常難受吧？也不知道現在她在想著什麼呢？\n　　對方剛上電梯，性感悅耳的聲音幽幽飄來。「艹，真TM晦氣，一下班就碰到三個",
+            "start_index": 2143,
+            "end_index": 2245
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "琳达在电梯关闭后低声咒骂三人。",
+        "source_spans": [
+          {
+            "text": "去。\n　　三人從電梯下來",
+            "start_index": 1872,
+            "end_index": 1884
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，千年前被冰封后苏醒，失去左臂，正在努力适应陌生的未来世界，对自身安全保持警惕。",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "孙杰克的机器人伙伴，性格直接，正在改装自己的充电接口，提醒孙杰克神经系统的安全隐患。",
+        "confidence": 0.9
+      },
+      {
+        "name": "宋6",
+        "type": "Person",
+        "description": "孙杰克在新世界的熟人，自来熟，说话直接，自称不需要睡觉。",
+        "confidence": 0.9
+      },
+      {
+        "name": "琳达",
+        "type": "Person",
+        "description": "猫女，在俱乐部工作，下班后显得疲惫且态度不佳。",
+        "confidence": 0.9
+      },
+      {
+        "name": "住所",
+        "type": "Location",
+        "description": "孙杰克目前居住的地方，他在此浏览信息并休息。",
+        "confidence": 0.9
+      },
+      {
+        "name": "大楼/电梯",
+        "type": "Location",
+        "description": "孙杰克等人居住的建筑内部空间，他们在此与琳达偶遇。",
+        "confidence": 0.9
+      },
+      {
+        "name": "大公司财团",
+        "type": "Organization",
+        "description": "控制世界和城市的资本力量，通过城市议会管理，追求最大利润。",
+        "confidence": 0.9
+      },
+      {
+        "name": "城市议会",
+        "type": "Organization",
+        "description": "由控制城市的最大几家公司组成的管理机构。",
+        "confidence": 0.9
+      },
+      {
+        "name": "BCPD",
+        "type": "Organization",
+        "description": "安保公司，负责城市安保，实为保安而非传统警察。",
+        "confidence": 0.9
+      },
+      {
+        "name": "安保公司",
+        "type": "Organization",
+        "description": "承包城市安保服务的公司。",
+        "confidence": 0.9
+      },
+      {
+        "name": "神经强化网络泰坦Ver.1.15",
+        "type": "Item",
+        "description": "广告中宣传的最新神经强化系统，功能包括连接义体、显示弹药、防黑客入侵和兼容多种增强模块。",
+        "confidence": 0.9
+      },
+      {
+        "name": "神经强化系统/神经网络",
+        "type": "Concept",
+        "description": "可植入大脑的系统，用于控制身体和义体，功能强大但存在被黑客入侵和感染病毒的风险。",
+        "confidence": 0.9
+      },
+      {
+        "name": "ICE",
+        "type": "Concept",
+        "description": "神经强化系统的安全功能，用于防止固件被刷或系统被黑。",
+        "confidence": 0.9
+      },
+      {
+        "name": "神经系统病毒",
+        "type": "Concept",
+        "description": "针对神经系统的恶意程序，可导致义体故障甚至危及生命。",
+        "confidence": 0.9
+      },
+      {
+        "name": "流量",
+        "type": "Concept",
+        "description": "在这个世界中具有极高价值，类似黄金，孙杰克的身份若曝光会引来麻烦。",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "孙杰克",
+        "target": "神经强化系统/神经网络",
+        "relation": "研究",
+        "description": "通过广告和资料了解其功能与风险",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "神经系统病毒",
+        "relation": "担忧",
+        "description": "因病毒可能导致严重故障而犹豫是否安装系统",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "孙杰克",
+        "relation": "警告",
+        "description": "提醒神经系统的安全漏洞和后门风险",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6",
+        "target": "孙杰克",
+        "relation": "催促",
+        "description": "催促孙杰克去做手术（可能指安装神经强化系统）",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6",
+        "target": "琳达",
+        "relation": "打招呼",
+        "description": "在楼下偶遇时主动打招呼",
+        "confidence": 0.9
+      },
+      {
+        "source": "琳达",
+        "target": "孙杰克、宋6、塔派",
+        "relation": "咒骂",
+        "description": "上电梯后低声骂三人是SB",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_16",
+    "chapter_title": "第16章神像",
+    "headline": "孙杰克与宋6前往神像街，在一家奇特的店铺找到和尚金刚，通过威胁免费获取了系统晶片。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克和宋6乘车抵达神像街，看到一条围绕巨大破败神像的杂货街。",
+        "source_spans": [
+          {
+            "text": "著背，兩座巨大的神像相互依靠才勉強沒有倒塌。\n　　圍繞著神像一圈全都是大大小小的各種擁擠的店鋪，門口店牌各種霓虹燈光不斷閃爍，怎麼誇張怎麼來，怎麼吸引眼球怎麼來。\n　　這些店鋪，賣什麼都有，但是有一間商店瞬間引起了孫杰克的注意，那",
+            "start_index": 252,
+            "end_index": 367
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "他们进入一家同时经营丧葬用品和情趣用品的奇特店铺。",
+        "source_spans": [
+          {
+            "text": "喪葬物品跟情趣用品這兩個牛馬",
+            "start_index": 667,
+            "end_index": 681
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "店主是一位名叫金刚的白人和尚，与宋6相识。",
+        "source_spans": [
+          {
+            "text": "杰克就瞧見一位身穿電路板袈裟，頭頂六個戒疤的和尚正在坐在那",
+            "start_index": 498,
+            "end_index": 527
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "宋6通过拔枪威胁金刚，为孙杰克争取到了免费挑选系统晶片的机会。",
+        "source_spans": [
+          {
+            "text": "麼新的系統晶片啊？」\n　　聽到這話，和尚的臉上頓時一變，連忙向著三人後面望去。「阿彌陀佛，貧僧不知道你在說什麼。我這裡只賣正經東西的啊。」\n　　一旁孫杰克聽到這話，",
+            "start_index": 938,
+            "end_index": 1020
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "金刚和宋6向孙杰克介绍并推荐了不同的系统晶片。",
+        "source_spans": [
+          {
+            "text": "麼新的系統晶片啊？」\n　　聽到這話，和尚的臉上頓時一變，連忙向著三人後面望去。「阿彌陀佛，貧僧不知道你在說什麼。我這裡只賣正經東西的啊。」\n　　一旁孫杰克聽到這話，",
+            "start_index": 938,
+            "end_index": 1020
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克询问是否有不将系统植入大脑的外接设备方案。",
+        "source_spans": [
+          {
+            "text": "出來後，孫杰克兩人重新坐",
+            "start_index": 3,
+            "end_index": 15
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，与宋6同行，对神像街和店铺的商品感到好奇与震撼",
+        "confidence": 0.9
+      },
+      {
+        "name": "宋6",
+        "type": "Person",
+        "description": "孙杰克的同伴，行事粗鲁、擅长白嫖，通过威胁和尚金刚为孙杰克获取免费晶片",
+        "confidence": 0.9
+      },
+      {
+        "name": "金刚",
+        "type": "Person",
+        "description": "神像街一家奇特店铺的店主，白人和尚，改造大师兼奸商，被宋6威胁后提供免费晶片",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "被提及的人物，为孙杰克提供方位信息",
+        "confidence": 0.9
+      },
+      {
+        "name": "神像街",
+        "type": "Location",
+        "description": "位于大都会外围的一条杂货街，围绕巨大破败神像，各种店铺林立",
+        "confidence": 0.9
+      },
+      {
+        "name": "大都会",
+        "type": "Location",
+        "description": "故事发生的主要城市区域",
+        "confidence": 0.9
+      },
+      {
+        "name": "腐朽佛像",
+        "type": "Location",
+        "description": "神像街的标志性建筑，与耶稣像背靠背，在酸雨中破败",
+        "confidence": 0.9
+      },
+      {
+        "name": "耶稣像",
+        "type": "Location",
+        "description": "与佛像背靠背的巨大神像",
+        "confidence": 0.9
+      },
+      {
+        "name": "金刚的店铺",
+        "type": "Location",
+        "description": "同时经营丧葬用品和情趣用品的奇特店铺，楼上凌乱，楼下是干净的义体陈列室",
+        "confidence": 0.9
+      },
+      {
+        "name": "蟹式机器人",
+        "type": "Item",
+        "description": "陈列在店铺楼下的机器人",
+        "confidence": 0.9
+      },
+      {
+        "name": "系统晶片",
+        "type": "Item",
+        "description": "指甲盖大小的电子芯片，用于植入人体，提供如翻译、武器链接、干扰器等功能",
+        "confidence": 0.9
+      },
+      {
+        "name": "ALT1G三型晶片",
+        "type": "Item",
+        "description": "金刚开始推荐的一款系统晶片，自带翻译器、武器链接和破解系统",
+        "confidence": 0.9
+      },
+      {
+        "name": "手枪",
+        "type": "Item",
+        "description": "宋6用来威胁金刚的武器",
+        "confidence": 0.9
+      },
+      {
+        "name": "电子烟",
+        "type": "Item",
+        "description": "宋6使用的物品",
+        "confidence": 0.9
+      },
+      {
+        "name": "机械佛祖",
+        "type": "Item",
+        "description": "店铺内供奉的电子佛像，可以代替金刚看店",
+        "confidence": 0.9
+      },
+      {
+        "name": "酸雨",
+        "type": "Concept",
+        "description": "故事中的天气现象，具有腐蚀性",
+        "confidence": 0.9
+      },
+      {
+        "name": "改造大师",
+        "type": "Concept",
+        "description": "对金刚身份的形容，指精通义体改造技术的人",
+        "confidence": 0.9
+      },
+      {
+        "name": "外接设备",
+        "type": "Concept",
+        "description": "孙杰克提出的设想，希望不植入大脑也能使用系统功能",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "孙杰克",
+        "target": "宋6",
+        "relation": "与...同行",
+        "description": "两人一同乘车前往神像街",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6",
+        "target": "金刚",
+        "relation": "弹",
+        "description": "用钢铁手指弹金刚的脑袋打招呼",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6",
+        "target": "金刚",
+        "relation": "威胁",
+        "description": "用手枪抵住金刚脑门，指责其卖黑心货",
+        "confidence": 0.9
+      },
+      {
+        "source": "金刚",
+        "target": "孙杰克与宋6",
+        "relation": "带领",
+        "description": "带两人进入店铺楼下的义体陈列室",
+        "confidence": 0.9
+      },
+      {
+        "source": "金刚",
+        "target": "ALT1G三型晶片",
+        "relation": "介绍/推荐",
+        "description": "向孙杰克推荐这款系统晶片",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6",
+        "target": "最贵的系统晶片",
+        "relation": "推荐",
+        "description": "为让金刚出血，推荐最贵的晶片给孙杰克",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6",
+        "target": "系统晶片",
+        "relation": "许诺免费",
+        "description": "通过威胁金刚，声称今天所有系统晶片对孙杰克免费",
+        "confidence": 0.9
+      },
+      {
+        "source": "机械佛祖",
+        "target": "金刚",
+        "relation": "代替",
+        "description": "在金刚离开时，代替他看管店铺",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_17",
+    "chapter_title": "第17章系統",
+    "headline": "孙杰克安装外接系统并探索其功能，同时发现晶片来源的黑暗真相。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克因担心风险，拒绝将系统晶片植入大脑，要求金刚提供外接设备。",
+        "source_spans": [
+          {
+            "text": "孫杰克拿著手中的晶片，對著眼前的金剛提出了自己的要求。\n　　昨",
+            "start_index": 0,
+            "end_index": 31
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "金刚找到一个类似眼镜框的外接设备，为孙杰克安装晶片并解释了其功能。",
+        "source_spans": [
+          {
+            "text": "　　聽著孫杰克一頓忽悠，和尚總算是打消了檢查的想法。「嗯既然如此，那我幫你找一個外接設備吧，我記得之前賣過來著。」說著他翻箱倒櫃的找了起來。\n　　要不了一會，很快金剛從收納盒裡找到了一個類似眼鏡框的圓環形金屬設備。\n　　看到金剛把晶片安裝在上面",
+            "start_index": 567,
+            "end_index": 689
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克戴上设备后，体验了投影字幕、信息显示、物品联网等增强现实功能。",
+        "source_spans": [
+          {
+            "text": "。\n　　這投影出來的一體長弧鏡片視角邊緣有一定的廣角扭曲，他感覺到自己的視角往旁邊延伸了不少。\n　　亮黃色的鏡片快速跳動了幾下，當聽到宋6再次說話的時候，鏡片下方居然開始出現字幕了。「怎麼樣？感覺如何？」\n　　「要怎麼控制？」孫杰克抹了抹架在",
+            "start_index": 795,
+            "end_index": 916
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "金刚警告外接设备容易被抢夺，而宋6PUS则暗示晶片可能是从别人脑袋里挖出来的。",
+        "source_spans": [
+          {
+            "text": "袋敲破掉把晶片摳出來也就僅僅只是多了一個步驟罷了，而且從宋6的精神狀態來看，這破地方的人幹起來，絕對一點心理壓力都沒有。\n　　「哈哈，bro!說D不錯，要是沒黑貨，這些貨哪來D？」一旁正在拿著一根壞掉義肢當痒痒撓撓癢的宋6PUS在一旁說道",
+            "start_index": 1444,
+            "end_index": 1563
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克在丧事情趣店继续测试系统，与宋6PUS添加好友，随后收到一个神秘的黑色邀请。",
+        "source_spans": [
+          {
+            "text": "宋6跟著孫杰克重重的擁抱一下。就向著一旁的汽車走去。\n　　等到宋6PUS一走，孫杰克繼續擺弄著自己的系統，這東西對於古人來說實在過於特別。\n　　剛沒調試多久，旁邊又彈出一個黑色邀請框。看",
+            "start_index": 2110,
+            "end_index": 2203
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，谨慎多疑，拒绝内植晶片，选择使用外接系统",
+        "confidence": 0.9
+      },
+      {
+        "name": "金刚",
+        "type": "Person",
+        "description": "义体商人/和尚，为孙杰克提供外接系统设备并给予警告",
+        "confidence": 0.9
+      },
+      {
+        "name": "宋6PUS",
+        "type": "Person",
+        "description": "直播者，性格嬉皮笑脸，暗示晶片来源可疑，与孙杰克成为好友",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "孙杰克的伙伴，全身改装为金属，配合孙杰克演戏",
+        "confidence": 0.9
+      },
+      {
+        "name": "外接系统设备",
+        "type": "Item",
+        "description": "类似眼镜框的圆环形金属设备，通过投影提供虚拟成像和联网功能",
+        "confidence": 0.9
+      },
+      {
+        "name": "系统晶片",
+        "type": "Item",
+        "description": "可植入大脑或外接的设备核心，提供增强现实、联网等功能",
+        "confidence": 0.9
+      },
+      {
+        "name": "战斗义体",
+        "type": "Item",
+        "description": "孙杰克装备的钢铁手臂，具有武器功能",
+        "confidence": 0.9
+      },
+      {
+        "name": "丧事情趣店",
+        "type": "Location",
+        "description": "金刚经营的店铺，内部摆放各种义肢和商品",
+        "confidence": 0.9
+      },
+      {
+        "name": "@账户",
+        "type": "Concept",
+        "description": "数字货币账户，孙杰克查看时余额为0",
+        "confidence": 0.9
+      },
+      {
+        "name": "多巴胺循环器",
+        "type": "Concept",
+        "description": "系统功能之一，用于调节情绪，但外接设备无法使用",
+        "confidence": 0.9
+      },
+      {
+        "name": "疼痛编辑器",
+        "type": "Concept",
+        "description": "系统功能之一，用于控制痛觉，但外接设备无法使用",
+        "confidence": 0.9
+      },
+      {
+        "name": "监控干扰",
+        "type": "Concept",
+        "description": "系统功能之一，外接设备仍可使用",
+        "confidence": 0.9
+      },
+      {
+        "name": "临时ICE",
+        "type": "Concept",
+        "description": "系统功能之一，外接设备仍可使用",
+        "confidence": 0.9
+      },
+      {
+        "name": "肉身联网",
+        "type": "Concept",
+        "description": "通过系统将身体与网络连接，感知周围信息",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "孙杰克",
+        "target": "金刚",
+        "relation": "要求",
+        "description": "要求提供外接系统设备而非植入晶片",
+        "confidence": 0.9
+      },
+      {
+        "source": "金刚",
+        "target": "外接系统设备",
+        "relation": "提供",
+        "description": "找到并安装了外接设备给孙杰克",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "外接系统设备",
+        "relation": "佩戴",
+        "description": "戴上设备并测试其功能",
+        "confidence": 0.9
+      },
+      {
+        "source": "金刚",
+        "target": "孙杰克",
+        "relation": "警告",
+        "description": "提醒外接设备容易被抢夺的风险",
+        "confidence": 0.9
+      },
+      {
+        "source": "宋6PUS",
+        "target": "系统晶片",
+        "relation": "暗示",
+        "description": "暗示晶片可能是非法获得的'黑货'",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "宋6PUS",
+        "relation": "添加好友",
+        "description": "通过系统同意宋6PUS的好友请求",
+        "confidence": 0.9
+      },
+      {
+        "source": "金刚",
+        "target": "战斗义体",
+        "relation": "保养",
+        "description": "帮孙杰克保养了他的战斗义体",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_18",
+    "chapter_title": "第18章錢難掙",
+    "headline": "孙杰克因贫穷而寻求工作，最终前往应聘客服职位。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克想查询昨晚空间站大战的新闻，却发现需要付费才能查看。",
+        "source_spans": [
+          {
+            "text": "認窗口，孫杰克倍感壓力。",
+            "start_index": 8,
+            "end_index": 20
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "他与塔派讨论离开当前城市，但意识到缺乏购买机票的资金。",
+        "source_spans": [
+          {
+            "text": "\n　　「這城市果然也不全",
+            "start_index": 2117,
+            "end_index": 2129
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "塔派表示自己无法通过入侵银行或编程来赚钱，因为缺乏资源和学习新编程语言的能力。",
+        "source_spans": [
+          {
+            "text": "很不錯了，入侵偷竊編程賺錢什麼的根本無從談起。」\n　　「那就學新的程式語言啊，你不是機器人嗎？學習能力應該很強的",
+            "start_index": 714,
+            "end_index": 770
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克受街上西装人士启发，决定寻找一份正经工作，以摆脱与亡命徒的圈子。",
+        "source_spans": [
+          {
+            "text": "我可以先找一份工作。」\n　　塔派轉過頭來，臉上的屏幕上彈出一個顏文字。「(￢_￢)你認真的嗎？」\n　　「為什麼不行？我忽然發現我好像陷入誤區了，不是這個地方爛，而是我們接觸的圈子爛。」孫杰克開口解釋到。\n　　「我們一下來，接觸的要麼就是亡命徒，要麼就是",
+            "start_index": 1064,
+            "end_index": 1190
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克让塔派检索招聘信息，发现大多数工作都有门槛，最终锁定一个客服职位。",
+        "source_spans": [
+          {
+            "text": "起來，讓孫杰克慶幸的是，至少應聘是不要錢的。\n　　雖然應聘不要錢，可是卻有門框，各種職業經驗要求，學歷要求，技能要求都不是孫杰克能勝任的。\n　　東找西找，找的孫杰克肚子都餓了還沒找到，忽然一條客服招聘信息讓他為之一振。\n　　「工作時間每周5",
+            "start_index": 1435,
+            "end_index": 1555
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克骑在塔派肩上赶往应聘地点，那是一个破旧的地下室。",
+        "source_spans": [
+          {
+            "text": "居然是一個地下室，地方也有點破，旁邊都是堆積的綠色垃圾袋。\n　　不過孫杰克對這一點倒",
+            "start_index": 1929,
+            "end_index": 1971
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "在应聘点，孙杰克遇到了另外两名西装革履的应聘者。",
+        "source_spans": [
+          {
+            "text": "認窗口，孫杰克倍感壓力。",
+            "start_index": 8,
+            "end_index": 20
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "HR到来，傲慢地询问第一位女应聘者是否愿意为工作切除子宫，对方表示已经切除。",
+        "source_spans": [
+          {
+            "text": "這家公司的HR了。\n　　「誰是AA?」她雙手抱胸，身體向後仰去傲慢的問到。\n",
+            "start_index": 2247,
+            "end_index": 2285
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，苏醒后陷入经济困境，决定通过找工作来赚钱，对社会的资本化运作感到不适应和愤怒。",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "孙杰克的机器人伙伴，计算能力有限，无法入侵系统或学习新语言来赚钱，负责检索信息和充当交通工具。",
+        "confidence": 0.9
+      },
+      {
+        "name": "HR",
+        "type": "Person",
+        "description": "应聘公司的女性人事，态度傲慢，双脚改装为金属高跟，以审视货物的眼光看待应聘者。",
+        "confidence": 0.9
+      },
+      {
+        "name": "AA",
+        "type": "Person",
+        "description": "前来应聘的短髮女孩，刘海有紫色挑染，态度拘谨，表示自己已切除子宫。",
+        "confidence": 0.9
+      },
+      {
+        "name": "宋6PUS",
+        "type": "Person",
+        "description": "本章提及的亡命徒，要钱不要命，孙杰克认为是他将自己引入了糟糕的圈子。",
+        "confidence": 0.9
+      },
+      {
+        "name": "电子花圈",
+        "type": "Location",
+        "description": "孙杰克倚靠此处进行信息检索的地点，可能是某种公共或商业设施。",
+        "confidence": 0.9
+      },
+      {
+        "name": "应聘点地下室",
+        "type": "Location",
+        "description": "客服工作的应聘地点，环境破旧，旁边堆满绿色垃圾袋。",
+        "confidence": 0.9
+      },
+      {
+        "name": "高峰公司",
+        "type": "Organization",
+        "description": "一家科技公司，拥有空间站，孙杰克认为公司内部应该有勤恳工作的正常人。",
+        "confidence": 0.9
+      },
+      {
+        "name": "应聘公司",
+        "type": "Organization",
+        "description": "发布客服招聘的公司，工作条件苛刻，招聘流程显得冷漠。",
+        "confidence": 0.9
+      },
+      {
+        "name": "@币",
+        "type": "Item",
+        "description": "故事中的货币单位，客服试用期周薪为0.15@币。",
+        "confidence": 0.9
+      },
+      {
+        "name": "大脑逻辑行为功能改装率",
+        "type": "Concept",
+        "description": "招聘客服的条件之一，要求低于5%。",
+        "confidence": 0.9
+      },
+      {
+        "name": "皮质兴奋剂注射次数",
+        "type": "Concept",
+        "description": "招聘客服的条件之一，要求小于100次。",
+        "confidence": 0.9
+      },
+      {
+        "name": "自动翻译",
+        "type": "Item",
+        "description": "孙杰克系统内的功能，能实时翻译听不懂的语言。",
+        "confidence": 0.9
+      },
+      {
+        "name": "端脑",
+        "type": "Concept",
+        "description": "塔派提及的自身系统或编程语言，与当前世界的编程语言不兼容。",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "孙杰克",
+        "target": "空间站大战信息",
+        "relation": "检索",
+        "description": "试图查询昨晚的事件新闻",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "塔派",
+        "relation": "讨论",
+        "description": "关于如何赚钱和离开此地的可能性",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "招聘信息",
+        "relation": "检索",
+        "description": "根据孙杰克的要求搜索工作",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "应聘点地下室",
+        "relation": "前往",
+        "description": "骑在塔派肩上赶去应聘客服工作",
+        "confidence": 0.9
+      },
+      {
+        "source": "塔派",
+        "target": "孙杰克",
+        "relation": "承载",
+        "description": "将孙杰克扛在肩上，用轮子形态在雨中快速移动",
+        "confidence": 0.9
+      },
+      {
+        "source": "HR",
+        "target": "AA",
+        "relation": "询问",
+        "description": "傲慢地询问对方是否愿意为工作切除子宫",
+        "confidence": 0.9
+      },
+      {
+        "source": "AA",
+        "target": "HR",
+        "relation": "回答",
+        "description": "表示自己已经切除了子宫",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_19",
+    "chapter_title": "第19章屎難吃",
+    "headline": "孙杰克经历了两场荒诞的面试，目睹了社会的扭曲，并在雨中偶遇了同样失意的AA。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克在一家公司的面试中，听到HR要求女性求职者AA切除子宫以换取工作，震惊不已。",
+        "source_spans": [
+          {
+            "text": "貸款買不起工作補劑.」\n　　女HR漫不經心的看著自己流動的美甲，語氣漸漸的緩和了下來。「這點你放心，公司為了培養新人，準備了低息貸款，等你第一個周的周薪下來，就可以還上了。」\n　　聽到這話，AA雙手死死拽著自己的衣角，表情非常的掙扎。\n　　她在猶豫，孫杰克卻已經站了",
+            "start_index": 335,
+            "end_index": 468
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "HR进一步提出要求员工工作时处于‘6级神经亢奋状态’，即服用‘工作补剂’，并可通过公司贷款购买。",
+        "source_spans": [
+          {
+            "text": "貸款買不起工作補劑.」\n　　女HR漫不經心的看著自己流動的美甲，語氣漸漸的緩和了下來。「這點你放心，公司為了培養新人，準備了低息貸款，等你第一個周的周薪下來，就可以還上了。」\n　　聽到這話，AA雙手死死拽著自己的衣角，表情非常的掙扎。\n　　她在猶豫，孫杰克卻已經站了起來，這麼苛刻的要求，逗傻子呢",
+            "start_index": 335,
+            "end_index": 483
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "另一名黑人面试者积极表示愿意接受改造、不睡觉并免费加班以争取工作。",
+        "source_spans": [
+          {
+            "text": "旁邊的一位黑人忽然站了起來。\n　　他非常亢奮的說道：「我願意！我不但接受工作補劑，我的松果體跟下丘腦被已經接受了2級改造，我現在可以不需要睡覺，只要您能給我這份工作，我願意免費加班五小時！」",
+            "start_index": 504,
+            "end_index": 599
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克愤然拒绝并怒斥公司是‘地狱资本家’，随后被武装保安赶出面现场。",
+        "source_spans": [
+          {
+            "text": "人連忙離孫杰克遠點，免得因為牽連，面試不通過。\n　　聽到孫杰克還在說這些，此刻對方也不想再多廢口舌，冷冷的一揮手，「保安。」\n　　伴隨著震顫聲，一位穿著鼓鼓囊囊西服保安，推開門走了進來。\n　　「您的面試失敗了，請離開本公司。」兩米五",
+            "start_index": 960,
+            "end_index": 1076
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克试图举报公司，却发现劳务局因‘阻碍市场自由’已被撤销。",
+        "source_spans": [
+          {
+            "text": "你們這麼開公司的嗎？！」\n　　「呵呵，這位先生，大都會是自由之城，本公司有開出條件的自由，你覺得苛刻，你自然有不接收的自由，這很公平。」女HR站了起來，傲慢的打量著孫杰克的打扮。\n",
+            "start_index": 825,
+            "end_index": 915
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克在第二场面试中，再次被问及是否愿意为工作‘切除’器官（因误会性别），愤怒地殴打了HR。",
+        "source_spans": [
+          {
+            "text": "」\n　　孫杰克懶得搭理他，轉過身來看向這有些窮酸的公司大門。「媽的！我就不信了，塔派幫我找下一家！!3000多萬人我就不信全都是這樣的！」\n　　想要符合孫杰克的條件的工作並不多，挑挑揀揀之下等再次找到的時候，天都要黑了。\n　　而這一次孫杰克是第一個，表情冷漠的HR打量著孫杰",
+            "start_index": 1467,
+            "end_index": 1604
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克在雨中失魂落魄地走回公寓，经过69俱乐部时，遇到了之前面试的AA。",
+        "source_spans": [
+          {
+            "text": "自己的來的69俱樂部。\n　　就在這時，俱樂部的門開了，孫杰克看到之前跟自己一塊招聘的AA，失魂落魄的從裡面走了出來。\n　　當她走到雨水之中，終於克制不住心中的委屈，捂著臉失聲痛哭起來。\n　　孫杰克自己的事情都搞不定，哪裡有精力去管別人，他繼續向著自己的公寓走去。\n　",
+            "start_index": 1969,
+            "end_index": 2102
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "AA正因没有子宫，不符合性工作者应聘条件而找不到工作，在雨中崩溃痛哭。",
+        "source_spans": [
+          {
+            "text": "蹲在地上的AA面前，「怎麼了？沒事吧？振作點。」\n　　AA哽咽的抬起頭來，顫抖伸出手指指向身後的69俱樂部。「他們.他們說我沒子宮，達不到性工作者應聘的條",
+            "start_index": 2133,
+            "end_index": 2210
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，正在求职，对面试公司的苛刻条件和社会的扭曲现象感到震惊与愤怒",
+        "confidence": 0.9
+      },
+      {
+        "name": "AA",
+        "type": "Person",
+        "description": "女性求职者，为了工作考虑切除子宫，最后因没有子宫而无法应聘性工作者",
+        "confidence": 0.9
+      },
+      {
+        "name": "女HR",
+        "type": "Person",
+        "description": "面试官，态度傲慢，提出苛刻的雇佣条件，代表扭曲的资本力量",
+        "confidence": 0.9
+      },
+      {
+        "name": "黑人面试者",
+        "type": "Person",
+        "description": "积极接受身体改造和工作条件，愿意不睡觉并免费加班的求职者",
+        "confidence": 0.9
+      },
+      {
+        "name": "保安",
+        "type": "Person",
+        "description": "身材高大、身着战斗义体的公司保安，负责驱逐孙杰克",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "孙杰克的同伴，在孙杰克面试失败后出现",
+        "confidence": 0.9
+      },
+      {
+        "name": "公司办公室",
+        "type": "Location",
+        "description": "孙杰克参加第一场面试的地点",
+        "confidence": 0.9
+      },
+      {
+        "name": "69俱乐部",
+        "type": "Location",
+        "description": "一家娱乐场所，AA在此应聘性工作者失败",
+        "confidence": 0.9
+      },
+      {
+        "name": "公寓",
+        "type": "Location",
+        "description": "孙杰克在雨中的目的地",
+        "confidence": 0.9
+      },
+      {
+        "name": "劳务局",
+        "type": "Organization",
+        "description": "一个已被撤销的政府部门，理由是阻碍市场自由",
+        "confidence": 0.9
+      },
+      {
+        "name": "工作补剂",
+        "type": "Item",
+        "description": "公司要求员工工作时服用的、不会上瘾的药物，用于维持神经亢奋状态",
+        "confidence": 0.9
+      },
+      {
+        "name": "战斗义体",
+        "type": "Item",
+        "description": "保安西服下隐藏的武装到牙齿的改造身体部件",
+        "confidence": 0.9
+      },
+      {
+        "name": "6级神经亢奋状态",
+        "type": "Concept",
+        "description": "公司要求员工在工作时保持的一种高度兴奋状态，需通过‘工作补剂’实现",
+        "confidence": 0.9
+      },
+      {
+        "name": "松果体与下丘脑改造",
+        "type": "Concept",
+        "description": "一种身体改造技术，使被改造者可以不需要睡眠",
+        "confidence": 0.9
+      },
+      {
+        "name": "自由之城",
+        "type": "Concept",
+        "description": "故事发生地‘大都会’的核心理念，强调公司与个体的‘最大限制自由’，导致监管缺失",
+        "confidence": 0.9
+      },
+      {
+        "name": "性别反差流行风",
+        "type": "Concept",
+        "description": "导致第二场面试HR误判孙杰克性别的一种社会流行趋势",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "孙杰克",
+        "target": "公司办公室",
+        "relation": "参加面试",
+        "description": "孙杰克在此面试，并目睹了苛刻的招聘条件",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "女HR",
+        "relation": "怒斥并拒绝",
+        "description": "因不满招聘条件而激烈争吵",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "保安",
+        "relation": "被驱逐",
+        "description": "因在面试现场闹事而被武装保安请离",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "劳务局",
+        "relation": "试图举报",
+        "description": "面试失败后试图通过系统检索并举报该公司",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "第二场面试HR",
+        "relation": "殴打",
+        "description": "因被问及是否愿意‘切吊’而愤怒出手",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "AA",
+        "relation": "安慰",
+        "description": "在69俱乐部门口的雨中发现哭泣的AA并上前询问",
+        "confidence": 0.9
+      },
+      {
+        "source": "AA",
+        "target": "切除子宫",
+        "relation": "被要求",
+        "description": "在第一场面试中，HR提出以切除子宫作为雇佣条件",
+        "confidence": 0.9
+      },
+      {
+        "source": "AA",
+        "target": "69俱乐部",
+        "relation": "应聘失败",
+        "description": "因没有子宫，不符合性工作者应聘条件而在俱乐部门口痛哭",
+        "confidence": 0.9
+      },
+      {
+        "source": "黑人面试者",
+        "target": "松果体与下丘脑改造",
+        "relation": "主动接受",
+        "description": "为了争取工作，声称自己已接受改造，可以不睡觉并免费加班",
+        "confidence": 0.9
+      }
+    ]
+  },
+  {
+    "chapter_id": "ch_20",
+    "chapter_title": "第20章飢餓",
+    "headline": "孙杰克求职失败后陷入饥饿困境，对未来感到迷茫，并在梦中渴望食物。",
+    "summary_sentences": [
+      {
+        "summary_text": "孙杰克在69俱乐部外安慰了同样求职失败的AA，并互相鼓励。",
+        "source_spans": [
+          {
+            "text": "孩的話，孫杰克無語凝噎，一時間不知道該說什麼。\n　　愣在那裡幾秒後，孫杰克伸手在她肩膀上安慰的拍了拍，「沒事的，咱們肯定能找到工作的，彆氣餒，加油。」\n　　AA吸了吸鼻子",
+            "start_index": 3,
+            "end_index": 88
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克和塔派回到公寓，他因一天的见闻开始反思宋6PUS等人的疯狂是否源于社会压迫。",
+        "source_spans": [
+          {
+            "text": "上。\n　　回到家後，孫杰克洗了一個熱水澡，穿著睡衣站在窗前看著雨中霓虹城市。\n　　此刻一切都安靜下來，但是孫杰克的心卻沒有安靜下來。\n　　「塔派，伱說我之前是不是想錯了？也許宋6PUS這種人並不是不想安穩的工作，而是因為他根本找不到正常工作呢？」\n　　經過這一天的經歷，孫",
+            "start_index": 410,
+            "end_index": 546
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克极度饥饿，但发现冰箱空无一物，只能嚼冰充饥。",
+        "source_spans": [
+          {
+            "text": "的經歷，孫杰克似乎窺竊到了這個城市炫彩霓虹下的冰山一角，或許沒有哪個人想變瘋，他們都是被逼的。\n　　「難道我想活下來，真的只能變成他們一",
+            "start_index": 541,
+            "end_index": 609
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克看到电视上针对穷人的无息贷款和人体实验广告，但出于谨慎拒绝了。",
+        "source_spans": [
+          {
+            "text": "的香味，孫杰克頓時狂咽口水，拿起筷子就要狂旋，他實在是太餓了。\n　　可剛沒吃一口，孫杰克忽然發現自己老媽正在走到自己面前，一臉歉意的說道：「哎呀，忘記你不吃韭菜餡的了，媽這就給你換蝦仁餡的。」\n　　說著孫杰克就看到自己母親端",
+            "start_index": 2003,
+            "end_index": 2115
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克发现水卡余额不足，连水都喝不起，只能试图睡觉抵抗饥饿。",
+        "source_spans": [
+          {
+            "text": "區別。」孫杰克迅速關閉了投影電視，來到水龍頭前大口大口的喝水。\n　　「您的水卡餘額不足，請儘快充值。」一條信息從孫杰克眼前飄過。\n　　「靠，這下連水都喝不起了。」孫杰",
+            "start_index": 1624,
+            "end_index": 1707
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克在梦中回到了过去，与母亲争夺一碗饺子，醒来后摔倒在地。",
+        "source_spans": [
+          {
+            "text": "的背影，孫杰克轉身愣愣的看向身後的69俱樂部。\n　　「啊？」\n　　就在這時，一旁的塔派走了過來，賤兮兮的說道：「怎麼？想進去試試？你活怎麼樣？轉的起來嗎？」\n　　「試你大爺試！回家！！」孫杰克直接跳到他的背上。\n　　回到家後，孫杰",
+            "start_index": 307,
+            "end_index": 422
+          }
+        ],
+        "confidence": 1.0
+      },
+      {
+        "summary_text": "孙杰克对科技发达却仍有人挨饿的社会现实感到困惑和不解。",
+        "source_spans": [
+          {
+            "text": "沒有。」孫杰克走了過去，一邊嚼著冰，一邊看著廣告。\n　　對於這一點，孫杰克反倒沒有感到什麼意外，哪怕自己那個時代，自己心裡剛要買點什麼，那些賣貨APP裡面的馬上貼心的給出不同價位的各種選擇，就跟會讀心術一樣，現在的科技只會更離譜",
+            "start_index": 894,
+            "end_index": 1008
+          }
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "entities": [
+      {
+        "name": "孙杰克",
+        "type": "Person",
+        "description": "主角，失业者，从天上掉落至此，正在努力寻找工作和生存，内心善良但陷入困境。",
+        "confidence": 0.9
+      },
+      {
+        "name": "AA",
+        "type": "Person",
+        "description": "同样在69俱乐部求职失败的女孩，与孙杰克同病相怜，情绪脆弱但努力振作。",
+        "confidence": 0.9
+      },
+      {
+        "name": "塔派",
+        "type": "Person",
+        "description": "孙杰克的机器人伙伴，说话贱兮兮，具有护卫模式，会调侃和辱骂用户以缓解其精神压力。",
+        "confidence": 0.9
+      },
+      {
+        "name": "宋6PUS",
+        "type": "Person",
+        "description": "孙杰克提及的疯狂之人，孙杰克推测其可能因找不到正常工作而被逼疯。",
+        "confidence": 0.9
+      },
+      {
+        "name": "69俱乐部",
+        "type": "Location",
+        "description": "孙杰克和AA试图求职的地点，可能提供特殊工作。",
+        "confidence": 0.9
+      },
+      {
+        "name": "孙杰克的公寓",
+        "type": "Location",
+        "description": "孙杰克和塔派的住处，有冰箱、窗户、立体电视，位于雨中的霓虹城市。",
+        "confidence": 0.9
+      },
+      {
+        "name": "地铁口",
+        "type": "Location",
+        "description": "AA离开时前往的地方。",
+        "confidence": 0.9
+      },
+      {
+        "name": "霓虹城市",
+        "type": "Location",
+        "description": "故事发生的背景环境，科技发达但光怪陆离，表面炫彩下隐藏着贫困和压迫。",
+        "confidence": 0.9
+      },
+      {
+        "name": "无息贷款广告",
+        "type": "Item",
+        "description": "公寓立体电视播放的广告，声称无息但需要抵押物（如器官），揭示了社会的黑暗面。",
+        "confidence": 0.9
+      },
+      {
+        "name": "人体实验室广告",
+        "type": "Item",
+        "description": "立体电视播放的另一则广告，招募肉铁比>20%的人进行试药等危险实验，报酬高昂。",
+        "confidence": 0.9
+      },
+      {
+        "name": "冰箱",
+        "type": "Item",
+        "description": "孙杰克公寓里的电器，里面空无一物，只有冰块。",
+        "confidence": 0.9
+      },
+      {
+        "name": "立体电视",
+        "type": "Item",
+        "description": "孙杰克公寓里的设备，能播放针对个人大数据推送的广告。",
+        "confidence": 0.9
+      },
+      {
+        "name": "水卡",
+        "type": "Item",
+        "description": "控制公寓用水的卡片，孙杰克的余额已不足。",
+        "confidence": 0.9
+      },
+      {
+        "name": "肉铁比",
+        "type": "Concept",
+        "description": "人体实验室广告中提到的概念，可能是衡量人体有机组织与机械义体比例的标准。",
+        "confidence": 0.9
+      },
+      {
+        "name": "护卫模式",
+        "type": "Concept",
+        "description": "塔派机器人的一种运行模式，不同于知心大姐姐模式，没有陪聊的义务。",
+        "confidence": 0.9
+      }
+    ],
+    "relationships": [
+      {
+        "source": "孙杰克",
+        "target": "AA",
+        "relation": "安慰",
+        "description": "孙杰克在AA哭泣时拍肩安慰，鼓励她找工作。",
+        "confidence": 0.9
+      },
+      {
+        "source": "AA",
+        "target": "孙杰克",
+        "relation": "帮助",
+        "description": "AA告诉孙杰克俱乐部里还在招男性，鼓励他去应聘。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "塔派",
+        "relation": "骑乘",
+        "description": "孙杰克跳上塔派的背，让他载自己回家。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "无息贷款广告",
+        "relation": "观看",
+        "description": "孙杰克嚼着冰，查看立体电视上的无息贷款广告详情。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "人体实验室广告",
+        "relation": "拒绝",
+        "description": "孙杰克考虑但最终否决了参加人体实验的想法。",
+        "confidence": 0.9
+      },
+      {
+        "source": "孙杰克",
+        "target": "母亲",
+        "relation": "梦见",
+        "description": "孙杰克在饥饿中梦见母亲和春晚饺子。",
+        "confidence": 0.9
+      }
+    ]
+  }
+]

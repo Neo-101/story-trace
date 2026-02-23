@@ -35,6 +35,21 @@ export interface Entity {
   history?: { chapter_id: string; content: string }[];
   count?: number;
   chapter_ids?: string[];
+  concept_evolution?: ConceptStage[];
+  clue_lifecycle?: ClueState[];
+  faction_info?: FactionInfo;
+}
+
+export interface ConceptStage {
+  stage_name: string;
+  description: string;
+  revealed_by: string[];
+}
+
+export interface ClueState {
+  state: string;
+  chapter_index: number;
+  context: string;
 }
 
 export interface TimelineEvent {
@@ -103,4 +118,15 @@ export interface RelationshipTimelineEvent {
   chapter_title: string;
   interactions: RelationshipInteraction[];
   narrative_state?: NarrativeState;
+}
+
+export interface FactionInfo {
+  faction_name: string;
+  territory: string[];
+  enemies: string[];
+  allies: string[];
+}
+
+export interface ExtendedEntity extends Entity {
+  faction_info?: FactionInfo;
 }

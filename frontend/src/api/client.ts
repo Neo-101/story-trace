@@ -51,8 +51,8 @@ export const API = {
     return response.data;
   },
 
-  async deleteRelationshipAnalysis(novelName: string, hash: string, timestamp: string, source: string, target: string): Promise<void> {
-    await apiClient.delete(`/novels/${novelName}/${hash}/${timestamp}/relationship`, {
+  async deleteRelationshipAnalysis(novelName: string, hash: string, source: string, target: string): Promise<void> {
+    await apiClient.delete(`/novels/${novelName}/${hash}/relationship`, {
       params: { source, target }
     });
   },

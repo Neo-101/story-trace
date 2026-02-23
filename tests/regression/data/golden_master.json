@@ -1,0 +1,29 @@
+{
+  "chapter_id": "ch1",
+  "chapter_title": "The Beginning",
+  "headline": "A hero starts a journey.",
+  "summary_sentences": [],
+  "entities": [
+    {
+      "name": "Hero",
+      "type": "Person",
+      "description": "Main character",
+      "confidence": 0.9
+    },
+    {
+      "name": "Village",
+      "type": "Location",
+      "description": "Starting point",
+      "confidence": 0.8
+    }
+  ],
+  "relationships": [
+    {
+      "source": "Hero",
+      "target": "Village",
+      "relation": "lives_in",
+      "description": "Home",
+      "confidence": 1.0
+    }
+  ]
+}
