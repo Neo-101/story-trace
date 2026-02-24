@@ -52,7 +52,7 @@ class SummarySentence(BaseModel):
 
 class Entity(BaseEntity):
     """实体模型 (世界观构建)"""
-    pass
+    concept_evolution: List[ConceptStage] = Field(default_factory=list, description="本章提取的概念演变阶段")
 
 class Relationship(BaseRelationship):
     """实体关系模型 (v6.0)"""
@@ -61,6 +61,7 @@ class Relationship(BaseRelationship):
 class ChapterSummary(BaseModel):
     """单章总结"""
     chapter_id: str = Field(..., description="关联的章节 ID")
+    chapter_index: Optional[int] = Field(None, description="章节序号 (0-based)")
     chapter_title: Optional[str] = Field(None, description="章节标题")
     headline: Optional[str] = Field(None, description="一句话核心总结 (Overview Mode)")
     summary_sentences: List[SummarySentence] = Field(default_factory=list, description="总结句子列表")

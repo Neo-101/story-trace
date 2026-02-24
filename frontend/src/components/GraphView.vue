@@ -765,8 +765,9 @@ const displayDescription = computed(() => {
         <template #modules>
             <!-- 渐进式世界观模块 -->
             <ConceptEvolutionCard 
-                v-if="selectedEntity?.concept_evolution?.length" 
-                :stages="selectedEntity.concept_evolution" 
+                :stages="selectedEntity.concept_evolution || []" 
+                :entity-name="selectedEntity.name"
+                @update="(newStages) => { if (selectedEntity) selectedEntity.concept_evolution = newStages }"
             />
         </template>
     </EntityDetailContainer>

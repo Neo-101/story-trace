@@ -1,72 +1,107 @@
 import pytest
-from typing import List
-from pydantic import BaseModel, Field
+from unittest.mock import MagicMock, patch
+from sqlmodel import Session, SQLModel, create_engine, select
+from backend.narrative_engine.plugins.concept import ConceptAnalyzer
+from backend.schemas import TimelineEvent
+from data_protocol.models import ConceptStage
+from core.db.models import Novel, NovelVersion, AnalysisRun, Chapter, Entity
 
-# --- Import Protocol (Phase 1.5) ---
-from data_protocol.models import ConceptStage, ExtendedAggregatedEntity
+# Mock DB Setup
+@pytest.fixture(name="session")
+def session_fixture():
+    engine = create_engine("sqlite:///:memory:")
+    SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        yield session
 
-# --- Spec: Module 2 - Concept Evolution ---
-# Goal: Track how the reader's understanding of a concept evolves.
-# Example: "The Village" -> "Just a village" (Rumor) -> "Has a secret temple" (Fact) -> "Is the seal of the demon king" (Truth)
+@pytest.fixture
+def mock_data(session):
+    # Create Novel, Version, Run
+    novel = Novel(name="TestNovel")
+    session.add(novel)
+    session.commit()
+    
+    version = NovelVersion(novel_id=novel.id, hash="hash123", filename="test.txt")
+    session.add(version)
+    session.commit()
+    
+    run = AnalysisRun(version_id=version.id, timestamp="20230101", status="completed")
+    session.add(run)
+    session.commit()
+    
+    # Create Chapters and Entities
+    # Ch1: Rumor
+    ch1 = Chapter(run_id=run.id, chapter_index=1, title="Intro", content="Some rumor content.")
+    entity1 = Entity(name="MysteryBox", type="Object", description="A mysterious box.", confidence=1.0)
+    ch1.entities.append(entity1)
+    session.add(ch1)
+    
+    # Ch2: Fact
+    ch2 = Chapter(run_id=run.id, chapter_index=2, title="Discovery", content="It is made of wood.")
+    entity2 = Entity(name="MysteryBox", type="Object", description="Wooden box.", confidence=1.0)
+    ch2.entities.append(entity2)
+    session.add(ch2)
+    
+    session.commit()
+    return {"novel": novel, "version": version, "run": run}
 
-def test_concept_evolution_progression():
-    """
-    Feature: Concept Evolution Tracking
-    Scenario: A concept evolves from Unknown -> Rumor -> Fact -> Truth across chapters.
-    """
-    
-    # GIVEN: A sequence of chapter summaries extracting concept info
-    # We simulate what the LLM (Summarizer) would output for each chapter.
-    
-    chapter_1_stage = ConceptStage(
-        stage_name="Rumor",
-        description="Villagers whisper about a cursed well that grants wishes.",
-        revealed_by=["Old Man's Tale"]
-    )
-    
-    chapter_5_stage = ConceptStage(
-        stage_name="Fact",
-        description="The well is connected to an underground river system.",
-        revealed_by=["Protagonist's Exploration"]
-    )
-    
-    chapter_10_stage = ConceptStage(
-        stage_name="Truth",
-        description="The well is actually a ventilation shaft for an ancient spaceship.",
-        revealed_by=["Finding the Control Panel"]
-    )
+def test_concept_analysis_flow(session, mock_data):
+    # 1. Mock Context Manager to return a fake timeline
+    # We can mock the get_entity_chronicle method
+    with patch("backend.narrative_engine.plugins.concept.ContextManager") as MockContextManager:
+        mock_ctx = MockContextManager.return_value
+        mock_ctx.get_entity_chronicle.return_value = [
+            TimelineEvent(chapter_id="1", chapter_index=1, chapter_title="Intro", content=["Rumors say it's cursed."], gap_before=0),
+            TimelineEvent(chapter_id="2", chapter_index=2, chapter_title="Discovery", content=["It's just a wooden box."], gap_before=0)
+        ]
+        mock_ctx.format_chronicle_for_prompt.return_value = "Formatted Timeline"
 
-    # WHEN: We aggregate these stages (The Logic to be implemented)
-    # We need an aggregator that can merge these stages into a timeline.
-    
-    from core.world_builder.concept_aggregator import ConceptAggregator # To be implemented
-    aggregator = ConceptAggregator()
-    
-    evolution = aggregator.aggregate_evolution([
-        (1, chapter_1_stage),
-        (5, chapter_5_stage),
-        (10, chapter_10_stage)
-    ])
-    
-    # THEN: The result should be a list of stages ordered by chapter/depth
-    assert len(evolution) == 3
-    assert evolution[0].stage_name == "Rumor"
-    assert evolution[2].stage_name == "Truth"
-    
-    # AND: The final entity description should reflect the "Truth"
-    final_entity = ExtendedAggregatedEntity(
-        name="Cursed Well",
-        type="Location",
-        description="Placeholder",
-        concept_evolution=evolution
-    )
-    # In a real app, we might want a property that returns the 'current' or 'highest' truth
-    # assert final_entity.current_truth.description == chapter_10_stage.description
+        # 2. Mock LLM Client
+        mock_llm = MagicMock()
+        # Mock response mimicking the JSON output
+        mock_llm.generate.return_value = """
+        ```json
+        [
+            {
+                "chapter_index": 1,
+                "stage_name": "Rumor",
+                "description": "传说中的诅咒之盒",
+                "revealed_by": ["Rumors say it's cursed"]
+            },
+            {
+                "chapter_index": 2,
+                "stage_name": "Fact",
+                "description": "普通的木盒子",
+                "revealed_by": ["It's just a wooden box"]
+            }
+        ]
+        ```
+        """
 
-def test_concept_conflict_resolution():
-    """
-    Scenario: Conflicting info in later chapters.
-    If Chapter 6 says it's just a "Rumor" again, but we already know "Fact" from Chapter 5,
-    we should keep the higher truth but record the regression or confusion.
-    """
-    pass # To be defined
+        # 3. Run Analyzer
+        analyzer = ConceptAnalyzer(session, mock_llm)
+        stages = analyzer.analyze_entity("TestNovel", "hash123", "MysteryBox")
+
+        # 4. Verify Results
+        assert len(stages) == 2
+        assert stages[0].stage_name == "Rumor"
+        assert stages[1].stage_name == "Fact"
+        
+        # 5. Verify DB Updates
+        # Re-fetch entities from DB
+        
+        # Ch1
+        statement = select(Entity).join(Chapter).where(Chapter.chapter_index == 1, Entity.name == "MysteryBox")
+        e1 = session.exec(statement).first()
+        assert e1 is not None
+        assert "Rumor" in e1.concept_evolution_json
+        
+        # Ch2
+        statement = select(Entity).join(Chapter).where(Chapter.chapter_index == 2, Entity.name == "MysteryBox")
+        e2 = session.exec(statement).first()
+        assert e2 is not None
+        assert "Fact" in e2.concept_evolution_json
+
+if __name__ == "__main__":
+    # Manually run if executed directly
+    pass

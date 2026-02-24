@@ -3,7 +3,8 @@ import os
 from typing import List, Dict, Tuple
 from collections import defaultdict, Counter
 import zhconv
-from data_protocol.models import ChapterSummary, Entity, AggregatedEntity, AggregatedRelationship
+from data_protocol.models import ChapterSummary, Entity, AggregatedEntity, AggregatedRelationship, ExtendedAggregatedEntity, ConceptStage
+from core.world_builder.concept_aggregator import ConceptAggregator
 
 class EntityAggregator:
     """
@@ -13,6 +14,7 @@ class EntityAggregator:
 
     def __init__(self, alias_file=None):
         self.aliases = self._load_aliases(alias_file)
+        self.concept_aggregator = ConceptAggregator()
 
     def _load_aliases(self, alias_file):
         """加载别名配置文件"""
@@ -56,7 +58,7 @@ class EntityAggregator:
             
         return text
 
-    def aggregate_entities(self, summaries: List[ChapterSummary]) -> List[AggregatedEntity]:
+    def aggregate_entities(self, summaries: List[ChapterSummary]) -> List[ExtendedAggregatedEntity]:
         """
         聚合所有章节的实体。
         
@@ -64,7 +66,7 @@ class EntityAggregator:
             summaries: 章节总结列表
 
         Returns:
-            List[AggregatedEntity]: 聚合后的全局实体列表，按出现频率降序排列。
+            List[ExtendedAggregatedEntity]: 聚合后的全局实体列表，按出现频率降序排列。
         """
         # Key: name (normalized), Value: dict to accumulate data
         # Fix: Group by name only, not (name, type), to prevent duplicate nodes with same ID but different types
@@ -74,10 +76,25 @@ class EntityAggregator:
             "descriptions": [],
             "history": [],
             "chapter_ids": set(),
-            "count": 0
+            "count": 0,
+            "concept_evolution_raw": [] # List of (chapter_index, ConceptStage)
         })
 
         for summary in summaries:
+            # Try to extract chapter index from summary if available
+            # Note: summary object might not have chapter_index if it's the Pydantic model
+            # But usually it comes from DB conversion which might attach it?
+            # Actually ChapterSummary model doesn't have chapter_index.
+            # We need to rely on the order or parse it from ID?
+            # The summaries passed here are usually converted from DB chapters which have index.
+            # Let's assume summaries are passed in order, or we can parse chapter_id.
+            
+            # Hack: Try to parse index from chapter_id or title if needed for sorting
+            # But concept_aggregator needs (index, stage).
+            # If we don't have index, we can use a counter if summaries are sorted.
+            # But better to use chapter_id if it contains index.
+            pass
+            
             if not summary.entities:
                 continue
                 
@@ -110,6 +127,29 @@ class EntityAggregator:
                 entry["chapter_ids"].add(str(summary.chapter_id).strip())
                 entry["count"] += 1
 
+                # Module 2: Concept Evolution
+                # Check if entity has concept_evolution field (it might be in extra fields or attached dynamically)
+                if hasattr(entity, 'concept_evolution') and entity.concept_evolution:
+                    # We need a chapter index. 
+                    idx = 0
+                    
+                    if hasattr(summary, 'chapter_index') and summary.chapter_index is not None:
+                         idx = summary.chapter_index
+                    else:
+                        # Fallback: Try to get index from chapter_id string
+                        import re
+                        match = re.search(r'ch_(\d+)', str(summary.chapter_id))
+                        if match:
+                            idx = int(match.group(1))
+                    
+                    # Add all stages from this chapter to the raw list
+                    for stage in entity.concept_evolution:
+                        # Ensure stage is a ConceptStage object
+                        if isinstance(stage, dict):
+                            stage = ConceptStage(**stage)
+                        
+                        entry["concept_evolution_raw"].append((idx, stage))
+
         results = []
         for key, data in entity_map.items():
             # 描述合并策略：
@@ -127,13 +167,20 @@ class EntityAggregator:
             # 章节列表排序
             sorted_chapters = sorted(list(data["chapter_ids"]))
 
-            agg_entity = AggregatedEntity(
+            # Module 2: Aggregate Concept Evolution
+            # Use the ConceptAggregator to process the raw list of (chapter_index, stage) tuples
+            concept_evolution = []
+            if data["concept_evolution_raw"]:
+                concept_evolution = self.concept_aggregator.aggregate_evolution(data["concept_evolution_raw"])
+
+            agg_entity = ExtendedAggregatedEntity(
                 name=data["name"],
                 type=final_type,
                 description=final_desc,
                 history=data["history"],
                 chapter_ids=sorted_chapters,
-                count=data["count"]
+                count=data["count"],
+                concept_evolution=concept_evolution
             )
             results.append(agg_entity)
 

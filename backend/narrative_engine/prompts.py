@@ -37,3 +37,39 @@ Analyze how the relationship has EVOLVED based on the new events.
     "new_unresolved_threads": ["string (Chinese)"]
 }}
 """
+
+CONCEPT_EVOLUTION_TEMPLATE = """
+You are a literary analyst specializing in world-building and plot twists.
+Your task is to analyze the evolution of the concept '{entity_name}' based on its chronicle.
+
+### Entity Chronicle (Time-ordered events)
+{chronicle_text}
+
+### Analysis Guidelines
+Identify distinct stages of understanding about '{entity_name}':
+- **Rumor (传闻)**: Unverified information, myths, hearsay, or initial impressions that might be misleading.
+- **Fact (事实)**: Concrete details confirmed by reliable sources, direct observation, or general consensus.
+- **Truth (真相/核心)**: The deep underlying reality, often revealing a plot twist, subverting previous facts, or exposing the true nature of the concept.
+
+Not every concept goes through all stages. Some might start as Fact and stay Fact. Others might go Rumor -> Truth.
+Focus on *significant shifts* in understanding.
+
+### Output Requirements
+Return a JSON list of stages. For each stage, identify:
+1. `chapter_index`: The chapter index where this stage was FIRST revealed or became dominant.
+2. `stage_name`: One of "Rumor", "Fact", "Truth".
+3. `description`: A concise description of the concept at this stage (in Chinese).
+4. `revealed_by`: A list of key clues, events, or dialogues that revealed this stage (in Chinese).
+
+**IMPORTANT: Output MUST be in Chinese (Simplified).**
+
+### Output Format (JSON Only)
+[
+  {{
+    "chapter_index": int,
+    "stage_name": "Rumor/Fact/Truth",
+    "description": "string (Chinese)",
+    "revealed_by": ["string (Chinese)"]
+  }}
+]
+"""

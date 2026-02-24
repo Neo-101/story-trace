@@ -1,5 +1,11 @@
 import json
+import sys
+import os
 from pathlib import Path
+
+# Add project root to sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from data_protocol.models import ConceptStage, Entity
 from core.world_builder.concept_aggregator import ConceptAggregator
 
@@ -45,8 +51,8 @@ def main():
     print(f"Aggregated {len(evolution)} stages.")
 
     # 2. Inject into EXISTING Entity
-    # We choose "AI限制规则" (AI Limitation Rules) because it is a Concept and visible in the graph.
-    target_entity_name = "AI限制规则"
+    # We choose "孙杰克" (Sun Jieke) because he is the protagonist and guaranteed to exist in Chapter 1.
+    target_entity_name = "孙杰克"
     found_count = 0
     
     for chapter in data:
@@ -58,14 +64,15 @@ def main():
                     found_count += 1
     
     if found_count == 0:
-        print(f"Warning: Target entity '{target_entity_name}' not found. Falling back to '孙杰克'.")
-        target_entity_name = "孙杰克"
-        for chapter in data:
-            if "entities" in chapter:
-                for entity in chapter["entities"]:
-                    if entity["name"] == target_entity_name:
-                        entity["concept_evolution"] = [stage.model_dump() for stage in evolution]
-                        found_count += 1
+        print(f"Warning: Target entity '{target_entity_name}' not found. Creating a dummy one.")
+        if data:
+             data[0]["entities"].append({
+                "name": target_entity_name,
+                "type": "Person",
+                "description": "The Protagonist",
+                "concept_evolution": [stage.model_dump() for stage in evolution]
+             })
+             found_count += 1
                         
     print(f"Injected into {found_count} occurrences of '{target_entity_name}'.")
 

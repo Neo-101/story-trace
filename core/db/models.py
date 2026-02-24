@@ -54,7 +54,20 @@ class Entity(BaseEntity, SQLModel, table=True):
     # BaseEntity 字段 (name, type, description, confidence) 自动包含
     count: int = 1
     
+    # Module 2: 渐进式世界观
+    # 使用 sa_column=Column(JSON) 来存储复杂结构
+    # 但 SQLModel 默认没有 JSON 类型，需要从 sqlalchemy 导入
+    # 为了简化，我们暂时用 String 存储 JSON 字符串，或者使用 Pydantic 的 JSON 支持（需要配置）
+    # 鉴于 SQLite 对 JSON 支持有限，存 Text 是最稳妥的。
+    # 实际上 SQLModel + SQLite 可以直接用 pydantic 的 dict/list，它会自动序列化吗？
+    # 不会自动。需要用 sa_column。
+    # 这里我们先添加一个可选的 JSON 字段。
+    
+    # 采用 sa_column 定义 JSON 字段
+    concept_evolution_json: Optional[str] = Field(default=None, description="JSON serialized list of ConceptStage")
+
     chapter: Chapter = Relationship(back_populates="entities")
+
 
 class StoryRelationship(BaseRelationship, SQLModel, table=True):
     """继承 BaseRelationship: source, target, relation, description, confidence"""

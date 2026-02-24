@@ -192,7 +192,7 @@ def migrate():
                         for sent in chapter_data.get('summary_sentences', []):
                             summary = Summary(
                                 chapter_id=chapter.id,
-                                text=sent['summary_text']
+                                text=sent.get('summary_text', '')
                             )
                             spans = sent.get('source_spans', [])
                             if spans and len(spans) > 0:
@@ -200,24 +200,10 @@ def migrate():
                                 summary.span_end = spans[0].get('end_index')
                             
                             session.add(summary)
-                            
-                        # Entities
-                        entities = chapter_data.get('entities', [])
-                        # entities can be a list of dicts
-                        for ent in entities:
-                            if isinstance(ent, dict):
-                                entity = Entity(
-                                    chapter_id=chapter.id,
-                                    name=ent.get('name', ''),
-                                    type=ent.get('type', 'Unknown'),
-                                    description=ent.get('description'),
-                                    count=ent.get('count', 1)
-                                )
-                                session.add(entity)
-                            
+
                         # Relationships
-                        rels = chapter_data.get('relationships', [])
-                        for rel in rels:
+                        relationships = chapter_data.get('relationships', [])
+                        for rel in relationships:
                             if isinstance(rel, dict):
                                 relationship = StoryRelationship(
                                     chapter_id=chapter.id,
@@ -225,10 +211,35 @@ def migrate():
                                     target=rel.get('target', ''),
                                     relation=rel.get('relation', ''),
                                     description=rel.get('description', ''),
+                                    confidence=rel.get('confidence', 1.0), # Added confidence
                                     weight=rel.get('weight', 1)
                                 )
                                 session.add(relationship)
                         
+                        # Entities
+                        entities = chapter_data.get('entities', [])
+                        for ent in entities:
+                            if isinstance(ent, dict):
+                                # Check for concept_evolution and serialize it
+                                concept_evolution = ent.get('concept_evolution')
+                                concept_evolution_json = None
+                                if concept_evolution:
+                                    try:
+                                        concept_evolution_json = json.dumps(concept_evolution, ensure_ascii=False)
+                                    except:
+                                        pass
+
+                                entity = Entity(
+                                    chapter_id=chapter.id,
+                                    name=ent.get('name', ''),
+                                    type=ent.get('type', 'Unknown'),
+                                    description=ent.get('description'),
+                                    confidence=ent.get('confidence', 1.0), # Added confidence
+                                    count=ent.get('count', 1),
+                                    concept_evolution_json=concept_evolution_json
+                                )
+                                session.add(entity)
+                    
                         session.commit()
 
 if __name__ == "__main__":

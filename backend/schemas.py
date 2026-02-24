@@ -1,6 +1,6 @@
 from typing import List, Dict, Optional, Any
 from pydantic import BaseModel
-from data_protocol.models import BaseEntity, BaseRelationship, SummarySentence, TextSpan as SourceSpan
+from data_protocol.models import BaseEntity, BaseRelationship, SummarySentence, TextSpan as SourceSpan, ConceptStage
 
 class NovelInfo(BaseModel):
     name: str
@@ -57,6 +57,8 @@ class GraphNode(BaseEntity):
     count: int = 1
     chapter_ids: List[str] = []
     history: List[Dict[str, Any]] = [] # Detailed history per chapter
+    concept_evolution: Optional[List[ConceptStage]] = None # Module 2: Concept Evolution
+
 
 class EdgeEvent(BaseModel):
     chapter_id: str
@@ -74,3 +76,8 @@ class GraphEdge(BaseModel):
 class GraphData(BaseModel):
     nodes: List[GraphNode]
     edges: List[GraphEdge]
+
+# New Request Models
+class ConceptAnalysisRequest(BaseModel):
+    entity_name: str
+    force: bool = False

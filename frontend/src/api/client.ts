@@ -64,5 +64,14 @@ export const API = {
       pairs: pairs
     });
     return response.data;
+  },
+
+  async analyzeConcept(novelName: string, fileHash: string, entityName: string, force: boolean = false): Promise<any[]> {
+    // Note: Concept Evolution API currently returns List[ConceptStage] directly
+    const response = await apiClient.post<any[]>(`/novels/${novelName}/${fileHash}/analyze/concept`, {
+      entity_name: entityName,
+      force: force
+    });
+    return response.data;
   }
 };

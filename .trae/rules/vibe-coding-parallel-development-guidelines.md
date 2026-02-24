@@ -2,7 +2,11 @@
 
 ## 1. Backend Isolation (后端隔离)
 - **Scope**: You are ONLY allowed to implement logic within your specific module aggregator (e.g., `concept_aggregator.py`).
-- **Prohibited**: DO NOT modify `data_protocol/models.py` or `core/world_builder/aggregator.py` core logic without explicit permission.
+- **Data Protocol First**: If your module introduces new fields, you MUST update `data_protocol/models.py` FIRST.
+    - **Verify**: Ensure the new fields are defined in `Entity` or `Relationship` Pydantic models.
+    - **Migration**: Verify that `scripts/migrate_json_to_sqlite.py` correctly handles these fields (serialization/deserialization).
+- **Aggregator Logic**: When updating `core/world_builder/aggregator.py`, ensure your new field is correctly collected and passed to your module aggregator.
+    - **Dependency Check**: Ensure dependent fields (like `chapter_index`) are available and correctly parsed.
 - **Data**: Store your module data in the dedicated field of `ExtendedAggregatedEntity` (e.g., `concept_evolution`). DO NOT touch `description` or `type`.
 
 ## 2. Frontend Isolation (前端隔离)

@@ -27,6 +27,9 @@
 **[⏳ 核心 3：实体/关系时间轴漫游 (Timeline Focus)]**
 前端选中某个节点 -> API `GET /api/.../entity/{name}/timeline` -> `backend/routers/analysis.py` -> 检索该实体在各章的 `SummarySentence` 或 `Relationship` -> 计算章节跨度 Gap -> 返回 `TimelineEvent` 数组 -> 前端沿时间轴渲染动态交互卡片
 
+**[🧠 核心 4：渐进式世界观分析 (Concept Evolution)]**
+前端点击"深度分析" -> API `POST /api/novels/.../analyze/concept` -> `backend/routers/analysis.py` -> `ContextManager` 读取实体编年史 (Entity Chronicle) -> `ConceptAnalyzer` 组装 Prompt 调用 LLM -> 识别 Rumor/Fact/Truth 阶段 -> 更新 DB -> 前端刷新展示
+
 ## 3. 状态与依赖契约 (State & Dependency)
 
 *   **唯一真实数据源 (Single Source of Truth):** 

@@ -6,16 +6,22 @@ from core.db.models import Novel, NovelVersion, AnalysisRun, Chapter, Summary, E
 from backend.schemas import (
     ChapterPreview, ChapterDetail, EntityDetail, SummarySentence, SourceSpan,
     GraphData, GraphNode, GraphEdge, EdgeEvent, TimelineEvent, RelationshipTimelineEvent,
-    RelationshipInteraction
+    RelationshipInteraction, ConceptAnalysisRequest
 )
+import json
 from data_protocol.models import (
     ChapterSummary, 
     SummarySentence as ProtoSummarySentence, 
     Entity as ProtoEntity, 
     Relationship as ProtoRelationship, 
-    TextSpan as ProtoTextSpan
+    TextSpan as ProtoTextSpan,
+    ConceptStage # Import ConceptStage
 )
 from core.world_builder.aggregator import EntityAggregator
+from backend.routers.analysis_helper import get_merged_chapters, db_chapter_to_summary, get_entity_timeline_logic
+from backend.narrative_engine.plugins.concept import ConceptAnalyzer
+from core.summarizer.llm_client import ClientFactory
+from core.config import settings
 
 router = APIRouter(prefix="/api/novels", tags=["analysis"])
 
@@ -23,75 +29,7 @@ def get_session():
     with Session(engine) as session:
         yield session
 
-def db_chapter_to_summary(db_chapter: Chapter) -> ChapterSummary:
-    # Convert summaries
-    summaries = []
-    for s in db_chapter.summaries:
-        spans = []
-        if s.span_start is not None and s.span_end is not None:
-             spans.append(ProtoTextSpan(text="", start_index=s.span_start, end_index=s.span_end))
-        
-        summaries.append(ProtoSummarySentence(
-            summary_text=s.text,
-            source_spans=spans
-        ))
-    
-    # Convert entities
-    entities = []
-    for e in db_chapter.entities:
-        entities.append(ProtoEntity(
-            name=e.name,
-            type=e.type,
-            description=e.description or "",
-            confidence=e.confidence or 1.0 
-        ))
-
-    # Convert relationships
-    rels = []
-    for r in db_chapter.relationships:
-        rels.append(ProtoRelationship(
-            source=r.source,
-            target=r.target,
-            relation=r.relation,
-            description=r.description or "",
-            confidence=r.confidence or 1.0
-        ))
-    
-    return ChapterSummary(
-        chapter_id=str(db_chapter.id),
-        chapter_title=db_chapter.title,
-        headline=db_chapter.headline,
-        summary_sentences=summaries,
-        entities=entities,
-        relationships=rels
-    )
-
-def get_merged_chapters(session: Session, novel_name: str, file_hash: str) -> List[Chapter]:
-    """
-    Best Effort Merge: Fetch all runs for this version and merge chapters.
-    Later runs overwrite earlier ones for the same chapter index.
-    """
-    # 1. Find the version
-    statement = select(NovelVersion).join(Novel).where(
-        Novel.name == novel_name,
-        NovelVersion.hash == file_hash
-    )
-    version = session.exec(statement).first()
-    if not version:
-        raise HTTPException(status_code=404, detail="Novel version not found")
-    
-    # 2. Get all runs sorted by timestamp (oldest first)
-    # We want newer runs to overwrite older ones
-    runs = sorted(version.runs, key=lambda r: r.timestamp)
-    
-    merged_map: Dict[int, Chapter] = {}
-    
-    for run in runs:
-        for chapter in run.chapters:
-            merged_map[chapter.chapter_index] = chapter
-            
-    # 3. Return sorted list
-    return [merged_map[idx] for idx in sorted(merged_map.keys())]
+# Removed inline db_chapter_to_summary and get_merged_chapters as they are now in analysis_helper
 
 @router.get("/{novel_name}/{file_hash}/{timestamp}/chapters", response_model=List[ChapterPreview])
 def list_chapters(novel_name: str, file_hash: str, timestamp: str, session: Session = Depends(get_session)):
@@ -209,13 +147,17 @@ def get_graph_data(novel_name: str, file_hash: str, timestamp: str, session: Ses
         # Ensure x is stripped string before lookup
         sorted_chapter_ids = sorted(e.chapter_ids, key=lambda x: chap_id_to_index.get(str(x).strip(), 999999))
         
+        # Attach concept_evolution from ExtendedAggregatedEntity if available
+        concept_evolution = getattr(e, 'concept_evolution', None)
+
         nodes.append(GraphNode(
             name=e.name,
             type=e.type,
             description=e.description,
             count=e.count,
             chapter_ids=sorted_chapter_ids,
-            history=e.history
+            history=e.history,
+            concept_evolution=concept_evolution
         ))
     
     edges = []
@@ -249,57 +191,47 @@ def get_entity_timeline(novel_name: str, file_hash: str, timestamp: str, entity_
     Get the chronological timeline of events for a specific entity.
     """
     chapters = get_merged_chapters(session, novel_name, file_hash)
-    timeline_events = []
-    
-    aggregator = EntityAggregator()
-    # Normalize input name for matching
-    normalized_target_name = aggregator._normalize_text(entity_name)
-    
-    last_chapter_idx = -1
-    
-    for chapter in chapters:
-        summary = db_chapter_to_summary(chapter)
-        relevant_sentences = []
-        entity_in_chapter = False
+    if not chapters:
+        return []
         
-        # 1. Check explicit entities list (Strong Match)
-        for e in summary.entities:
-            if aggregator._normalize_text(e.name) == normalized_target_name:
-                entity_in_chapter = True
-                break
-        
-        # 2. Check sentences for mentions (Contextual Match)
-        for sent in summary.summary_sentences:
-            if normalized_target_name in sent.summary_text or entity_name in sent.summary_text:
-                relevant_sentences.append(sent.summary_text)
-                entity_in_chapter = True
-        
-        if entity_in_chapter:
-            # Calculate gap (number of chapters skipped)
-            gap = 0
-            if last_chapter_idx != -1:
-                gap = chapter.chapter_index - last_chapter_idx - 1
-            
-            # Use found sentences or fallback to entity description if available
-            content = relevant_sentences
-            if not content:
-                # Try to find entity description
-                for e in summary.entities:
-                    if aggregator._normalize_text(e.name) == normalized_target_name and e.description:
-                        content.append(e.description)
-                        break
-            
-            timeline_events.append(TimelineEvent(
-                chapter_id=str(chapter.id),
-                chapter_index=chapter.chapter_index,
-                chapter_title=chapter.title,
-                content=content if content else ["本章提及该实体。"],
-                gap_before=max(0, gap)
-            ))
-            
-            last_chapter_idx = chapter.chapter_index
-            
-    return timeline_events
+    return get_entity_timeline_logic(chapters, entity_name)
+
+@router.post("/{novel_name}/{file_hash}/analyze/concept", response_model=List[ConceptStage])
+def analyze_concept(
+    novel_name: str, 
+    file_hash: str, 
+    request: ConceptAnalysisRequest,
+    session: Session = Depends(get_session)
+):
+    """
+    Triggers on-demand Concept Evolution Analysis for a specific entity.
+    Reads the Entity Chronicle (Timeline) and uses LLM to identify stages (Rumor/Fact/Truth).
+    Updates the database with the results.
+    """
+    print(f"DEBUG: analyze_concept called for {novel_name}, entity={request.entity_name}")
+    # Initialize LLM Client
+    # Check for OpenRouter API Key
+    try:
+        if settings.OPENROUTER_API_KEY:
+             llm_client = ClientFactory.create_client(
+                 provider="openrouter",
+                 api_key=settings.OPENROUTER_API_KEY,
+                 model=settings.OPENROUTER_MODEL
+             )
+        else:
+             # Fallback to Local LLM
+             llm_client = ClientFactory.create_client(
+                 provider="local",
+                 base_url=settings.LOCAL_LLM_BASE_URL,
+                 model=settings.LOCAL_LLM_MODEL
+             )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initialize LLM client: {e}")
+    
+    analyzer = ConceptAnalyzer(session, llm_client)
+    stages = analyzer.analyze_entity(novel_name, file_hash, request.entity_name, force=request.force)
+    
+    return stages
 
 from backend.narrative_engine.core.store import StateStore
 from backend.narrative_engine.core.engine import NarrativeEvolutionEngine
