@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     
     # Server
     API_HOST: str = "0.0.0.0"
-    API_PORT: int = 8000
+    API_PORT: int = 8001
     
     # LLM - OpenRouter
     OPENROUTER_API_KEY: Optional[str] = None

@@ -52,6 +52,10 @@ pip install -r requirements.txt
 # 数据库配置
 DATABASE_URL=sqlite:///storytrace.db
 
+# API 服务配置
+API_HOST=127.0.0.1
+API_PORT=8000
+
 # LLM 配置 (OpenRouter)
 OPENROUTER_API_KEY=sk-or-v1-...
 OPENROUTER_MODEL=google/gemini-2.0-flash-001
@@ -71,7 +75,7 @@ LOCAL_LLM_MODEL=qwen2.5:14b
 # 推荐方式
 python app/main.py serve
 ```
-服务默认运行在 `http://localhost:8000`。API 文档位于 `/docs`。
+服务默认运行在 `http://127.0.0.1:8000`（端口可配置）。API 文档位于 `/docs`。
 
 #### 启动前端界面 (开发模式)
 

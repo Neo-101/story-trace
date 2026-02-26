@@ -1,7 +1,15 @@
 import requests
 import json
+import os
 
 BASE_URL = "http://localhost:8000/api"
+if os.path.exists(".env"):
+    with open(".env", "r") as f:
+        for line in f:
+            if line.strip().startswith("API_PORT="):
+                port = line.split("=")[1].strip()
+                BASE_URL = f"http://localhost:{port}/api"
+                break
 
 def test_api():
     print("Testing API...")

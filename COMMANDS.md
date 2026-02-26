@@ -17,8 +17,8 @@ $env:PYTHONPATH = "."; python app/main.py serve
 # 方式 B: 直接运行模块
 $env:PYTHONPATH = "."; python -m backend.server
 ```
-*   **API 文档**: http://localhost:8000/docs
-*   **服务地址**: http://localhost:8000
+*   **API 文档**: http://127.0.0.1:8000/docs (默认端口 8000，可在 .env 配置)
+*   **服务地址**: http://127.0.0.1:8000
 
 ### 1.2 启动前端界面 (Frontend)
 前端基于 Vue 3 + Vite，提供交互式图谱和阅读器。
@@ -88,6 +88,27 @@ python manage.py context stats
 $env:PYTHONPATH = "."; python app/main.py
 ```
 
+### 配置文件启动 (Config Mode)
+**推荐方式**。在项目根目录下创建 `config.json` 文件后，直接运行主程序，系统会自动检测并提示加载配置。这种方式适合需要复杂参数（如 `repair_chapters`）的场景。
+
+**config.json 示例**:
+```json
+{
+  "input_file": "inputs/novel.txt",
+  "mode": "chapter",
+  "summarize": {
+    "enabled": true,
+    "provider": "openrouter",
+    "repair_chapters": [77, 78]
+  }
+}
+```
+
+**启动命令**:
+```powershell
+$env:PYTHONPATH = "."; python app/main.py
+```
+
 ### 命令行模式 (Command Line Mode)
 适用于自动化脚本。
 
@@ -100,6 +121,10 @@ $env:PYTHONPATH = "."; python app/main.py -i inputs/novel.txt -m chapter --summa
 
 # 分割并开启 AI 总结 (使用本地 Ollama)
 $env:PYTHONPATH = "."; python app/main.py -i inputs/novel.txt -m chapter --summarize --provider local --model qwen2.5:14b
+
+# 修复特定章节 (Repair Mode)
+# 针对特定章节（如第77章解析错误）进行强制重跑，无视缓存。
+$env:PYTHONPATH = "."; python app/main.py -i inputs/novel.txt -m chapter --summarize --repair 77,78
 ```
 
 ### 数据迁移 (Migration)
@@ -142,7 +167,12 @@ $env:PYTHONPATH = "."; python scripts/migrate_json_to_sqlite.py
 ```ini
 # .env 示例
 DATABASE_URL=sqlite:///storytrace.db
-OPENROUTER_API_KEY=sk-or-v1-...
+
+# API 服务配置
+API_HOST=127.0.0.1
+API_PORT=8000
+
+# LLM 配置 (OpenRouter)
 OPENROUTER_MODEL=google/gemini-2.0-flash-001
 LOCAL_LLM_BASE_URL=http://localhost:11434/v1
 LOCAL_LLM_MODEL=qwen2.5:14b

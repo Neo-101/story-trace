@@ -91,6 +91,9 @@ def get_user_input():
                 if summ_conf.get('enabled'):
                     print(f"  Provider: {summ_conf.get('provider')}")
                     print(f"  Model: {summ_conf.get('model')}")
+                    repair_list = summ_conf.get('repair_chapters')
+                    if repair_list:
+                         print(f"  🔧 Repair Chapters: {repair_list}")
                 
                 if input("\n确认执行? (Y/n): ").strip().lower() != 'n':
                     # 执行预扫描以获取章节总数 (用于解析范围)
@@ -291,11 +294,16 @@ def main():
     if len(sys.argv) > 1 and sys.argv[1] == 'serve':
         try:
             import uvicorn
-            from backend.server import app
+            # from backend.server import app # Don't import here to avoid circular imports during reload
             print("=== StoryTrace Visualization Server ===")
             print("正在启动 API 服务...")
+            
+            # Re-read settings to ensure port is correct
+            from core.config import settings
+            
             print(f"访问地址: http://{settings.API_HOST}:{settings.API_PORT}/docs")
-            uvicorn.run(app, host=settings.API_HOST, port=settings.API_PORT)
+            # Use string import for reload support
+            uvicorn.run("backend.server:app", host=settings.API_HOST, port=int(settings.API_PORT), reload=True)
         except ImportError:
             print("错误: 请先安装 web 依赖: pip install fastapi uvicorn")
         except Exception as e:
@@ -317,6 +325,7 @@ def main():
     parser.add_argument('--api-key', help='API Key (OpenRouter 需要)')
     parser.add_argument('--model', help='模型名称')
     parser.add_argument('--base-url', help='Local LLM Base URL')
+    parser.add_argument('--repair', help='指定需强制重生成的章节编号，逗号分隔 (e.g. 77,78)')
 
     # 如果没有提供任何参数，且不是被导入调用，则进入交互模式
     if len(sys.argv) == 1:
@@ -344,6 +353,19 @@ def main():
         api_key = summarize_config.get('api_key')
         model = summarize_config.get('model')
         base_url = summarize_config.get('base_url')
+        
+        # 解析修复章节配置
+        repair_chapters = []
+        raw_repair = summarize_config.get('repair_chapters', [])
+        if isinstance(raw_repair, list):
+            repair_chapters = [int(x) for x in raw_repair]
+        elif isinstance(raw_repair, str):
+            try:
+                repair_chapters = [int(x.strip()) for x in raw_repair.split(',') if x.strip()]
+            except ValueError:
+                print("警告: 配置文件中 repair_chapters 格式错误，应为整数列表或逗号分隔的字符串")
+        elif isinstance(raw_repair, int):
+            repair_chapters = [raw_repair]
         
         # 如果 Config 中没有提供 API Key，尝试从环境变量获取
         if not api_key and provider == 'openrouter':
@@ -383,6 +405,14 @@ def main():
                  base_url = settings.LOCAL_LLM_BASE_URL or os.getenv("LOCAL_LLM_BASE_URL")
              if not model:
                  model = settings.LOCAL_LLM_MODEL or os.getenv("LOCAL_LLM_MODEL")
+
+        # 解析修复章节参数
+        repair_chapters = []
+        if args.repair:
+            try:
+                repair_chapters = [int(x.strip()) for x in args.repair.split(',') if x.strip()]
+            except ValueError:
+                print("警告: --repair 参数格式错误，应为逗号分隔的数字 (e.g. 77,78)")
 
     # 构建最终输出目录结构
     # 1. 获取小说名（输入文件名，不含扩展名）
@@ -567,7 +597,14 @@ def main():
                             print(f"[{i+1}/{total_chapters}] 处理章节: {ch.title} ... ", end="", flush=True)
                             
                             # 1. Try Cache
-                            cached_summary = cache_manager.get_cached_summary(ch.content, prompt_hash, model_config)
+                            current_chapter_num = i + 1
+                            should_repair = current_chapter_num in repair_chapters
+                            
+                            cached_summary = None
+                            if not should_repair:
+                                cached_summary = cache_manager.get_cached_summary(ch.content, prompt_hash, model_config)
+                            else:
+                                print(f"🔧 [Repair] 强制重生成第 {current_chapter_num} 章...")
                             
                             summary_data = None
                             

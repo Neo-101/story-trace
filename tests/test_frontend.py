@@ -1,9 +1,18 @@
 import requests
 
 def test_frontend():
-    print("Testing Frontend...")
+    import os
+    port = "8000"
+    if os.path.exists(".env"):
+        with open(".env", "r") as f:
+            for line in f:
+                if line.strip().startswith("API_PORT="):
+                    port = line.split("=")[1].strip()
+                    break
+
+    print(f"Testing Frontend (Backend port: {port})...")
     try:
-        resp = requests.get("http://localhost:8000/")
+        resp = requests.get(f"http://localhost:{port}/")
         print(f"Status: {resp.status_code}")
         
         if resp.status_code == 200:

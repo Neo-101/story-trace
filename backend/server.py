@@ -22,6 +22,13 @@ app.include_router(novels.router)
 app.include_router(analysis.router)
 app.include_router(jobs.router)
 
+@app.on_event("startup")
+async def startup_event():
+    print("=== Registered Routes ===")
+    for route in app.routes:
+        print(f"Path: {route.path} | Name: {route.name} | Methods: {route.methods}")
+    print("=========================")
+
 @app.get("/")
 async def index():
     return {"message": "StoryTrace API is running. Please access the frontend at http://localhost:5173"}
@@ -29,4 +36,4 @@ async def index():
 if __name__ == "__main__":
     import uvicorn
     from core.config import settings
-    uvicorn.run(app, host=settings.API_HOST, port=settings.API_PORT)
+    uvicorn.run(app, host=settings.API_HOST, port=int(settings.API_PORT))

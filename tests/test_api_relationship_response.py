@@ -1,34 +1,22 @@
-import requests
-import json
-import sys
 import os
-from sqlmodel import Session, select
 
-# Add project root
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from core.db.engine import engine
-from core.db.models import Novel
+# ... imports ...
 
 def test_relationship_api():
     print("Testing Relationship API...")
     
-    # 1. Get Novel Info
-    with Session(engine) as session:
-        novel = session.exec(select(Novel).where(Novel.name == "故障烏託邦")).first()
-        if not novel:
-            print("Novel not found")
-            return
-        
-        file_hash = novel.versions[-1].hash
-        # Just use a dummy timestamp, the API ignores it for now (uses best effort merge)
-        timestamp = "latest" 
-        
-    print(f"Novel: {novel.name}, Hash: {file_hash}")
+    port = "8000"
+    if os.path.exists(".env"):
+        with open(".env", "r") as f:
+            for line in f:
+                if line.strip().startswith("API_PORT="):
+                    port = line.split("=")[1].strip()
+                    break
+
+    # ... get session ...
     
     # 2. Call API
-    # The API URL has timestamp in path
-    url = f"http://localhost:8000/api/novels/{novel.name}/{file_hash}/{timestamp}/relationship"
+    url = f"http://localhost:{port}/api/novels/{novel.name}/{file_hash}/{timestamp}/relationship"
     params = {
         "source": "孙杰克",
         "target": "宋6PUS"

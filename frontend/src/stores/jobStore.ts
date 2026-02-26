@@ -42,7 +42,7 @@ export const useJobStore = defineStore('jobs', () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:8000/api/jobs/relationship', request);
+      const response = await axios.post('/api/jobs/relationship', request);
       const jobId = response.data.job_id;
       
       // Initialize job placeholder
@@ -67,7 +67,7 @@ export const useJobStore = defineStore('jobs', () => {
 
   async function fetchJobStatus(jobId: string) {
     try {
-      const response = await axios.get<JobStatus>(`http://localhost:8000/api/jobs/${jobId}`);
+      const response = await axios.get<JobStatus>(`/api/jobs/${jobId}`);
       const job = response.data;
       jobs.value[jobId] = job;
       
