@@ -33,6 +33,7 @@ class TimelineEvent(BaseModel):
     chapter_id: str
     chapter_index: int
     chapter_title: str
+    headline: Optional[str] = None # Added for compact view
     content: List[str]
     gap_before: int
 
@@ -81,3 +82,13 @@ class GraphData(BaseModel):
 class ConceptAnalysisRequest(BaseModel):
     entity_name: str
     force: bool = False
+
+class GroupSummaryRequest(BaseModel):
+    entity_name: str
+    chapter_start: int
+    chapter_end: int
+    force: bool = False
+
+class GroupSummaryResponse(BaseModel):
+    summary: str
+    is_cached: bool

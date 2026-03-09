@@ -24,6 +24,16 @@ app.include_router(jobs.router)
 
 @app.on_event("startup")
 async def startup_event():
+    # Auto-create tables if they don't exist
+    from core.db.engine import engine
+    from sqlmodel import SQLModel
+    # Import models to register them
+    from core.db import models
+    
+    print("=== Initializing Database ===")
+    SQLModel.metadata.create_all(engine)
+    print("=== Database Tables Checked/Created ===")
+
     print("=== Registered Routes ===")
     for route in app.routes:
         print(f"Path: {route.path} | Name: {route.name} | Methods: {route.methods}")

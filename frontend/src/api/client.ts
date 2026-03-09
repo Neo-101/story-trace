@@ -73,5 +73,15 @@ export const API = {
       force: force
     });
     return response.data;
+  },
+
+  async analyzeGroupSummary(novelName: string, fileHash: string, entityName: string, start: number, end: number, force: boolean = false): Promise<{summary: string, is_cached: boolean}> {
+    const response = await apiClient.post<{summary: string, is_cached: boolean}>(`/novels/${novelName}/${fileHash}/analyze/group-summary`, {
+      entity_name: entityName,
+      chapter_start: start,
+      chapter_end: end,
+      force: force
+    });
+    return response.data;
   }
 };

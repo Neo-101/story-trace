@@ -56,8 +56,20 @@ export interface TimelineEvent {
   chapter_id: string;
   chapter_index: number;
   chapter_title: string;
+  headline?: string; // Optional headline
   content: string[];
   gap_before: number;
+}
+
+export interface ChronicleNode {
+  type: 'group' | 'leaf';
+  level: number;
+  title: string;
+  range: [number, number]; // [start_index, end_index]
+  children?: ChronicleNode[];
+  event?: TimelineEvent;
+  summary?: string; // Group-level summary
+  isExpanded?: boolean; // UI state
 }
 
 export interface GraphData {

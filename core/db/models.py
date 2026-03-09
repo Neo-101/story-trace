@@ -1,5 +1,6 @@
 from typing import List, Optional
 from sqlmodel import Field, Relationship, SQLModel
+from sqlalchemy import Column, Text
 from data_protocol.models import BaseEntity, BaseRelationship
 
 class Novel(SQLModel, table=True):
@@ -46,6 +47,21 @@ class Summary(SQLModel, table=True):
     span_end: Optional[int] = None
     
     chapter: Chapter = Relationship(back_populates="summaries")
+
+class EntityGroupSummary(SQLModel, table=True):
+    """
+    Cache table for aggregated summaries of entity timelines across a range of chapters.
+    Key: (novel_name, file_hash, entity_name, chapter_start, chapter_end)
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    novel_name: str = Field(index=True)
+    file_hash: str = Field(index=True)
+    entity_name: str = Field(index=True)
+    chapter_start: int = Field(index=True)
+    chapter_end: int = Field(index=True)
+    summary_text: str = Field(sa_column=Column(Text))
+    chapter_count: int = Field(default=0, description="Number of chapters covered in this summary")
+    timestamp: str # Analysis timestamp
 
 class Entity(BaseEntity, SQLModel, table=True):
     """继承 BaseEntity: name, type, description, confidence"""

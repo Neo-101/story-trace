@@ -6,6 +6,7 @@ from core.db.models import Novel, NovelVersion, AnalysisRun, Chapter, Summary, E
 from backend.schemas import (
     ChapterPreview, ChapterDetail, EntityDetail, SummarySentence, SourceSpan,
     GraphData, GraphNode, GraphEdge, EdgeEvent, TimelineEvent, RelationshipTimelineEvent,
+    GroupSummaryResponse, GroupSummaryRequest,
     RelationshipInteraction, ConceptAnalysisRequest
 )
 import json
@@ -195,6 +196,146 @@ def get_entity_timeline(novel_name: str, file_hash: str, timestamp: str, entity_
         return []
         
     return get_entity_timeline_logic(chapters, entity_name)
+
+@router.post("/{novel_name}/{file_hash}/analyze/group-summary", response_model=GroupSummaryResponse)
+def analyze_group_summary(
+    novel_name: str,
+    file_hash: str,
+    request: GroupSummaryRequest,
+    session: Session = Depends(get_session)
+):
+    """
+    On-demand analysis for a range of chapters for a specific entity.
+    Uses LLM to summarize the entity's arc in these chapters.
+    """
+    from core.db.models import EntityGroupSummary
+    from datetime import datetime
+    
+    # 1. Check Cache
+    if not request.force:
+        cached = session.exec(select(EntityGroupSummary).where(
+            EntityGroupSummary.novel_name == novel_name,
+            EntityGroupSummary.file_hash == file_hash,
+            EntityGroupSummary.entity_name == request.entity_name,
+            EntityGroupSummary.chapter_start == request.chapter_start,
+            EntityGroupSummary.chapter_end == request.chapter_end
+        )).first()
+        
+        # Check if cache is valid (covers the same number of chapters)
+        # Note: request.chapter_end - request.chapter_start + 1 is the theoretical range,
+        # but actual chapters might be sparse. We should ideally check event count.
+        # But here we only have the request range.
+        # Let's assume if the range matches, it's the same "Group".
+        # But if we added new chapters, they might fall into this range?
+        # No, chapter indices are stable.
+        # The issue is if we ingested Chapter 201, and previous run only had 200.
+        # Then the "Group 200-209" previously only covered 1 chapter. Now it covers 2.
+        
+        # We need to know how many actual chapters are in this range NOW.
+        chapters = get_merged_chapters(session, novel_name, file_hash)
+        target_chapters = [c for c in chapters if request.chapter_start <= c.chapter_index <= request.chapter_end]
+        current_count = len(target_chapters)
+        
+        if cached:
+            # If cached count matches current count, it's valid.
+            # If cached.chapter_count is 0 (old schema), we force update (or accept it once).
+            # Let's be strict: if count mismatch, invalidate.
+            if cached.chapter_count == current_count:
+                return GroupSummaryResponse(summary=cached.summary_text, is_cached=True)
+            else:
+                # Invalidate cache (delete it)
+                session.delete(cached)
+                session.commit()
+    else:
+        # Fetch chapters if force is true (we skipped it in if block)
+        chapters = get_merged_chapters(session, novel_name, file_hash)
+        target_chapters = [c for c in chapters if request.chapter_start <= c.chapter_index <= request.chapter_end]
+        current_count = len(target_chapters)
+
+    # 2. Fetch Timeline Events (target_chapters already fetched)
+    
+    if not target_chapters:
+         return GroupSummaryResponse(summary="No events in this range.", is_cached=False)
+         
+    timeline_events = get_entity_timeline_logic(target_chapters, request.entity_name)
+    
+    if not timeline_events:
+         return GroupSummaryResponse(summary="No events in this range.", is_cached=False)
+         
+    # 3. Construct Prompt
+    # Simplify timeline for prompt
+    context_lines = []
+    for event in timeline_events:
+        # Use content (relevant entity sentences) if available, otherwise fallback to headline.
+        # This ensures the summary is entity-centric.
+        relevant_text = " ".join(event.content) if event.content else event.headline
+        context_lines.append(f"Chapter {event.chapter_index}: {relevant_text}")
+        
+    context_text = "\n".join(context_lines)
+    
+    prompt = f"""
+    Please summarize the development of the entity "{request.entity_name}" in the following chapter range (Ch {request.chapter_start}-{request.chapter_end}).
+    Keep it concise (1 sentence, max 50 words). Focus on key actions or status changes.
+    Answer in Chinese (Simplified).
+    
+    Context:
+    {context_text}
+    
+    Summary:
+    """
+    
+    # 4. Call LLM
+    try:
+        # Initialize Client (Reuse logic from analyze_concept or make a helper)
+        if settings.OPENROUTER_API_KEY:
+             llm_client = ClientFactory.create_client(
+                 provider="openrouter",
+                 api_key=settings.OPENROUTER_API_KEY,
+                 model=settings.OPENROUTER_MODEL
+             )
+        else:
+             llm_client = ClientFactory.create_client(
+                 provider="local",
+                 base_url=settings.LOCAL_LLM_BASE_URL,
+                 model=settings.LOCAL_LLM_MODEL
+             )
+             
+        response = llm_client.generate(prompt)
+        summary_text = response.strip().strip('"')
+        
+        # 5. Save Cache
+        # Delete old if force (already done if cached existed and mismatched)
+        if request.force:
+             session.exec(select(EntityGroupSummary).where(
+                EntityGroupSummary.novel_name == novel_name,
+                EntityGroupSummary.file_hash == file_hash,
+                EntityGroupSummary.entity_name == request.entity_name,
+                EntityGroupSummary.chapter_start == request.chapter_start,
+                EntityGroupSummary.chapter_end == request.chapter_end
+            )).delete() # This might need session.delete(obj) iteration for sqlmodel
+        
+        # Just add new (or replace)
+        new_summary = EntityGroupSummary(
+            novel_name=novel_name,
+            file_hash=file_hash,
+            entity_name=request.entity_name,
+            chapter_start=request.chapter_start,
+            chapter_end=request.chapter_end,
+            summary_text=summary_text,
+            chapter_count=current_count, # Save current count
+            timestamp=datetime.now().isoformat()
+        )
+        session.add(new_summary)
+        session.commit()
+        
+        return GroupSummaryResponse(summary=summary_text, is_cached=False)
+        
+    except Exception as e:
+        print(f"LLM Error: {e}")
+        # Fallback to simple concatenation
+        start = timeline_events[0].headline or "Start"
+        end = timeline_events[-1].headline or "End"
+        return GroupSummaryResponse(summary=f"{start} ... {end} (Auto-generated)", is_cached=False)
 
 @router.post("/{novel_name}/{file_hash}/analyze/concept", response_model=List[ConceptStage])
 def analyze_concept(

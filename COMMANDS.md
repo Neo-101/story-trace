@@ -49,6 +49,10 @@ python manage.py check
 # 注意：下次运行总结时会重新消耗 Token
 python manage.py clean-cache
 
+# 清理编年史分组摘要缓存 (仅删除 EntityGroupSummary 表)
+# 用于强制重新生成角色编年史的智能摘要 (例如当 LLM 输出了英文或摘要不准确时)
+python manage.py clean-groups
+
 # 重置数据库 (删除 storytrace.db 并重建表)
 # 注意：会清空 Web 端显示的所有数据，但不会删除已生成的 output 文件
 # 重置后需重新运行迁移脚本或处理流程

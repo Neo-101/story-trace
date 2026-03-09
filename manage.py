@@ -45,6 +45,42 @@ def reset_db():
     create_db_and_tables()
     print("Done.")
 
+def clean_group_summaries():
+    """清理编年史分组摘要缓存 (EntityGroupSummary)"""
+    from sqlmodel import Session, delete, select
+    from core.db.engine import engine
+    from core.db.models import EntityGroupSummary
+    
+    print("Connecting to database...")
+    with Session(engine) as session:
+        # Count before delete
+        # Use simple count instead of fetch all to avoid schema mismatch if table outdated
+        # But we need to check if table exists first? 
+        # SQLModel create_db_and_tables handles creation, but migrations are manual.
+        # If we just added a column, selecting * might fail if DB schema is old.
+        # Let's try-catch the selection.
+        try:
+            results = session.exec(select(EntityGroupSummary)).all()
+            total = len(results)
+        except Exception as e:
+            print(f"Error accessing EntityGroupSummary table: {e}")
+            print("It seems the database schema is outdated (missing columns).")
+            print("You might need to run 'python manage.py reset-db' to rebuild the schema.")
+            return
+        
+        if total == 0:
+            print("No group summaries found to clean.")
+            return
+
+        print(f"Found {total} cached group summaries.")
+        response = input(f"Are you sure you want to delete ALL {total} group summaries? This will force re-analysis. (y/N): ")
+        if response.lower() == 'y':
+            session.exec(delete(EntityGroupSummary))
+            session.commit()
+            print(f"Deleted {total} summaries. Cache cleared.")
+        else:
+            print("Operation cancelled.")
+
 def check_env():
     """环境自检"""
     print("=== Environment Check ===")
@@ -91,6 +127,7 @@ def main():
     
     subparsers.add_parser('clean-cache', help='Clear the .cache directory')
     subparsers.add_parser('clean-all', help='Clear ALL outputs')
+    subparsers.add_parser('clean-groups', help='Clear Entity Group Summary cache only') # Added
     subparsers.add_parser('reset-db', help='Delete and recreate SQLite database')
     subparsers.add_parser('check', help='Check environment configuration')
     
@@ -101,6 +138,8 @@ def main():
     
     if args.command == 'clean-cache':
         clean_cache()
+    elif args.command == 'clean-groups':
+        clean_group_summaries()
     elif args.command == 'clean-all':
         clean_outputs()
     elif args.command == 'reset-db':

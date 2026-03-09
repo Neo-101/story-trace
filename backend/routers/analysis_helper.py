@@ -154,6 +154,7 @@ def get_entity_timeline_logic(chapters: List[Chapter], entity_name: str) -> List
                 chapter_id=str(chapter.id),
                 chapter_index=chapter.chapter_index,
                 chapter_title=chapter.title,
+                headline=chapter.headline, # Pass headline for compact view
                 content=content if content else ["本章提及该实体。"],
                 gap_before=max(0, gap)
             ))
