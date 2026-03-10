@@ -31,6 +31,7 @@ class Chapter(SQLModel, table=True):
     run_id: int = Field(foreign_key="analysisrun.id")
     chapter_index: int
     title: str
+    volume_title: Optional[str] = None
     headline: Optional[str] = None
     content: Optional[str] = None
     
@@ -114,3 +115,48 @@ class StoryRelationship(BaseRelationship, SQLModel, table=True):
     weight: int = 1 # 互动次数，DB 特有
     
     chapter: Chapter = Relationship(back_populates="relationships")
+
+class PlotSegment(SQLModel, table=True):
+    """
+    逻辑剧情段落，由多个连续章节组成。
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    run_id: int = Field(foreign_key="analysisrun.id", index=True)
+    
+    # 物理卷归属 (可选，因为可能跨卷，但为了简化，我们假设段落不跨卷)
+    volume_title: Optional[str] = None
+    
+    # LLM 生成的元数据
+    title: str = Field(default="未命名段落")
+    synopsis: Optional[str] = Field(default=None, sa_column=Column(Text))
+    
+    # 章节范围 (闭区间)
+    start_chapter_index: int
+    end_chapter_index: int
+    
+    # 统计数据
+    avg_intensity: float = 0.0
+
+class PlotArc(SQLModel, table=True):
+    """
+    剧情弧 (Arc)，由多个 PlotSegment 组成的大段落。
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    run_id: int = Field(foreign_key="analysisrun.id", index=True)
+    
+    volume_title: Optional[str] = None
+    
+    title: str = Field(default="未命名剧情弧")
+    synopsis: Optional[str] = Field(default=None, sa_column=Column(Text))
+    
+    # 包含的 Segment 范围 (通过索引关联)
+    # 实际上我们可能需要更明确的关联，比如 PlotSegment 增加 arc_id
+    # 但为了兼容性，我们暂时使用 segment_index 范围或 chapter_index 范围
+    start_chapter_index: int
+    end_chapter_index: int
+
+    
+    # 关联
+    # 暂时不建立 PlotSegment <-> Chapter 的直接外键，而是通过 run_id + index 范围查询
+    # 或者存储 JSON 格式的 chapter_ids? 范围更高效。
+

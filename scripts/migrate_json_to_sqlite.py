@@ -181,6 +181,7 @@ def migrate():
                             run_id=run.id,
                             chapter_index=idx,
                             title=chapter_title,
+                            volume_title=chapter_data.get('volume_title'),
                             headline=chapter_data.get('headline'),
                             content=content
                         )

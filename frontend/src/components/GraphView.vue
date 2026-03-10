@@ -933,13 +933,13 @@ const updateGraphData = () => {
     // Update DataSets with Diffing to prevent physics reset
     const newNodeIds = new Set(visNodes.map(n => n.id));
     const oldNodeIds = nodesDataSet.getIds();
-    const nodesToRemove = oldNodeIds.filter(id => !newNodeIds.has(id));
+    const nodesToRemove = oldNodeIds.filter(id => !newNodeIds.has(String(id)));
     nodesDataSet.remove(nodesToRemove);
     nodesDataSet.update(visNodes);
     
     const newEdgeIds = new Set(activeEdges.map(e => e.id));
     const oldEdgeIds = edgesDataSet.getIds();
-    const edgesToRemove = oldEdgeIds.filter(id => !newEdgeIds.has(id));
+    const edgesToRemove = oldEdgeIds.filter(id => !newEdgeIds.has(String(id)));
     edgesDataSet.remove(edgesToRemove);
     edgesDataSet.update(activeEdges);
 

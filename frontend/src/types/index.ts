@@ -12,10 +12,37 @@ export interface Chapter {
   id: string;
   index: number;
   title: string;
+  volume_title?: string;
   headline: string | null;
   summary_sentences: SummarySentence[];
   content?: string;
   entities?: Entity[];
+  stats?: {
+    word_count: number;
+    entity_count: number;
+    relationship_count: number;
+  };
+}
+
+export interface PlotSegment {
+  id: string;
+  volume_title: string;
+  title: string; // "Segment X" or LLM Title
+  synopsis: string; // LLM Synopsis
+  chapters: Chapter[];
+  start_chapter_index?: number;
+  end_chapter_index?: number;
+  avg_intensity: number;
+}
+
+export interface PlotArc {
+  id: string;
+  volume_title: string;
+  title: string;
+  synopsis: string;
+  start_chapter_index: number;
+  end_chapter_index: number;
+  segments?: PlotSegment[]; // Hydrated in frontend
 }
 
 export interface SummarySentence {

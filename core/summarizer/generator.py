@@ -110,6 +110,7 @@ class SummaryGenerator:
         return ChapterSummary(
             chapter_id=chapter.id,
             chapter_title=chapter.title,
+            volume_title=chapter.volume_title,
             headline=headline,
             summary_sentences=summary_objects,
             entities=entity_objects,
@@ -205,11 +206,78 @@ class SummaryGenerator:
         return ChapterSummary(
             chapter_id=chapter.id,
             chapter_title=chapter.title,
+            volume_title=chapter.volume_title,
             headline=headline,
             summary_sentences=summary_objects,
             entities=entity_objects,
             relationships=relationship_objects
         )
+
+    def generate_segment_summary(self, segment_summaries: List[str]) -> Dict[str, str]:
+        """
+        为剧情段落生成总结
+        Args:
+            segment_summaries: 该段落内各章节的 headline 或 summary 列表
+        Returns:
+            {"title": "...", "synopsis": "..."}
+        """
+        print(f"正在生成段落总结，包含 {len(segment_summaries)} 章...")
+        
+        prompt = Prompts.get_segment_summary_prompt(segment_summaries)
+        
+        try:
+            raw_response = self.llm.chat_completion(prompt)
+            parsed = self._parse_json_response(raw_response)
+            
+            if isinstance(parsed, dict):
+                return {
+                    "title": parsed.get("title", "未命名段落"),
+                    "synopsis": parsed.get("synopsis", "")
+                }
+            else:
+                return {
+                    "title": "未命名段落",
+                    "synopsis": str(parsed)
+                }
+                
+        except Exception as e:
+            print(f"段落总结生成失败: {e}")
+            return {
+                "title": "生成失败",
+                "synopsis": ""
+            }
+
+    def generate_arc_summary(self, arc_summaries: List[str]) -> Dict[str, str]:
+        """
+        为剧情弧生成总结
+        Args:
+            arc_summaries: 该 Arc 内各 Segment 的 title 和 synopsis 组合文本
+        """
+        print(f"正在生成剧情弧总结，包含 {len(arc_summaries)} 个段落...")
+        
+        prompt = Prompts.get_arc_summary_prompt(arc_summaries)
+        
+        try:
+            raw_response = self.llm.chat_completion(prompt)
+            parsed = self._parse_json_response(raw_response)
+            
+            if isinstance(parsed, dict):
+                return {
+                    "title": parsed.get("title", "未命名剧情弧"),
+                    "synopsis": parsed.get("synopsis", "")
+                }
+            else:
+                return {
+                    "title": "未命名剧情弧",
+                    "synopsis": str(parsed)
+                }
+                
+        except Exception as e:
+            print(f"剧情弧总结生成失败: {e}")
+            return {
+                "title": "生成失败",
+                "synopsis": ""
+            }
 
     def _parse_json_response(self, response: str) -> object:
         """解析 LLM 返回的 JSON 字符串"""

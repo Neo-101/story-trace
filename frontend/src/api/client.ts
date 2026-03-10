@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Novel, Run, Chapter, Entity, GraphData, TimelineEvent, RelationshipTimelineEvent, RelationshipStage, RelationshipStageLabel } from '@/types';
+import type { Novel, Run, Chapter, Entity, GraphData, TimelineEvent, RelationshipTimelineEvent, RelationshipStage, RelationshipStageLabel, PlotSegment, PlotArc } from '@/types';
 
 const apiClient = axios.create({
   baseURL: '/api',
@@ -105,6 +105,26 @@ export const API = {
 
   async fetchAllRelationshipStages(novelName: string, fileHash: string): Promise<RelationshipStageLabel[]> {
     const response = await apiClient.get<RelationshipStageLabel[]>(`/novels/${novelName}/${fileHash}/relationship/all_stages`);
+    return response.data;
+  },
+
+  async fetchSegments(novelName: string, fileHash: string): Promise<PlotSegment[]> {
+    const response = await apiClient.get<PlotSegment[]>(`/novels/${novelName}/${fileHash}/segments`);
+    return response.data;
+  },
+
+  async generateSegments(novelName: string, fileHash: string): Promise<PlotSegment[]> {
+    const response = await apiClient.post<PlotSegment[]>(`/novels/${novelName}/${fileHash}/segments/generate`);
+    return response.data;
+  },
+
+  async fetchArcs(novelName: string, fileHash: string): Promise<PlotArc[]> {
+    const response = await apiClient.get<PlotArc[]>(`/novels/${novelName}/${fileHash}/arcs`);
+    return response.data;
+  },
+
+  async generateArcs(novelName: string, fileHash: string): Promise<PlotArc[]> {
+    const response = await apiClient.post<PlotArc[]>(`/novels/${novelName}/${fileHash}/arcs/generate`);
     return response.data;
   }
 };

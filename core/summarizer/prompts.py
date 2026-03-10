@@ -75,3 +75,59 @@ class Prompts:
             {"role": "system", "content": Prompts.SYSTEM_PROMPT},
             {"role": "user", "content": Prompts.USER_PROMPT_TEMPLATE.format(title=title, content=content)}
         ]
+
+    SEGMENT_SYSTEM_PROMPT = """你是一个专业的小说编辑。你的任务是将一系列连续章节的摘要合并为一个连贯的“剧情段落梗概”。
+请遵循以下规则：
+1. **高度概括**: 不要流水账式地罗列每章内容，而是提炼出这一段剧情的核心冲突、转折和结果。
+2. **字数限制**: 梗概控制在 100-150 字以内。
+3. **小标题**: 为这一段剧情起一个简短有力的小标题（4-8字），例如“营救行动”、“黑客入侵”、“初入江湖”。
+4. **输出格式**: 必须是 JSON 对象，包含 'title' 和 'synopsis'。
+"""
+
+    SEGMENT_USER_TEMPLATE = """以下是小说中一段连续章节的摘要，请为其生成段落小标题和核心梗概：
+
+{summaries}
+
+请输出 JSON 格式：
+{{
+    "title": "...",
+    "synopsis": "..."
+}}
+"""
+
+    ARC_SYSTEM_PROMPT = """你是一个专业的小说架构师。你的任务是将一系列“剧情段落”的梗概合并为一个宏大的“剧情弧 (Story Arc)”总结。
+请遵循以下规则：
+1. **宏观视角**: 你不再关注具体的打斗或对话，而是关注人物命运的转折、势力的消长、谜题的揭晓。
+2. **字数限制**: 梗概控制在 150-200 字以内。
+3. **大标题**: 为这一大段剧情起一个富有史诗感的大标题（2-6字），例如“逃离地球”、“第一滴血”、“觉醒时刻”。
+4. **输出格式**: 必须是 JSON 对象，包含 'title' 和 'synopsis'。
+"""
+
+    ARC_USER_TEMPLATE = """以下是小说中一段连续剧情段落的梗概，请为其生成剧情弧标题和核心总结：
+
+{summaries}
+
+请输出 JSON 格式：
+{{
+    "title": "...",
+    "synopsis": "..."
+}}
+"""
+
+    @staticmethod
+    def get_segment_summary_prompt(summaries: List[str]) -> List[Dict[str, str]]:
+        """生成段落总结 Prompt"""
+        content = "\n\n".join(summaries)
+        return [
+            {"role": "system", "content": Prompts.SEGMENT_SYSTEM_PROMPT},
+            {"role": "user", "content": Prompts.SEGMENT_USER_TEMPLATE.format(summaries=content)}
+        ]
+
+    @staticmethod
+    def get_arc_summary_prompt(segment_summaries: List[str]) -> List[Dict[str, str]]:
+        """生成 Arc 总结 Prompt"""
+        content = "\n\n".join(segment_summaries)
+        return [
+            {"role": "system", "content": Prompts.ARC_SYSTEM_PROMPT},
+            {"role": "user", "content": Prompts.ARC_USER_TEMPLATE.format(summaries=content)}
+        ]

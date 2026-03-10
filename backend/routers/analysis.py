@@ -24,14 +24,297 @@ from backend.routers.analysis_helper import get_merged_chapters, db_chapter_to_s
 from backend.narrative_engine.plugins.concept import ConceptAnalyzer
 from core.summarizer.llm_client import ClientFactory
 from core.config import settings
+from core.analysis.segmenter import PlotSegmenter
+from core.db.models import PlotSegment, PlotArc
+from backend.schemas import PlotSegmentResponse, PlotArcResponse
 
 router = APIRouter(prefix="/api/novels", tags=["analysis"])
+
 
 def get_session():
     with Session(engine) as session:
         yield session
 
 # Removed inline db_chapter_to_summary and get_merged_chapters as they are now in analysis_helper
+
+@router.post("/{novel_name}/{file_hash}/segments/generate", response_model=List[PlotSegmentResponse])
+def generate_segments(
+    novel_name: str,
+    file_hash: str,
+    session: Session = Depends(get_session)
+):
+    """
+    Generate plot segments for the novel using heuristic analysis and LLM summarization.
+    """
+    # 1. Find latest run
+    run = session.exec(
+        select(AnalysisRun)
+        .join(NovelVersion)
+        .join(Novel)
+        .where(Novel.name == novel_name)
+        .where(NovelVersion.hash == file_hash)
+        .order_by(AnalysisRun.timestamp.desc())
+    ).first()
+    
+    if not run:
+        raise HTTPException(status_code=404, detail="Analysis run not found")
+        
+    # 2. Heuristic Segmentation
+    segmenter = PlotSegmenter(session)
+    segments = segmenter.analyze_run(run.id)
+    
+    # 3. LLM Enrichment (Generate Summaries)
+    # Initialize Client
+    try:
+        if settings.OPENROUTER_API_KEY:
+             llm_client = ClientFactory.create_client(
+                 provider="openrouter",
+                 api_key=settings.OPENROUTER_API_KEY,
+                 model=settings.OPENROUTER_MODEL
+             )
+        else:
+             llm_client = ClientFactory.create_client(
+                 provider="local",
+                 base_url=settings.LOCAL_LLM_BASE_URL,
+                 model=settings.LOCAL_LLM_MODEL
+             )
+    except Exception as e:
+        print(f"Warning: LLM init failed, skipping enrichment. {e}")
+        llm_client = None
+
+    if llm_client:
+        from core.summarizer.generator import SummaryGenerator
+        generator = SummaryGenerator(llm_client)
+        
+        print(f"Starting LLM enrichment for {len(segments)} segments...")
+        for seg in segments:
+            try:
+                # Fetch summaries for chapters in this segment
+                chapters = session.exec(
+                    select(Chapter)
+                    .where(Chapter.run_id == run.id)
+                    .where(Chapter.chapter_index >= seg.start_chapter_index)
+                    .where(Chapter.chapter_index <= seg.end_chapter_index)
+                    .order_by(Chapter.chapter_index)
+                ).all()
+                
+                # Use headline or first summary sentence
+                seg_summaries = []
+                for c in chapters:
+                    text = c.headline
+                    if not text:
+                        # Try to fetch summary from DB relation
+                        try:
+                            s = session.exec(select(Summary).where(Summary.chapter_id == c.id)).first()
+                            if s: text = s.text
+                        except Exception:
+                            pass
+                    if text:
+                        seg_summaries.append(f"第{c.chapter_index}章: {text}")
+                
+                if seg_summaries:
+                    result = generator.generate_segment_summary(seg_summaries)
+                    if result:
+                        seg.title = result.get("title", seg.title)
+                        seg.synopsis = result.get("synopsis", "")
+                        session.add(seg)
+                        session.commit() # Commit each segment to save progress
+            except Exception as e:
+                print(f"Failed to enrich segment {seg.id}: {e}")
+                session.rollback() # Rollback only this segment update
+                continue
+        
+    return [
+        PlotSegmentResponse(
+            id=s.id,
+            volume_title=s.volume_title,
+            title=s.title,
+            synopsis=s.synopsis,
+            start_chapter_index=s.start_chapter_index,
+            end_chapter_index=s.end_chapter_index,
+            avg_intensity=s.avg_intensity
+        )
+        for s in segments
+    ]
+
+@router.get("/{novel_name}/{file_hash}/segments", response_model=List[PlotSegmentResponse])
+def list_segments(
+    novel_name: str,
+    file_hash: str,
+    session: Session = Depends(get_session)
+):
+    """
+    Get existing plot segments.
+    """
+    # Find latest run
+    run = session.exec(
+        select(AnalysisRun)
+        .join(NovelVersion)
+        .join(Novel)
+        .where(Novel.name == novel_name)
+        .where(NovelVersion.hash == file_hash)
+        .order_by(AnalysisRun.timestamp.desc())
+    ).first()
+    
+    if not run:
+        return []
+        
+    segments = session.exec(
+        select(PlotSegment)
+        .where(PlotSegment.run_id == run.id)
+        .order_by(PlotSegment.start_chapter_index)
+    ).all()
+    
+    return [
+        PlotSegmentResponse(
+            id=s.id,
+            volume_title=s.volume_title,
+            title=s.title,
+            synopsis=s.synopsis,
+            start_chapter_index=s.start_chapter_index,
+            end_chapter_index=s.end_chapter_index,
+            avg_intensity=s.avg_intensity
+        )
+        for s in segments
+    ]
+
+@router.post("/{novel_name}/{file_hash}/arcs/generate", response_model=List[PlotArcResponse])
+def generate_arcs(
+    novel_name: str,
+    file_hash: str,
+    session: Session = Depends(get_session)
+):
+    """
+    Generate plot arcs (aggregated segments) for the novel.
+    """
+    # 1. Find latest run
+    run = session.exec(
+        select(AnalysisRun)
+        .join(NovelVersion)
+        .join(Novel)
+        .where(Novel.name == novel_name)
+        .where(NovelVersion.hash == file_hash)
+        .order_by(AnalysisRun.timestamp.desc())
+    ).first()
+    
+    if not run:
+        raise HTTPException(status_code=404, detail="Analysis run not found")
+        
+    print(f"Generating Arcs for run {run.id}...")
+        
+    # 2. Heuristic Aggregation
+    try:
+        segmenter = PlotSegmenter(session)
+        arcs = segmenter.analyze_arcs(run.id)
+        print(f"Generated {len(arcs)} arcs via heuristic.")
+    except Exception as e:
+        print(f"Error in analyze_arcs: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Arc generation failed: {e}")
+    
+    # 3. LLM Enrichment
+
+    try:
+        if settings.OPENROUTER_API_KEY:
+             llm_client = ClientFactory.create_client(
+                 provider="openrouter",
+                 api_key=settings.OPENROUTER_API_KEY,
+                 model=settings.OPENROUTER_MODEL
+             )
+        else:
+             llm_client = ClientFactory.create_client(
+                 provider="local",
+                 base_url=settings.LOCAL_LLM_BASE_URL,
+                 model=settings.LOCAL_LLM_MODEL
+             )
+    except Exception as e:
+        print(f"Warning: LLM init failed, skipping enrichment. {e}")
+        llm_client = None
+
+    if llm_client:
+        from core.summarizer.generator import SummaryGenerator
+        generator = SummaryGenerator(llm_client)
+        
+        print(f"Starting LLM enrichment for {len(arcs)} arcs...")
+        for arc in arcs:
+            try:
+                # Fetch segments in this arc to compose summary
+                segments = session.exec(
+                    select(PlotSegment)
+                    .where(PlotSegment.run_id == run.id)
+                    .where(PlotSegment.start_chapter_index >= arc.start_chapter_index)
+                    .where(PlotSegment.end_chapter_index <= arc.end_chapter_index)
+                    .order_by(PlotSegment.start_chapter_index)
+                ).all()
+                
+                arc_summaries = []
+                for s in segments:
+                    if s.synopsis:
+                        arc_summaries.append(f"【{s.title}】: {s.synopsis}")
+                
+                if arc_summaries:
+                    result = generator.generate_arc_summary(arc_summaries)
+                    if result:
+                        arc.title = result.get("title", arc.title)
+                        arc.synopsis = result.get("synopsis", "")
+                        session.add(arc)
+                        session.commit()
+            except Exception as e:
+                print(f"Failed to enrich arc {arc.id}: {e}")
+                session.rollback()
+                continue
+        
+    return [
+        PlotArcResponse(
+            id=a.id,
+            volume_title=a.volume_title,
+            title=a.title,
+            synopsis=a.synopsis,
+            start_chapter_index=a.start_chapter_index,
+            end_chapter_index=a.end_chapter_index
+        )
+        for a in arcs
+    ]
+
+@router.get("/{novel_name}/{file_hash}/arcs", response_model=List[PlotArcResponse])
+def list_arcs(
+    novel_name: str,
+    file_hash: str,
+    session: Session = Depends(get_session)
+):
+    """
+    Get existing plot arcs.
+    """
+    run = session.exec(
+        select(AnalysisRun)
+        .join(NovelVersion)
+        .join(Novel)
+        .where(Novel.name == novel_name)
+        .where(NovelVersion.hash == file_hash)
+        .order_by(AnalysisRun.timestamp.desc())
+    ).first()
+    
+    if not run:
+        return []
+        
+    arcs = session.exec(
+        select(PlotArc)
+        .where(PlotArc.run_id == run.id)
+        .order_by(PlotArc.start_chapter_index)
+    ).all()
+    
+    return [
+        PlotArcResponse(
+            id=a.id,
+            volume_title=a.volume_title,
+            title=a.title,
+            synopsis=a.synopsis,
+            start_chapter_index=a.start_chapter_index,
+            end_chapter_index=a.end_chapter_index
+        )
+        for a in arcs
+    ]
 
 @router.get("/{novel_name}/{file_hash}/{timestamp}/chapters", response_model=List[ChapterPreview])
 def list_chapters(novel_name: str, file_hash: str, timestamp: str, session: Session = Depends(get_session)):
@@ -45,8 +328,14 @@ def list_chapters(novel_name: str, file_hash: str, timestamp: str, session: Sess
             id=str(c.id),
             index=c.chapter_index,
             title=c.title,
+            volume_title=c.volume_title,
             headline=c.headline or "",
-            has_summary=True
+            has_summary=True,
+            stats={
+                "word_count": len(c.content) if c.content else 0,
+                "entity_count": len(c.entities),
+                "relationship_count": len(c.relationships)
+            }
         )
         for c in chapters
     ]
@@ -103,6 +392,7 @@ def get_chapter_detail(novel_name: str, file_hash: str, timestamp: str, chapter_
         id=str(chapter.id),
         index=chapter.chapter_index,
         title=chapter.title,
+        volume_title=chapter.volume_title,
         headline=chapter.headline,
         content=chapter.content or "",
         summary_sentences=summary_sentences,

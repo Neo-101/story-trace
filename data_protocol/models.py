@@ -63,6 +63,7 @@ class ChapterSummary(BaseModel):
     chapter_id: str = Field(..., description="关联的章节 ID")
     chapter_index: Optional[int] = Field(None, description="章节序号 (0-based)")
     chapter_title: Optional[str] = Field(None, description="章节标题")
+    volume_title: Optional[str] = Field(None, description="所属分卷标题")
     headline: Optional[str] = Field(None, description="一句话核心总结 (Overview Mode)")
     summary_sentences: List[SummarySentence] = Field(default_factory=list, description="总结句子列表")
     entities: List[Entity] = Field(default_factory=list, description="本章出现的关键实体及其描述")

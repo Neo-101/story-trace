@@ -15,8 +15,10 @@ class ChapterPreview(BaseModel):
     id: str
     index: int
     title: str
+    volume_title: Optional[str] = None
     headline: str
     has_summary: bool = True
+    stats: Dict[str, int] = {}
 
 class EntityDetail(BaseEntity):
     """继承 BaseEntity"""
@@ -26,6 +28,7 @@ class ChapterDetail(BaseModel):
     id: str
     index: int
     title: str
+    volume_title: Optional[str] = None
     headline: Optional[str] = None
     content: str
     summary_sentences: List[SummarySentence]
@@ -54,6 +57,23 @@ class RelationshipTimelineEvent(BaseModel):
     
     class Config:
         arbitrary_types_allowed = True
+
+class PlotSegmentResponse(BaseModel):
+    id: int
+    volume_title: Optional[str]
+    title: str
+    synopsis: Optional[str]
+    start_chapter_index: int
+    end_chapter_index: int
+    avg_intensity: float
+
+class PlotArcResponse(BaseModel):
+    id: int
+    volume_title: Optional[str]
+    title: str
+    synopsis: Optional[str]
+    start_chapter_index: int
+    end_chapter_index: int
 
 class GraphNode(BaseEntity):
     """继承 BaseEntity，用于图谱节点"""

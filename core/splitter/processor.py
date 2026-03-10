@@ -84,77 +84,85 @@ class Splitter:
 
     def split_by_chapter(self, content: str, chapter_range: Optional[Tuple[int, int]] = None) -> List[Chapter]:
         """
-        按章节分割
+        按章节分割 (智能识别分卷信息)
         Args:
             content: 文本内容
-            chapter_range: (start, end) 闭区间，从1开始计数。例如 (1, 10) 表示第1到第10章。
+            chapter_range: (start, end) 闭区间，从1开始计数。
         """
         # 支持繁体中文数字和异体字
         cn_nums = '零一二三四五六七八九十百千万壹贰叁肆伍陆柒捌玖拾佰仟萬億'
-        chapter_pattern = fr'(?:^第[{cn_nums}\d]+[章回節节])|(?:^Chapter\s+\d+)'
+        chapter_pattern_str = fr'(?:^第[{cn_nums}\d]+[章回節节])|(?:^Chapter\s+\d+)'
+        volume_pattern_str = fr'^[第卷{cn_nums}\d]+[卷巻]'
         
-        print(f"DEBUG: 正在使用正则匹配章节: {chapter_pattern[:50]}...")
-        matches = list(re.finditer(chapter_pattern, content, re.MULTILINE | re.IGNORECASE))
-        print(f"DEBUG: 匹配到 {len(matches)} 个潜在章节标题。")
+        # Combined pattern: Group 1 = Volume, Group 2 = Chapter
+        combined_pattern = re.compile(f"({volume_pattern_str})|({chapter_pattern_str})", re.MULTILINE | re.IGNORECASE)
+        
+        print(f"DEBUG: 正在扫描章节与分卷...")
+        matches = list(combined_pattern.finditer(content))
         
         if not matches:
+            # Fallback: Try looser chapter match if strict match fails?
+            # For now, return empty
             return []
 
-        # Apply Range Filtering
-        start_idx = 0
-        end_idx = len(matches)
+        parsed_items = []
+        current_volume = None
         
+        for i, match in enumerate(matches):
+            text = match.group(0).strip()
+            start = match.start()
+            
+            # Find end of this section (start of next match or end of file)
+            if i < len(matches) - 1:
+                end = matches[i+1].start()
+            else:
+                end = len(content)
+            
+            # Extract body
+            # Find newline after header
+            header_end = content.find('\n', start)
+            if header_end == -1 or header_end > end:
+                header_end = end
+            
+            body = content[header_end:end].strip()
+            
+            if match.group(1): # It is a Volume
+                current_volume = text
+                # We don't create a chapter entry for volume header
+            else: # It is a Chapter
+                parsed_items.append({
+                    "title": text,
+                    "volume": current_volume,
+                    "content": body
+                })
+        
+        print(f"DEBUG: 扫描到 {len(parsed_items)} 个章节。")
+
+        # Apply Range Filtering
         if chapter_range:
             r_start, r_end = chapter_range
             print(f"DEBUG: 应用范围过滤: {r_start}-{r_end}")
-            # Adjust 1-based index to 0-based
             start_idx = max(0, r_start - 1)
-            end_idx = min(len(matches), r_end)
+            end_idx = min(len(parsed_items), r_end)
             
-            print(f"DEBUG: 转换索引: [{start_idx}:{end_idx}]")
-            
-            if start_idx >= len(matches):
-                print(f"DEBUG: 起始索引 {start_idx} 超出范围 (总数 {len(matches)})")
+            if start_idx >= len(parsed_items):
                 return []
-                
-        # Filter matches
-        target_matches = matches[start_idx : end_idx]
-        if not target_matches:
-            print("DEBUG: 过滤后章节列表为空。")
-            return []
             
-        print(f"DEBUG: 最终将处理 {len(target_matches)} 章。")
+            target_items = parsed_items[start_idx : end_idx]
+        else:
+            target_items = parsed_items
 
         chapters = []
-        # We need to handle the content extraction carefully because we might be skipping chapters.
-        # For the last selected chapter, its content goes until the NEXT chapter in the original list starts.
-        
-        for i, match in enumerate(target_matches):
-            # Original index in 'matches' list
-            original_idx = start_idx + i
-            
-            # Get Title
-            line_start = match.start()
-            line_end = content.find('\n', line_start)
-            if line_end == -1: line_end = len(content)
-            title_line = content[line_start:line_end].strip()
-            
-            # Get Content
-            content_start = line_end
-            
-            # Find end of content: start of the NEXT chapter in the ORIGINAL list
-            if original_idx < len(matches) - 1:
-                content_end = matches[original_idx + 1].start()
-            else:
-                content_end = len(content)
-                
-            chapter_content = content[content_start:content_end].strip()
+        for i, item in enumerate(target_items):
+            # Generate ID based on global index to keep consistency
+            global_idx = parsed_items.index(item) + 1
             
             chapters.append(Chapter(
-                id=IdentifierGenerator.generate_chapter_id(original_idx + 1),
-                title=title_line,
-                content=chapter_content,
-                word_count=len(chapter_content)
+                id=IdentifierGenerator.generate_chapter_id(global_idx),
+                title=item['title'],
+                volume_title=item['volume'],
+                content=item['content'],
+                word_count=len(item['content'])
             ))
             
         return chapters
