@@ -63,6 +63,24 @@ class EntityGroupSummary(SQLModel, table=True):
     chapter_count: int = Field(default=0, description="Number of chapters covered in this summary")
     timestamp: str # Analysis timestamp
 
+class RelationshipStage(SQLModel, table=True):
+    """
+    Cache table for relationship stages between two entities across a range of chapters.
+    Key: (novel_name, file_hash, source_entity, target_entity, start_chapter, end_chapter)
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    novel_name: str = Field(index=True)
+    file_hash: str = Field(index=True)
+    source_entity: str = Field(index=True)
+    target_entity: str = Field(index=True)
+    start_chapter: int = Field(index=True)
+    end_chapter: int = Field(index=True)
+    stage_label: str # e.g. "Trust Building", "Conflict"
+    summary_text: str = Field(sa_column=Column(Text))
+    sentiment_score: float = Field(default=0.0) # -1.0 to 1.0
+    event_count: int = Field(default=0, description="Number of interaction events in this stage")
+    timestamp: str # Analysis timestamp
+
 class Entity(BaseEntity, SQLModel, table=True):
     """继承 BaseEntity: name, type, description, confidence"""
     id: Optional[int] = Field(default=None, primary_key=True)

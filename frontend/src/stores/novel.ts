@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { API } from '@/api/client';
-import type { Novel, Run, Chapter, Entity, GraphData } from '@/types';
+import type { Novel, Run, Chapter, Entity, GraphData, RelationshipStageLabel } from '@/types';
 
 export const useNovelStore = defineStore('novel', {
   state: () => ({
@@ -15,6 +15,7 @@ export const useNovelStore = defineStore('novel', {
     // Graph Data
     graphData: null as GraphData | null,
     globalEntities: [] as Entity[],
+    relationshipStageIndex: [] as RelationshipStageLabel[],
 
     // UI State
     loading: false,
@@ -103,6 +104,22 @@ export const useNovelStore = defineStore('novel', {
             this.error = e.message;
         } finally {
             this.loading = false;
+        }
+    },
+
+    async loadRelationshipStageIndex() {
+        if (!this.currentNovel || !this.currentRun) return;
+        const hash = this.currentNovel.hashes[0];
+        if (!hash) return;
+
+        // If already loaded, skip (unless we want force refresh?)
+        if (this.relationshipStageIndex.length > 0) return;
+
+        try {
+            this.relationshipStageIndex = await API.fetchAllRelationshipStages(this.currentNovel.name, hash);
+        } catch (e: any) {
+            console.error("Failed to load relationship stages index", e);
+            // Non-blocking error
         }
     }
   },

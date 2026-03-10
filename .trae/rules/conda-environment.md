@@ -1,0 +1,1 @@
+Project Environment Requirement : Always use the 'story-trace' Conda environment. Verify via conda info or python path before execution.

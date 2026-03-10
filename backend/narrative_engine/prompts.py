@@ -73,3 +73,26 @@ Return a JSON list of stages. For each stage, identify:
   }}
 ]
 """
+
+RELATIONSHIP_STAGE_TEMPLATE = """
+You are a literary analyst specializing in character dynamics.
+Your task is to analyze the relationship between {source} and {target} during a specific period (Ch {start_chapter}-{end_chapter}).
+
+### Interaction History (Chronological)
+{interactions_text}
+
+### Analysis Guidelines
+Based on the interactions above, determine the **overall relationship stage** for this specific period.
+1. **Stage Label**: A concise 2-4 word Chinese phrase describing the relationship state (e.g., "初识与试探", "并肩作战", "信任危机", "决裂").
+2. **Summary**: A holistic summary of their interactions and dynamic shifts during this period (max 100 words).
+3. **Sentiment Score**: A float between -1.0 (Pure Hatred/Enemy) and 1.0 (True Love/Unbreakable Bond). 0.0 is Neutral/Stranger.
+
+**IMPORTANT: Output MUST be in Chinese (Simplified).**
+
+### Output Format (JSON Only)
+{{
+    "stage_label": "string (Chinese)",
+    "summary_text": "string (Chinese)",
+    "sentiment_score": float
+}}
+"""

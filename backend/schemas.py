@@ -13,6 +13,7 @@ class RunInfo(BaseModel):
 
 class ChapterPreview(BaseModel):
     id: str
+    index: int
     title: str
     headline: str
     has_summary: bool = True
@@ -23,6 +24,7 @@ class EntityDetail(BaseEntity):
 
 class ChapterDetail(BaseModel):
     id: str
+    index: int
     title: str
     headline: Optional[str] = None
     content: str
@@ -92,3 +94,25 @@ class GroupSummaryRequest(BaseModel):
 class GroupSummaryResponse(BaseModel):
     summary: str
     is_cached: bool
+
+class RelationshipStageRequest(BaseModel):
+    source_entity: str
+    target_entity: str
+    chapter_start: int
+    chapter_end: int
+    force: bool = False
+
+class RelationshipStageResponse(BaseModel):
+    start_chapter: int
+    end_chapter: int
+    stage_label: str
+    summary_text: str
+    sentiment_score: float
+    is_cached: bool
+
+class RelationshipStageLabel(BaseModel):
+    source_entity: str
+    target_entity: str
+    start_chapter: int
+    end_chapter: int
+    stage_label: str

@@ -10,6 +10,7 @@ export interface Run {
 
 export interface Chapter {
   id: string;
+  index: number;
   title: string;
   headline: string | null;
   summary_sentences: SummarySentence[];
@@ -141,4 +142,21 @@ export interface FactionInfo {
 
 export interface ExtendedEntity extends Entity {
   faction_info?: FactionInfo;
+}
+
+export interface RelationshipStage {
+  start_chapter: number;
+  end_chapter: number;
+  stage_label: string;
+  summary_text: string;
+  sentiment_score: number;
+  is_cached: boolean;
+}
+
+export interface RelationshipStageLabel {
+  source_entity: string;
+  target_entity: string;
+  start_chapter: number;
+  end_chapter: number;
+  stage_label: string;
 }

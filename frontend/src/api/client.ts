@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Novel, Run, Chapter, Entity, GraphData, TimelineEvent, RelationshipTimelineEvent } from '@/types';
+import type { Novel, Run, Chapter, Entity, GraphData, TimelineEvent, RelationshipTimelineEvent, RelationshipStage, RelationshipStageLabel } from '@/types';
 
 const apiClient = axios.create({
   baseURL: '/api',
@@ -82,6 +82,29 @@ export const API = {
       chapter_end: end,
       force: force
     });
+    return response.data;
+  },
+
+  async fetchRelationshipStages(novelName: string, fileHash: string, source: string, target: string): Promise<RelationshipStage[]> {
+    const response = await apiClient.get<RelationshipStage[]>(`/novels/${novelName}/${fileHash}/relationship/stages`, {
+      params: { source, target }
+    });
+    return response.data;
+  },
+
+  async analyzeRelationshipStage(novelName: string, fileHash: string, source: string, target: string, start: number, end: number, force: boolean = false): Promise<RelationshipStage> {
+    const response = await apiClient.post<RelationshipStage>(`/novels/${novelName}/${fileHash}/analyze/relationship-stage`, {
+      source_entity: source,
+      target_entity: target,
+      chapter_start: start,
+      chapter_end: end,
+      force: force
+    });
+    return response.data;
+  },
+
+  async fetchAllRelationshipStages(novelName: string, fileHash: string): Promise<RelationshipStageLabel[]> {
+    const response = await apiClient.get<RelationshipStageLabel[]>(`/novels/${novelName}/${fileHash}/relationship/all_stages`);
     return response.data;
   }
 };

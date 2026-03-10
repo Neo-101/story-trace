@@ -7,7 +7,8 @@ from backend.schemas import (
     ChapterPreview, ChapterDetail, EntityDetail, SummarySentence, SourceSpan,
     GraphData, GraphNode, GraphEdge, EdgeEvent, TimelineEvent, RelationshipTimelineEvent,
     GroupSummaryResponse, GroupSummaryRequest,
-    RelationshipInteraction, ConceptAnalysisRequest
+    RelationshipInteraction, ConceptAnalysisRequest,
+    RelationshipStageRequest, RelationshipStageResponse, RelationshipStageLabel
 )
 import json
 from data_protocol.models import (
@@ -42,6 +43,7 @@ def list_chapters(novel_name: str, file_hash: str, timestamp: str, session: Sess
     return [
         ChapterPreview(
             id=str(c.id),
+            index=c.chapter_index,
             title=c.title,
             headline=c.headline or "",
             has_summary=True
@@ -99,6 +101,7 @@ def get_chapter_detail(novel_name: str, file_hash: str, timestamp: str, chapter_
     
     return ChapterDetail(
         id=str(chapter.id),
+        index=chapter.chapter_index,
         title=chapter.title,
         headline=chapter.headline,
         content=chapter.content or "",
@@ -373,6 +376,272 @@ def analyze_concept(
     stages = analyzer.analyze_entity(novel_name, file_hash, request.entity_name, force=request.force)
     
     return stages
+
+@router.post("/{novel_name}/{file_hash}/analyze/relationship-stage", response_model=RelationshipStageResponse)
+def analyze_relationship_stage(
+    novel_name: str,
+    file_hash: str,
+    request: RelationshipStageRequest,
+    session: Session = Depends(get_session)
+):
+    """
+    On-demand analysis for a relationship stage between two entities in a chapter range.
+    """
+    from core.db.models import RelationshipStage
+    from backend.narrative_engine.prompts import RELATIONSHIP_STAGE_TEMPLATE
+    from datetime import datetime
+    import os
+
+    # 0. Normalize Entity Names
+    base_dir = os.getcwd()
+    alias_path = os.path.join(base_dir, "config", "aliases.json")
+    if os.path.exists(alias_path):
+        aggregator = EntityAggregator(alias_file=alias_path)
+    else:
+        aggregator = EntityAggregator()
+
+    norm_source = aggregator._normalize_text(request.source_entity)
+    norm_target = aggregator._normalize_text(request.target_entity)
+    
+    if not norm_source or not norm_target:
+        raise HTTPException(status_code=400, detail="Invalid source or target entities")
+
+    # 1. Check Cache
+    if not request.force:
+        cached = session.exec(select(RelationshipStage).where(
+            RelationshipStage.novel_name == novel_name,
+            RelationshipStage.file_hash == file_hash,
+            RelationshipStage.source_entity == norm_source,
+            RelationshipStage.target_entity == norm_target,
+            RelationshipStage.start_chapter == request.chapter_start,
+            RelationshipStage.end_chapter == request.chapter_end
+        )).first()
+        
+        if cached:
+                # We can also check event_count consistency if we want to be strict
+                return RelationshipStageResponse(
+                    start_chapter=cached.start_chapter,
+                    end_chapter=cached.end_chapter,
+                    stage_label=cached.stage_label,
+                    summary_text=cached.summary_text,
+                    sentiment_score=cached.sentiment_score,
+                    is_cached=True
+                )
+
+    # 2. Fetch Interactions
+    chapters = get_merged_chapters(session, novel_name, file_hash)
+    target_chapters = [c for c in chapters if request.chapter_start <= c.chapter_index <= request.chapter_end]
+    
+    if not target_chapters:
+         return RelationshipStageResponse(
+             start_chapter=request.chapter_start,
+             end_chapter=request.chapter_end,
+             stage_label="Unknown",
+             summary_text="No chapters found in this range.",
+             sentiment_score=0.0,
+             is_cached=False
+         )
+
+    interactions = []
+    for chapter in target_chapters:
+        summary = db_chapter_to_summary(chapter)
+        for rel in summary.relationships:
+            r_source = aggregator._normalize_text(rel.source)
+            r_target = aggregator._normalize_text(rel.target)
+            
+            # Check if this relationship involves our pair
+            if (r_source == norm_source and r_target == norm_target) or \
+               (r_source == norm_target and r_target == norm_source):
+                
+                interactions.append({
+                    "chapter": chapter.chapter_index,
+                    "source": rel.source, # Original name for context
+                    "target": rel.target,
+                    "relation": rel.relation,
+                    "description": rel.description
+                })
+
+    current_event_count = len(interactions)
+
+    if not interactions:
+        return RelationshipStageResponse(
+             start_chapter=request.chapter_start,
+             end_chapter=request.chapter_end,
+             stage_label="No Interaction",
+             summary_text="No interactions found in this range.",
+             sentiment_score=0.0,
+             is_cached=False
+         )
+
+    # 3. Construct Prompt
+    interactions_text = ""
+    for item in interactions:
+        interactions_text += f"- Ch {item['chapter']}: {item['source']} -> {item['target']} ({item['relation']}): {item['description']}\n"
+
+    prompt = RELATIONSHIP_STAGE_TEMPLATE.format(
+        source=norm_source,
+        target=norm_target,
+        start_chapter=request.chapter_start,
+        end_chapter=request.chapter_end,
+        interactions_text=interactions_text
+    )
+
+    # 4. Call LLM
+    try:
+        if settings.OPENROUTER_API_KEY:
+             llm_client = ClientFactory.create_client(
+                 provider="openrouter",
+                 api_key=settings.OPENROUTER_API_KEY,
+                 model=settings.OPENROUTER_MODEL
+             )
+        else:
+             llm_client = ClientFactory.create_client(
+                 provider="local",
+                 base_url=settings.LOCAL_LLM_BASE_URL,
+                 model=settings.LOCAL_LLM_MODEL
+             )
+             
+        response = llm_client.generate(prompt)
+        
+        # Parse JSON
+        # Robust parsing: try to find the JSON block
+        try:
+            start = response.find('{')
+            end = response.rfind('}') + 1
+            if start != -1 and end != -1:
+                json_str = response[start:end]
+                data = json.loads(json_str)
+            else:
+                data = json.loads(response) # Try direct parse
+        except json.JSONDecodeError:
+            print(f"LLM JSON Error: {response}")
+            # Fallback
+            data = {
+                "stage_label": "Analysis Failed",
+                "summary_text": response[:100] + "...",
+                "sentiment_score": 0.0
+            }
+
+        stage_label = data.get("stage_label", "Unknown")
+        summary_text = data.get("summary_text", "No summary generated.")
+        sentiment_score = float(data.get("sentiment_score", 0.0))
+
+        # 5. Save Cache
+        # Delete old if exists (force mode)
+        if request.force:
+             existing = session.exec(select(RelationshipStage).where(
+                RelationshipStage.novel_name == novel_name,
+                RelationshipStage.file_hash == file_hash,
+                RelationshipStage.source_entity == norm_source,
+                RelationshipStage.target_entity == norm_target,
+                RelationshipStage.start_chapter == request.chapter_start,
+                RelationshipStage.end_chapter == request.chapter_end
+            )).all()
+             for item in existing:
+                session.delete(item)
+        
+        new_stage = RelationshipStage(
+            novel_name=novel_name,
+            file_hash=file_hash,
+            source_entity=norm_source,
+            target_entity=norm_target,
+            start_chapter=request.chapter_start,
+            end_chapter=request.chapter_end,
+            stage_label=stage_label,
+            summary_text=summary_text,
+            sentiment_score=sentiment_score,
+            event_count=current_event_count,
+            timestamp=datetime.now().isoformat()
+        )
+        session.add(new_stage)
+        session.commit()
+        
+        return RelationshipStageResponse(
+            start_chapter=request.chapter_start,
+            end_chapter=request.chapter_end,
+            stage_label=stage_label,
+            summary_text=summary_text,
+            sentiment_score=sentiment_score,
+            is_cached=False
+        )
+
+    except Exception as e:
+        print(f"LLM/Analysis Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/{novel_name}/{file_hash}/relationship/stages", response_model=List[RelationshipStageResponse])
+def get_relationship_stages(
+    novel_name: str, 
+    file_hash: str, 
+    source: str, 
+    target: str, 
+    session: Session = Depends(get_session)
+):
+    """
+    Get all analyzed relationship stages for a specific pair.
+    """
+    from core.db.models import RelationshipStage
+    import os
+
+    # Normalize Names
+    base_dir = os.getcwd()
+    alias_path = os.path.join(base_dir, "config", "aliases.json")
+    if os.path.exists(alias_path):
+        aggregator = EntityAggregator(alias_file=alias_path)
+    else:
+        aggregator = EntityAggregator()
+
+    norm_source = aggregator._normalize_text(source)
+    norm_target = aggregator._normalize_text(target)
+    
+    if not norm_source or not norm_target:
+        return []
+
+    stages = session.exec(select(RelationshipStage).where(
+        RelationshipStage.novel_name == novel_name,
+        RelationshipStage.file_hash == file_hash,
+        RelationshipStage.source_entity == norm_source,
+        RelationshipStage.target_entity == norm_target
+    ).order_by(RelationshipStage.start_chapter)).all()
+    
+    return [
+        RelationshipStageResponse(
+            start_chapter=s.start_chapter,
+            end_chapter=s.end_chapter,
+            stage_label=s.stage_label,
+            summary_text=s.summary_text,
+            sentiment_score=s.sentiment_score,
+            is_cached=True
+        )
+        for s in stages
+    ]
+
+@router.get("/{novel_name}/{file_hash}/relationship/all_stages", response_model=List[RelationshipStageLabel])
+def get_all_relationship_stages(
+    novel_name: str, 
+    file_hash: str, 
+    session: Session = Depends(get_session)
+):
+    """
+    Get index of all relationship stages for the novel (lightweight).
+    Used for graph visualization to show labels.
+    """
+    from core.db.models import RelationshipStage
+    stages = session.exec(select(RelationshipStage).where(
+        RelationshipStage.novel_name == novel_name,
+        RelationshipStage.file_hash == file_hash
+    )).all()
+    
+    return [
+        RelationshipStageLabel(
+            source_entity=s.source_entity,
+            target_entity=s.target_entity,
+            start_chapter=s.start_chapter,
+            end_chapter=s.end_chapter,
+            stage_label=s.stage_label
+        )
+        for s in stages
+    ]
 
 from backend.narrative_engine.core.store import StateStore
 from backend.narrative_engine.core.engine import NarrativeEvolutionEngine
